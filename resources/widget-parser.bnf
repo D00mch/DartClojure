@@ -1,0 +1,26 @@
+s            = value
+
+invocation   = constructor (<'.'> (constructor|identifier))*
+constructor  = 'const'? identifier params <';'?>
+
+params       = <'('>  <')'>
+             | (<'('> argument (<','> argument)* <','?> <')'>)
+argument     = value | (named-arg value)
+named-arg    = identifier <':'> 
+
+<value>      = number | string | identifier | lambda | ternary
+             | invocation | !invocation constructor
+
+lambda       = lambda-args <async?> (lambda-body | lambda-exp)
+lambda-args  = <'('> typed-arg? (<','> typed-arg)* <')'> 
+<typed-arg>  = <(identifier)?> identifier  
+async        = 'async'
+lambda-exp   = #'(=>[^,{}]*)'
+lambda-body  = <'{'> <nobracket+> lambda-body* <'}'>
+nobracket    = #'[^{}]'
+
+ternary      = identifier '?' (identifier | number) ':' (identifier | number)
+string       = #'([\"\'])(?:(?=(\\?))\2.)*?\1'
+<identifier> = #'[a-zA-Z_]+[a-zA-Z0-9.?]*' 
+number       = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
+<digit>      = #'[0-9]'

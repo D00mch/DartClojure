@@ -1,0 +1,19 @@
+{:paths ["src" "resources"]
+ :deps {org.clojure/clojure {:mvn/version "1.10.3"}
+        instaparse/instaparse {:mvn/version "1.4.12"}
+        better-cond/better-cond {:mvn/version "2.1.4"}}
+ :aliases
+ {:depstar {:replace-deps
+            {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
+            :ns-default hf.depstar
+            :exec-fn hf.depstar/uberjar
+            :exec-args {:jar dartclj.jar
+                        :aot true
+                        :compile-ns [dumch.dartclojure]
+                        :main-class "dumch.dartclojure"}}
+  :test {:extra-paths ["test"]
+         :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                      io.github.cognitect-labs/test-runner
+                      {:git/tag "v0.5.0" :git/sha "48c3c67"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}}}
