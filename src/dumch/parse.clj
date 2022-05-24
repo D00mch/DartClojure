@@ -87,6 +87,7 @@
   (= :params tag) (str/join " " (map lsp->clojure (rest node)))
   (and (= :argument tag) v2) (str/join " " (map lsp->clojure (rest node)))
   (= :argument tag) (lsp->clojure v1)  
+  (= :list tag) (str "[" (str/join " " (map lsp->clojure (rest node))) "]")
 
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
   (= :lambda tag) 
@@ -108,42 +109,37 @@
   (->> dart remove-comments widget-parser lsp->clojure read-string))
 
 (comment 
+  (def column
+  "
+Column(
+ children: [
+   FlutterLogo(size: 50,),
+   const Text('Flutter tutorial by woolha.com', style: const TextStyle(color: Colors.teal)),
+   Icon(Icons.widgets),
+ ],
+)")
+
+
+  (def code "
+Column(
+  children: const <Widget>[
+    Text('Deliver features faster'),
+    Text('Craft beautiful UIs'),
+    Expanded(
+      child: FittedBox(
+        fit: BoxFit.contain, // otherwise the logo will be tiny
+        child: FlutterLogo(),
+      ),
+    ),
+  ],
+)")
+
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (dart->clojure 
-  "return MaterialApp(
-    title: 'Flutter Demo', /* adfaf */
-    initialRoute: initialRoot,
-    onGenerateRoute: router.generator,
-    theme: ThemeData(
-      primarySwatch: Colors.blue,
-    ),
-    // home: const MyHomePage(title: 'Flutter Demo Home Page'),
-  );")
-
-
-  (def code "
-  return AnimatedContainer(
-        transformAlignment: Alignment.center,
-        transform: Matrix4.diagonal3Values(
-          _isOpened ? 0.7 : 1.0,
-          _isOpened ? 0.7 : 1.0,
-          1.0,
-        ),
-        duration: const Duration(milliseconds: 250),
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-        child: AnimatedRotation(
-            turns: _isOpened ? -0.1 : 0,
-            curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
-            duration: const Duration(milliseconds: 250),
-            child: FloatingActionButton(
-              onPressed: () => widget.closeHint.value = !widget.closeHint.value,
-              backgroundColor: _isOpened ? Colors.white : theme.primaryColor,
-              child: Icon(Icons.add, color: _isOpened ? theme.primaryColor : Colors.white),
-            )),
-      )")
+  (insta/parse widget-parser column)
 
   (dart->clojure code)
-  (insta/parse widget-parser code))
+  )
+

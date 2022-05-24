@@ -36,6 +36,7 @@ into:
 - constructors invocation;
 - static, factory methods invocation;
 - named arguments;
+- (typed) lists;
 - constants (only without pprint mode);
 - ternary operators;
 - lambdas arguments;

@@ -8,8 +8,11 @@ params       = <'('>  <')'>
 argument     = value | (named-arg value)
 named-arg    = identifier <':'> 
 
+list         = 'const'? <('<' identifier '>')?> 
+               <'['> value (<','> value)* <','?> <']'>
+
 <value>      = number | string | identifier | lambda | ternary
-             | invocation | !invocation constructor
+             | invocation | !invocation constructor | list
 
 lambda       = lambda-args <async?> (lambda-body | lambda-exp)
 lambda-args  = <'('> typed-arg? (<','> typed-arg)* <')'> 

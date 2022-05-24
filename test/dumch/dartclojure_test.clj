@@ -23,7 +23,17 @@
     (is (= (dart->clojure "SClass.field.copyWith(border: 1)")
         '(-> m/SClass .field (.copyWith :border 1))))))
 
-(deftest complex-example
+(deftest list-parameter-test
+  (is 
+    (= (-> "Column(
+             children: [
+               const Text('name'),
+               Icon(Icons.widgets),
+             ])" 
+          dart->clojure)
+       '(m/Column :children [(m/Text "name") (m/Icon m.Icons/widgets)]))))
+
+(deftest complex-example-test
   (is 
     (= 
       (-> "
