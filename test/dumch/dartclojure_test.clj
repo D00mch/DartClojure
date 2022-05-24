@@ -1,6 +1,6 @@
 (ns dumch.dartclojure-test
   (:require [clojure.test :refer :all]
-            [dumch.dartclojure :refer :all]))
+            [dumch.parse :refer :all]))
 
 (deftest invocations-name-test
   (testing "simple constructor"
