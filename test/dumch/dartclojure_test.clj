@@ -31,7 +31,7 @@
                Icon(Icons.widgets),
              ])" 
           dart->clojure)
-       '(m/Column :children [(m/Text "name") (m/Icon m.Icons/widgets)]))))
+       '(m/Column :children '((m/Text "name") (m/Icon m.Icons/widgets))))))
 
 (deftest complex-example-test
   (is 

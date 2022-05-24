@@ -87,7 +87,10 @@
   (= :params tag) (str/join " " (map lsp->clojure (rest node)))
   (and (= :argument tag) v2) (str/join " " (map lsp->clojure (rest node)))
   (= :argument tag) (lsp->clojure v1)  
-  (= :list tag) (str "[" (str/join " " (map lsp->clojure (rest node))) "]")
+
+  ;; the only reason for it being quoted list and not vector is the problem
+  ;; with using zipper (improve.clj) on a collectoin with both seq and vector 
+  (= :list tag) (str "'(" (str/join " " (map lsp->clojure (rest node))) ")")
 
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
   (= :lambda tag) 
@@ -109,36 +112,19 @@
   (->> dart remove-comments widget-parser lsp->clojure read-string))
 
 (comment 
-  (def column
-  "
-Column(
- children: [
-   FlutterLogo(size: 50,),
-   const Text('Flutter tutorial by woolha.com', style: const TextStyle(color: Colors.teal)),
-   Icon(Icons.widgets),
- ],
-)")
-
-
+  
   (def code "
 Column(
-  children: const <Widget>[
-    Text('Deliver features faster'),
-    Text('Craft beautiful UIs'),
-    Expanded(
-      child: FittedBox(
-        fit: BoxFit.contain, // otherwise the logo will be tiny
-        child: FlutterLogo(),
-      ),
-    ),
-  ],
-)")
+ children: [
+   const Text('name'),
+   Icon(Icons.widgets),
+])")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (insta/parse widget-parser column)
+  (->> code (insta/parse widget-parser) lsp->clojure clojure.pprint/pprint)
 
   (dart->clojure code)
   )
