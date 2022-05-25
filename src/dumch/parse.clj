@@ -77,6 +77,9 @@
   (= :map tag)
   (str "{" (str/join " " (map #(lsp->clojure % m) (rest node))) "}" )
 
+  (= :get tag)
+  (str "(get " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
+
   (and (= :invocation tag) v2)
   (str "(-> " (lsp->clojure v1 m) 
             (->> node

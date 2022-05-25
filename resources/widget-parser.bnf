@@ -11,9 +11,14 @@ named-arg    = identifier <':'>
 list         = 'const'? <('<' identifier '>')?> 
                <'['> value (<','> value)* <','?> <']'>
 
-<value>      = number | string | identifier | lambda | ternary
+map          = <'{'> (identifier|string|number) <':'> value
+               (<','> (identifier|string|number) <':'> value)*  <'}'>
+
+get          = identifier <'['> (identifier | string | number) <']'>     
+
+<value>      = number | string | !get identifier | lambda | ternary
              | invocation | !invocation constructor 
-             | list | !lambda map | or | not
+             | list | !lambda map | or | not | get 
 
 <statement>  = assignment
 
@@ -23,9 +28,6 @@ lambda-args  = <'('> typed-arg? (<','> typed-arg)* <')'>
 async        = 'async'
 lambda-exp   = value
 lambda-body  = <'{'> <nobracket+> lambda-body* <'}'>
-
-map          = <'{'> (identifier|string|number) <':'> value
-               (<','> (identifier|string|number) <':'> value)*  <'}'>
 
 assignment   = identifier <'='> value
 

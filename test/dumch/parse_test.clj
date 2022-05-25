@@ -49,6 +49,9 @@
 (deftest set!-test
   (is (= (dart->clojure "a = b") '(set! a b))))
 
+(deftest get-test
+  (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
+
 ; (deftest complex-example-test
 ;   (is 
 ;     (= 
