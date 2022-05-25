@@ -57,13 +57,12 @@
   [s c i]
   (str (subs s 0 i) c (subs s i)))
 
-(defnc- lsp->clojure [[tag v1 v2 v3 _ v5 :as node] 
-                      & {:keys [m] :or {m "m"}}]
+(defnc- lsp->clojure [[tag v1 v2 v3 _ v5 :as node] m]
 
   (= v1 "const") 
-  (str "^:private " (lsp->clojure (remove #(= % "const" ) node)))
+  (str "^:private " (lsp->clojure (remove #(= % "const" ) node) m))
 
-  (= :s tag) (lsp->clojure v1)
+  (= :s tag) (lsp->clojure v1 m)
 
   (string? node) (identifier-name node m)
   (= :string tag) (str/replace v1 #"\"|'" "\"")
@@ -71,35 +70,35 @@
   (= :number tag) (node->number node) 
 
   (and (= :invocation tag) v2)
-  (str "(-> " (lsp->clojure v1) 
+  (str "(-> " (lsp->clojure v1 m) 
             (->> node
                  (drop 2)
-                 (map lsp->clojure)
+                 (map #(lsp->clojure % m))
                  (map #(str-insert % \. 1))
                  (str/join " "))
             ")")
 
-  (= :invocation tag) (lsp->clojure v1)
+  (= :invocation tag) (lsp->clojure v1 m)
 
   (= :constructor tag)
-  (str (constructor-name v1 (lsp->clojure v2) m))
+  (str (constructor-name v1 (lsp->clojure v2 m) m))
 
-  (= :params tag) (str/join " " (map lsp->clojure (rest node)))
-  (and (= :argument tag) v2) (str/join " " (map lsp->clojure (rest node)))
-  (= :argument tag) (lsp->clojure v1)  
+  (= :params tag) (str/join " " (map #(lsp->clojure % m) (rest node)))
+  (and (= :argument tag) v2) (str/join " " (map #(lsp->clojure % m) (rest node)))
+  (= :argument tag) (lsp->clojure v1 m)  
 
   ;; the only reason for it being quoted list and not vector is the problem
-  ;; with using zipper (improve.clj) on a collectoin with both seq and vector 
-  (= :list tag) (str "'(" (str/join " " (map lsp->clojure (rest node))) ")")
+  ;; with using zipper (improve) on a collectoin with both seq and vector 
+  (= :list tag) (str "'(" (str/join " " (map #(lsp->clojure % m) (rest node))) ")")
 
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
   (= :lambda tag) 
-  (str "(fn " (str/join " " (map lsp->clojure (rest node))) ")")
+  (str "(fn " (str/join " " (map #(lsp->clojure % m) (rest node))) ")")
 
   (= :ternary tag)
-  (str "(if " (lsp->clojure v1) " " 
-          (lsp->clojure v3) " "
-          (lsp->clojure v5) ")")
+  (str "(if " (lsp->clojure v1 m) " " 
+          (lsp->clojure v3 m) " "
+          (lsp->clojure v5 m) ")")
 
   :unknown)
 
@@ -108,8 +107,8 @@
       (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "") ; /* comment block */ 
       (str/replace #"(\/\/)(.+?)(?=[\n\r]|\*\))" "" #_one-line-comment )))
 
-(defn dart->clojure [dart]
-  (->> dart remove-comments widget-parser lsp->clojure read-string))
+(defn dart->clojure [dart & {m :material :or {m "m"}}]
+  (-> dart remove-comments widget-parser (lsp->clojure m) read-string))
 
 (comment 
   
@@ -118,14 +117,34 @@ Column(
  children: [
    const Text('name'),
    Icon(Icons.widgets),
-])")
+  AnimatedContainer(
+        transformAlignment: Alignment.center,
+        transform: Matrix4.diagonal3Values(
+          _isOpened ? 0.7 : 1.0,
+          _isOpened ? 0.7 : 1.0,
+          1.0,
+        ),
+        duration: const Duration(milliseconds: 250),
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+        child: AnimatedRotation(
+            turns: _isOpened ? -0.1 : 0,
+            curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
+            duration: const Duration(milliseconds: 250),
+            child: FloatingActionButton(
+              onPressed: () => widget.closeHint.value = !widget.closeHint.value,
+              backgroundColor: _isOpened ? Colors.white : theme.primaryColor,
+              child: Icon(Icons.add, color: _isOpened ? theme.primaryColor : Colors.white),
+            )),
+  )
+])
+")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (->> code (insta/parse widget-parser) lsp->clojure clojure.pprint/pprint)
+  (-> (insta/parse widget-parser code) (lsp->clojure "m") clojure.pprint/pprint)
 
-  (dart->clojure code)
+  (dart->clojure code :material "b")
   )
 

@@ -1,6 +1,6 @@
 (ns dumch.improve 
   (:require
-    [clojure.zip :as z :refer [left right up down node seq-zip]]
+    [clojure.zip :as z]
     [clojure.walk :as walk]))
 
 (defn- unplug-child [f]
@@ -11,11 +11,11 @@
         child (nth f value-i)]
     `(~parent ~child)))
 
-(defn- nest-flatten [f]
+(defn- nest-flatten [flutter form]
   (loop [rslt []
-         f f]
+         f form]
     (if (< (.indexOf f :child) 0)
-      `(f/nest ~@rslt ~f)
+      `(~(symbol (str flutter "/nest")) ~@rslt ~f)
       (let [[parent child] (unplug-child f)]
         (recur (conj rslt parent) child)))))
 
@@ -27,7 +27,7 @@
        (take-while (complement z/end?))))
 
 (defn- iter-right [zipper]
-  (->> (iterate right zipper)
+  (->> (iterate z/right zipper)
        (take-while (complement nil?))))
 
 (defn- find-child-node [iter zipper]
@@ -39,11 +39,11 @@
   (loop [n n, loc loc]
     #_(println :n n :ch (some-> loc node))
     (cond (and loc (= 0 n)) true
-          (not (some-> loc node seq?)) false 
+          (not (some-> loc z/node seq?)) false 
           :else 
           (recur (dec n) 
                  ;; go next level and nested child is right after :child name
-                 (some->> loc down (find-child-node iter-right) right)))))
+                 (some->> loc z/down (find-child-node iter-right) z/right)))))
 
 (defn lists->vectors [widget]
   (clojure.walk/postwalk 
@@ -53,12 +53,12 @@
         node))
     widget))
 
-(defn wrap-nest [widget]
-  (loop [loc (seq-zip widget)]
+(defn wrap-nest [widget & {f :flutter :or {f "f"}}]
+  (loop [loc (z/seq-zip widget)]
     (if (z/end? loc)
-      (lists->vectors (node loc))
+      (lists->vectors (z/node loc))
       (if (has-children? 3 loc)
-        (recur (->> loc node nest-flatten (z/replace loc) z/next))
+        (recur (->> loc z/node (nest-flatten f) (z/replace loc) z/next))
         (recur (z/next loc))))))
 
 (comment 
@@ -67,18 +67,20 @@
                  :child 
                  (:Box :child (:Padding :child (:Text "2")))))
 
+  (nest-flatten "f" nested)
+
   (def widget `(:Column
                  :children 
                  ((:Padding :child (:Text "1"))
                   ~nested)))
 
-  (wrap-nest widget)
+  (lists->vectors (wrap-nest widget))
 
-  (->> nested seq-zip (has-children? 3))
+  (->> nested z/seq-zip (has-children? 3))
 
-  (->> widget seq-zip iter-depth 
+  (->> widget z/seq-zip iter-depth 
        (filter #(has-children? 3 %)) 
-       (map node))
+       (map z/node))
 
   (->>
     '(m/Column 
