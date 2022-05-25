@@ -1,5 +1,12 @@
 s            = value | statement
 
+<value>      = number | string | !get identifier | lambda | ternary
+             | invocation | !invocation constructor 
+             | list | !lambda map | or | not | get 
+
+<statement>  = assignment
+
+
 invocation   = constructor (<'.'> (constructor|identifier))*
 constructor  = <'return'?> 'const'? identifier params <';'?>
 
@@ -9,18 +16,15 @@ argument     = value | (named-arg value)
 named-arg    = identifier <':'> 
 
 list         = 'const'? <('<' identifier '>')?> 
-               <'['> value (<','> value)* <','?> <']'>
+               <'['> list-el (<','> list-el)* <','?> <']'>
+<list-el>    = spread | value      
+spread       = '...' value 
 
 map          = <'{'> (identifier|string|number) <':'> value
                (<','> (identifier|string|number) <':'> value)*  <'}'>
 
 get          = identifier <'['> (identifier | string | number) <']'>     
 
-<value>      = number | string | !get identifier | lambda | ternary
-             | invocation | !invocation constructor 
-             | list | !lambda map | or | not | get 
-
-<statement>  = assignment
 
 lambda       = lambda-args <async?> (lambda-body | <'=>'> (value | statement))
 lambda-args  = <'('> typed-arg? (<','> typed-arg)* <')'> 

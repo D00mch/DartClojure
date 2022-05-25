@@ -114,7 +114,6 @@
   (= :or tag)
   (str "(or " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
 
-
   :unknown)
 
 (defn- clean [code]
@@ -143,18 +142,12 @@ Column(
 )
   ")
 
-  (def code3 "
+  (def code "
 ListView(
    scrollDirection: Axis.vertical,
    children: [...state.a.map((acc) => _t(ctx, acc))],
 )"
   )
-
-  (def code2 "BlocProvider(create: (_) => MainBloc(tabs[2]))")
-
-  (def code "
-     Text(onPressed: () => widget.closeHint.value = !widget.closeHint.value) 
-  ")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")

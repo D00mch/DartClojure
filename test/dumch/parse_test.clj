@@ -1,5 +1,6 @@
 (ns dumch.parse-test
   (:require [clojure.test :refer :all]
+            [dumch.improve :refer [lists->vectors]]
             [dumch.parse :refer :all]))
 
 (deftest invocations-name-test
@@ -24,23 +25,28 @@
         '(-> m/SClass .field (.copyWith :border 1))))))
 
 (deftest list-test
-  (is 
-    (= (-> "Column(
-             children: [
-               const Text('name'),
-               Icon(Icons.widgets),
-             ])" 
-          dart->clojure)
-       '(m/Column :children '((m/Text "name") (m/Icon m.Icons/widgets))))))
+  (testing "ignore spread operator"
+    (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
+               dart->clojure
+               lists->vectors)
+           '(:unknown))))
+  (testing "column children typeless list"
+    (is 
+      (= (-> "Column(
+                     children: [
+                                const Text('name'),
+                                Icon(Icons.widgets),
+                                ])" 
+             dart->clojure)
+         '(m/Column :children '((m/Text "name") (m/Icon m.Icons/widgets)))))))
 
 (deftest map-test
     (is 
-      (= (-> "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})" 
-             dart->clojure)
+      (= (dart->clojure "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})")
          '(.icon m/ListCell :m {1 2, "a" b, c "d"}))))
 
 (deftest or-test ;; TODO: support ? on names 
-  (is (= (-> "_packageInfo?.version ?? 1.0" dart->clojure)
+  (is (= (dart->clojure "_packageInfo?.version ?? 1.0")
          '(or (.version _packageInfo?) 1.0))))
 
 (deftest not-test
