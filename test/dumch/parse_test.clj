@@ -30,20 +30,25 @@
                dart->clojure
                lists->vectors)
            '(:unknown))))
+  (testing "typed list"
+    (is (= (-> "<Int>[1, 2]" dart->clojure lists->vectors)
+           '(1 2))))
   (testing "column children typeless list"
     (is 
-      (= (-> "Column(
-                     children: [
-                                const Text('name'),
-                                Icon(Icons.widgets),
-                                ])" 
+      (= (-> "Column(children: [const Text('name'),
+                                Icon(Icons.widgets)])" 
              dart->clojure)
          '(m/Column :children '((m/Text "name") (m/Icon m.Icons/widgets)))))))
 
 (deftest map-test
+  (testing "typeless map as named parameter"
     (is 
       (= (dart->clojure "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})")
          '(.icon m/ListCell :m {1 2, "a" b, c "d"}))))
+  (testing "typed map" 
+    (is 
+      (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure lists->vectors)
+         {1 [1 2]}))))
 
 (deftest or-test ;; TODO: support ? on names 
   (is (= (dart->clojure "_packageInfo?.version ?? 1.0")

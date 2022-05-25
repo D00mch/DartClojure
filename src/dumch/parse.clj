@@ -105,6 +105,10 @@
   (= :assignment tag)
   (str "(set! " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
 
+  (= :priority tag) (lsp->clojure v1 m)
+
+  (= :convertion tag) (lsp->clojure v1 m)
+
   (= :ternary tag)
   (str "(if " (lsp->clojure v1 m) " " 
           (lsp->clojure v2 m) " "
@@ -127,14 +131,14 @@
 
 (comment 
   
-  (def code4
+  (def code
     "
 Column(
   children: [
     Question(
       questions[_questionIndex]['questionText'],
     ),
-    ...(questions[_questionIndex]['answers'] as List<String>)
+    (questions[_questionIndex]['answers'] as List<String>)
         .map((answer) {
       return Answer(_answerQuestion, answer);
     }).toList()

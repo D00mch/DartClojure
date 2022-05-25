@@ -1,28 +1,26 @@
 s            = value | statement
 
-<value>      = number | string | !get identifier | lambda | ternary
+<value>      = (number | string | !get identifier | lambda | ternary
              | invocation | !invocation constructor 
-             | list | !lambda map | or | not | get 
+             | list | !lambda map | or | not | get | convertion 
+             | priority ) <';'?> 
 
 <statement>  = assignment
 
-
-invocation   = constructor (<'.'> (constructor|identifier))*
+invocation   = (constructor | priority) (<'.'> (constructor|identifier))*
 constructor  = <'return'?> 'const'? identifier params <';'?>
-
 params       = <'('>  <')'>
              | (<'('> argument (<','> argument)* <','?> <')'>)
 argument     = value | (named-arg value)
 named-arg    = identifier <':'> 
 
-list         = 'const'? <('<' identifier '>')?> 
+list         = 'const'? <type?> 
                <'['> list-el (<','> list-el)* <','?> <']'>
 <list-el>    = spread | value      
 spread       = '...' value 
-
-map          = <'{'> (identifier|string|number) <':'> value
+map          = 'const'? <type?> 
+               <'{'> (identifier|string|number) <':'> value
                (<','> (identifier|string|number) <':'> value)*  <'}'>
-
 get          = (get | identifier) <'['> (identifier | string | number) <']'>     
 
 
@@ -34,7 +32,10 @@ lambda-exp   = value
 lambda-body  = <'{'> <nobracket+> lambda-body* <'}'>
 
 assignment   = identifier <'='> value
+convertion   = value 'as' identifier type? 
+priority     = <'('> value <')'> 
 
+<type>       = '<' (identifier type?) (',' (identifier type?))* '>'
 not          = <'!'> value
 or           = identifier <'??'> value
 ternary      = identifier <'?'> value <':'> value
