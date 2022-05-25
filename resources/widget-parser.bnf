@@ -1,4 +1,4 @@
-s            = value
+s            = value | statement
 
 invocation   = constructor (<'.'> (constructor|identifier))*
 constructor  = <'return'?> 'const'? identifier params <';'?>
@@ -12,18 +12,29 @@ list         = 'const'? <('<' identifier '>')?>
                <'['> value (<','> value)* <','?> <']'>
 
 <value>      = number | string | identifier | lambda | ternary
-             | invocation | !invocation constructor | list
+             | invocation | !invocation constructor 
+             | list | !lambda map | or | not
 
-lambda       = lambda-args <async?> (lambda-body | lambda-exp)
+<statement>  = assignment
+
+lambda       = lambda-args <async?> (lambda-body | <'=>'> (value | statement))
 lambda-args  = <'('> typed-arg? (<','> typed-arg)* <')'> 
 <typed-arg>  = <(identifier)?> identifier  
 async        = 'async'
-lambda-exp   = #'(=>[^,{}]*)'
+lambda-exp   = value
 lambda-body  = <'{'> <nobracket+> lambda-body* <'}'>
-nobracket    = #'[^{}]'
 
-ternary      = identifier '?' value ':' value
+map          = <'{'> (identifier|string|number) <':'> value
+               (<','> (identifier|string|number) <':'> value)*  <'}'>
+
+assignment   = identifier <'='> value
+
+not          = <'!'> value
+or           = identifier <'??'> value
+ternary      = identifier <'?'> value <':'> value
 string       = #'([\"\'])(?:(?=(\\?))\2.)*?\1'
-<identifier> = #'[a-zA-Z_]+[a-zA-Z0-9.?]*' 
+<identifier> = #'[a-zA-Z_]+[a-zA-Z0-9.?_]*' 
 number       = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
+
 <digit>      = #'[0-9]'
+nobracket    = #'[^{}]'

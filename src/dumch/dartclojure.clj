@@ -34,7 +34,8 @@
 
 (defn- show! [data _]
   #_(defonce ^Clipboard clipboard (.. Toolkit getDefaultToolkit getSystemClipboard))
-  (println data)
+  (pprint data)
+  (println)
   #_(when put-in-clipboard? (clipboard-put! (str/join data) clipboard)))
 
 (defn- stdin-loop [material flutter put-in-clipboard?]

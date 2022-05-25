@@ -57,7 +57,7 @@
   [s c i]
   (str (subs s 0 i) c (subs s i)))
 
-(defnc- lsp->clojure [[tag v1 v2 v3 _ v5 :as node] m]
+(defnc- lsp->clojure [[tag v1 v2 v3 :as node] m]
 
   (= v1 "const") 
   (str "^:private " (lsp->clojure (remove #(= % "const" ) node) m))
@@ -68,6 +68,14 @@
   (= :string tag) (str/replace v1 #"\"|'" "\"")
   (= :named-arg tag) (str ":" v1)
   (= :number tag) (node->number node) 
+
+  ;; the only reason for it being quoted list and not vector is the problem
+  ;; with using zipper (improve) on a collectoin with both seq and vector 
+  (= :list tag) 
+  (str "'(" (str/join " " (map #(lsp->clojure % m) (rest node))) ")")
+
+  (= :map tag)
+  (str "{" (str/join " " (map #(lsp->clojure % m) (rest node))) "}" )
 
   (and (= :invocation tag) v2)
   (str "(-> " (lsp->clojure v1 m) 
@@ -87,65 +95,69 @@
   (and (= :argument tag) v2) (str/join " " (map #(lsp->clojure % m) (rest node)))
   (= :argument tag) (lsp->clojure v1 m)  
 
-  ;; the only reason for it being quoted list and not vector is the problem
-  ;; with using zipper (improve) on a collectoin with both seq and vector 
-  (= :list tag) (str "'(" (str/join " " (map #(lsp->clojure % m) (rest node))) ")")
-
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
   (= :lambda tag) 
   (str "(fn " (str/join " " (map #(lsp->clojure % m) (rest node))) ")")
 
+  (= :assignment tag)
+  (str "(set! " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
+
   (= :ternary tag)
   (str "(if " (lsp->clojure v1 m) " " 
-          (lsp->clojure v3 m) " "
-          (lsp->clojure v5 m) ")")
+          (lsp->clojure v2 m) " "
+          (lsp->clojure v3 m) ")")
+
+  (= :not tag) (str "(not " (lsp->clojure v1 m) ")")
+  (= :or tag)
+  (str "(or " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
+
 
   :unknown)
 
-(defn- remove-comments [code]
+(defn- clean [code]
   (-> code
+      (str/replace #",$" ";")
       (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "") ; /* comment block */ 
       (str/replace #"(\/\/)(.+?)(?=[\n\r]|\*\))" "" #_one-line-comment )))
 
 (defn dart->clojure [dart & {m :material :or {m "m"}}]
-  (-> dart remove-comments widget-parser (lsp->clojure m) read-string))
+  (-> dart clean widget-parser (lsp->clojure m) read-string))
 
 (comment 
   
-  (def code "
+  (def code4
+    "
 Column(
- children: [
-   const Text('name'),
-   Icon(Icons.widgets),
-  AnimatedContainer(
-        transformAlignment: Alignment.center,
-        transform: Matrix4.diagonal3Values(
-          _isOpened ? 0.7 : 1.0,
-          _isOpened ? 0.7 : 1.0,
-          1.0,
-        ),
-        duration: const Duration(milliseconds: 250),
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-        child: AnimatedRotation(
-            turns: _isOpened ? -0.1 : 0,
-            curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
-            duration: const Duration(milliseconds: 250),
-            child: FloatingActionButton(
-              onPressed: () => widget.closeHint.value = !widget.closeHint.value,
-              backgroundColor: _isOpened ? Colors.white : theme.primaryColor,
-              child: Icon(Icons.add, color: _isOpened ? theme.primaryColor : Colors.white),
-            )),
-  )
-])
+  children: [
+    Question(
+      questions[_questionIndex]['questionText'],
+    ),
+    ...(questions[_questionIndex]['answers'] as List<String>)
+        .map((answer) {
+      return Answer(_answerQuestion, answer);
+    }).toList()
+  ],
+)
+  ")
 
-")
+  (def code3 "
+ListView(
+   scrollDirection: Axis.vertical,
+   children: [...state.a.map((acc) => _t(ctx, acc))],
+)"
+  )
+
+  (def code2 "BlocProvider(create: (_) => MainBloc(tabs[2]))")
+
+  (def code "
+     Text(onPressed: () => widget.closeHint.value = !widget.closeHint.value) 
+  ")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (-> (insta/parse widget-parser code) (lsp->clojure "m") clojure.pprint/pprint)
+  (insta/parse widget-parser code)
 
-  (dart->clojure code :material "b")
-  )
-
+  (dart->clojure code)
+)
