@@ -23,7 +23,7 @@ spread       = '...' value
 map          = <'{'> (identifier|string|number) <':'> value
                (<','> (identifier|string|number) <':'> value)*  <'}'>
 
-get          = identifier <'['> (identifier | string | number) <']'>     
+get          = (get | identifier) <'['> (identifier | string | number) <']'>     
 
 
 lambda       = lambda-args <async?> (lambda-body | <'=>'> (value | statement))

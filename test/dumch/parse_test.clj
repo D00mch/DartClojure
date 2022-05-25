@@ -56,7 +56,11 @@
   (is (= (dart->clojure "a = b") '(set! a b))))
 
 (deftest get-test
-  (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
+  (testing "single get"
+   (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
+  (testing "serveral get in a row"
+    (is (= (dart->clojure "questions[1]['two']") 
+           '(get (get questions 1) "two")))))
 
 ; (deftest complex-example-test
 ;   (is 
