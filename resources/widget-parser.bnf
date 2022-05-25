@@ -3,9 +3,9 @@ s            = value | statement
 <value>      = (number | string | !get identifier | lambda | ternary
              | invocation | !invocation constructor 
              | list | !lambda map | or | not | get | convertion 
-             | priority ) <';'?> 
+             | priority | relation-exp) <';'?> 
 
-<statement>  = assignment
+<statement>  = assignment | _assignment
 
 invocation   = (constructor | priority) (<'.'> (constructor|identifier))*
 constructor  = <'return'?> 'const'? identifier params <';'?>
@@ -31,7 +31,12 @@ async        = 'async'
 lambda-exp   = value
 lambda-body  = <'{'> <nobracket+> lambda-body* <'}'>
 
+relation-exp = value relation-op value 
+relation-op  = '==' | '>=' | '<=' | '>' | '<'
 assignment   = identifier <'='> value
+_assignment  = identifier _operator value
+_operator    = '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
+             | '>>>=' | '&=' | '^=' | '|=' | '??='
 convertion   = value 'as' identifier type? 
 priority     = <'('> value <')'> 
 

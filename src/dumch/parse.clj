@@ -105,6 +105,8 @@
   (= :assignment tag)
   (str "(set! " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
 
+  (= :_assignment tag) :unidiomatic
+
   (= :priority tag) (lsp->clojure v1 m)
 
   (= :convertion tag) (lsp->clojure v1 m)

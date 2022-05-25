@@ -5,12 +5,22 @@ ClojureDart.
 
 ## Why it is not full dart->clojure converter
 
-Converted code would not be idiomatic, so I see little value in doing this.
+Converted code would not be idiomatic. For example, how would 
+you convert this code:
 
-But rewriting code with widgets is a routine part in most of the
-caseses (when you do not use [helpers macro][1]). 
+```dart?
+onPressed: () { a*= a },
+```
 
-This utility converts dart code like this:
+What is `a`? Is it atom? Is it class field? is it a parameter that 
+will be modified somewhere else? 
+
+So I see little value in converting expressions.
+
+But rewriting widgets tree is a routine part in most of the 
+caseses.
+
+This code:
 
 ```dart 
 Center(
@@ -21,14 +31,13 @@ Center(
 );
 ```
 
-into:
+literally translates into:
 
 ```clojure
 (m/Center
- :child 
- (m/Text
-  (if _active "Active" "Inactive")
-  :style (m/TextStyle :fontSize 32.0 :color m.Colors/white)))
+ :child (m/Text
+     (if _active "Active" "Inactive")
+     :style (m/TextStyle :fontSize 32.0 :color m.Colors/white)))
 ```
 
 ## Supported
