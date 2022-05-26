@@ -1,18 +1,18 @@
 s              = statement | expr
 
-<value>        = (number | string | !get identifier | lambda
+<value>        = (number | string | !get identifier
                | invocation | !invocation constructor 
-               | list | !lambda map | get | convertion
+               | list | map | get | convertion
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not ) <';'?> 
 
-<statement>    = _assignment
+<statement>    = _assignment | if-else
 
 invocation     = (constructor | priority) (<'.'> (constructor|identifier))*
 constructor    = <'return'?> 'const'? identifier params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
-argument       = expr | (named-arg expr) 
+argument       = (expr | lambda) | (named-arg (expr | lambda)) 
 named-arg      = identifier <':'> 
 
 list           = 'const'? <type?> 
@@ -24,13 +24,10 @@ map            = 'const'? <type?>
                  (<','> (identifier|string|number) <':'> value)*  <'}'>
 get            = (get | identifier) <'['> (identifier | string | number) <']'>     
 
-
-lambda         = lambda-args <async?> (lambda-body | <'=>'> (value | statement))
+lambda         = lambda-args <'async'?> (lambda-body | <'=>'> s)
 lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> 
-<typed-arg>    = <(identifier)?> identifier  
-async          = 'async'
-lambda-exp     = value
-lambda-body    = <'{'> <nobracket+> lambda-body* <'}'>
+<typed-arg>    = <(identifier <type?>)?> identifier  
+lambda-body    = <'{'> s (<';'> s)* <'}'>
 
 <expr>         = ternary-val
 <ternary-val>  = ifnull-val | ternary

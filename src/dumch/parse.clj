@@ -110,6 +110,7 @@
   (= :argument tag) (lsp->clojure v1 m)  
 
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
+  (= :lambda-body tag) (str/join " " (map #(lsp->clojure % m) (rest node)))
   (= :lambda tag) 
   (str "(fn " (str/join " " (map #(lsp->clojure % m) (rest node))) ")")
 

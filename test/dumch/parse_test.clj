@@ -88,7 +88,7 @@
 (deftest ternary-test
   (is (= (dart->clojure "a ? b : c") '(if a b c))))
 
-(deftest math
+(deftest math-test
   (testing "difference"
     (is (= (dart->clojure "b - a") '(- b a))))
   (testing "sum"
@@ -101,3 +101,15 @@
     (is (= (dart->clojure "b / a") '(/ b a))))
   (testing "multiply"
     (is (= (dart->clojure "b * a") '(* b a)))))
+
+(deftest lambda-test
+  (testing "lambda with =>"
+    (is (= (dart->clojure "Button(onPressed: (ctx) => 1 + 1;)")
+           '(m/Button :onPressed (fn [ctx] (+ 1 1))))))
+  (testing "lambda with body"
+    (is (= (dart->clojure "Button(onPressed: (ctx) { println(a == a); setState(a); })")
+           '(m/Button :onPressed (fn [ctx] (println (= a a)) (setState a))))))
+  (testing "lambda with typed argument"
+    (is (= (dart->clojure "Button(onPressed: (Context ctx) => 1 + 1;)")
+           '(m/Button :onPressed (fn [ctx] (+ 1 1))))))
+  )

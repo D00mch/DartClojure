@@ -1,5 +1,6 @@
 (ns dumch.integration-test 
   (:require [clojure.test :refer :all]
+            [instaparse.core :as insta]
             [dumch.improve :refer :all]
             [dumch.parse :refer :all]))
 
@@ -25,6 +26,8 @@ AnimatedContainer(
 )")
 
 (deftest complex-example-test
+  (testing "no ambiguity"
+    (is (= 1 (count (insta/parses widget-parser code)))))
   (testing "dart->clojure, using nest macro"
     (is 
       (= 
