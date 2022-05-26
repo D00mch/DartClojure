@@ -6,7 +6,8 @@ s              = statement | expr
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not ) <';'?> 
 
-<statement>    = _assignment | if-else
+<statement>    = _assignment | if | return
+return         = <'return'> expr;
 
 invocation     = (constructor | priority) (<'.'> (constructor|identifier))*
 constructor    = <'return'?> 'const'? identifier params <';'?>
@@ -23,6 +24,11 @@ map            = 'const'? <type?>
                  <'{'> (identifier|string|number) <':'> value
                  (<','> (identifier|string|number) <':'> value)*  <'}'>
 get            = (get | identifier) <'['> (identifier | string | number) <']'>     
+
+if             = <'if'> if-condition if-else-body
+<if-else-body> =  (lambda-body | s <';'>) 
+                  ( (<'else'> | <'else if'> if-condition) if-else-body)*   
+<if-condition> = <'('> expr <')'> 
 
 lambda         = lambda-args <'async'?> (lambda-body | <'=>'> s)
 lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> 

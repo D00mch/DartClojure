@@ -74,6 +74,7 @@
   (str "^:private " (lsp->clojure (remove #(= % "const" ) node) m))
 
   (= :s tag) (lsp->clojure v1 m)
+  (= :return tag) (lsp->clojure v1 m) 
 
   (string? node) (identifier-name node m)
   (= :string tag) (str/replace v1 #"\"|'" "\"")
@@ -108,6 +109,16 @@
   (= :params tag) (str/join " " (map #(lsp->clojure % m) (rest node)))
   (and (= :argument tag) v2) (str/join " " (map #(lsp->clojure % m) (rest node)))
   (= :argument tag) (lsp->clojure v1 m)  
+
+  (and (= :if tag) (= (count node) 3))
+  (str "(when " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
+
+  (and (= :if tag) (= (count node) 4))
+  (str "(if " (->> (rest node) (map #(lsp->clojure % m)) (str/join " ")) ")")
+
+  (= :if tag) 
+  (str "(cond " (->> (rest node) (map #(lsp->clojure % m)) (str/join " ")) ")"
+       (when (even? (count node)) (str " " (lsp->clojure (last node) m))))
 
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
   (= :lambda-body tag) (str/join " " (map #(lsp->clojure % m) (rest node)))

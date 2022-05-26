@@ -114,5 +114,18 @@
            '(m/Button :onPressed (fn [ctx] (println (= a a)) (setState a))))))
   (testing "lambda with typed argument"
     (is (= (dart->clojure "Button(onPressed: (Context ctx) => 1 + 1;)")
-           '(m/Button :onPressed (fn [ctx] (+ 1 1))))))
-  )
+           '(m/Button :onPressed (fn [ctx] (+ 1 1)))))))
+
+(deftest if-test
+  (testing "one branch if with curly body"
+    (is (= (dart->clojure "if (a == b) print('a');")
+           '(when (= a b) (print "a")))))
+  (testing "if else with and without body"
+    (is (= (dart->clojure "if (b) { return 3; } else return 2;")
+           '(if b 3 2))))
+  (testing "if and else-if"
+    (is (= (dart->clojure "if (b) b; else if (a) a; else if (c) c;")
+           '(cond b b a a c c))))
+  (testing "if, and else-if, and else"
+    (is (= (dart->clojure "if (b) b; else if (a) a; else c;")
+           '(cond b b a a c)))))
