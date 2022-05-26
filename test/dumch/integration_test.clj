@@ -45,10 +45,7 @@ AnimatedContainer(
              :duration (m/Duration :milliseconds 250))
            (m/FloatingActionButton
              :onPressed
-             (fn []
-               (set!
-                 (-> widget .closeHint .value)
-                 (not (-> widget .closeHint .value))))
+             (fn [] :unidiomatic)
              :backgroundColor (if _isOpened m.Colors/white (.primaryColor theme)))
            (m/Icon
              m.Icons/add

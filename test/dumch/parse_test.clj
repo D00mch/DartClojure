@@ -58,7 +58,7 @@
   (is (= (dart->clojure "!a") '(not a))))
 
 (deftest set!-test
-  (is (= (dart->clojure "a = b") '(set! a b))))
+  (is (= (dart->clojure "a = b") :unidiomatic)))
 
 (deftest get-test
   (testing "single get"
@@ -66,3 +66,38 @@
   (testing "serveral get in a row"
     (is (= (dart->clojure "questions[1]['two']") 
            '(get (get questions 1) "two")))))
+
+(deftest logic-test
+  (testing "and: &&"
+    (is (= (dart->clojure "b && a") '(and b a))))
+
+  (testing "or: ||, ??"
+    (is (= (dart->clojure "b || a") '(or b a)))
+    (is (= (dart->clojure "b ?? a") '(or b a))))
+
+  (testing "compare: >, <, =>, <="
+    (is (= (dart->clojure "b > a") '(> b a)))
+    (is (= (dart->clojure "b < a") '(< b a)))
+    (is (= (dart->clojure "b >= a") '(>= b a)))
+    (is (= (dart->clojure "b <= a") '(<= b a))))
+
+  (testing "equality: ==, !="
+    (is (= (dart->clojure "b == a") '(= b a)))
+    (is (= (dart->clojure "b != a") '(not= b a)))))
+
+(deftest ternary-test
+  (is (= (dart->clojure "a ? b : c") '(if a b c))))
+
+(deftest math
+  (testing "difference"
+    (is (= (dart->clojure "b - a") '(- b a))))
+  (testing "sum"
+    (is (= (dart->clojure "b + a") '(+ b a))))
+  (testing "remainder"
+    (is (= (dart->clojure "b % a") '(rem b a))))
+  (testing "divide and round"
+    (is (= (dart->clojure "b ~/ a") '(quot b a))))
+  (testing "division"
+    (is (= (dart->clojure "b / a") '(/ b a))))
+  (testing "multiply"
+    (is (= (dart->clojure "b * a") '(* b a)))))

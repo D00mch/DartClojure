@@ -45,19 +45,19 @@ literally translates into:
 - constructors invocation;
 - static, factory methods invocation;
 - named arguments;
-- (typed) lists;
-- constants (only without pprint mode);
+- (typed) lists, maps;
+- math and logical expressions;
 - ternary operators;
-- lambdas arguments;
+- lambdas;
 - comments (will be removed);
 
 ## Not supported
 
-- lambdas body;
-- expressions (only ternary is supported);
-- complex ternary expressions;
+- constants;
 - class declarations;
 - methods declarations;
+- bitwise 
+- compound Assignment
 
 ## How to use
 

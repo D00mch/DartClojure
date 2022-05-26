@@ -34,7 +34,7 @@
              (identifier-name (first parts) material) " ."
              (str/join " ."  (next parts)) ")"))))
 
-(defn constructor-name 
+(defn- constructor-name
   "params: constructor name, params string, material require name"
   [n p m]
 
@@ -52,10 +52,21 @@
              " (." (last parts) " " p ")"
              ")"))))
 
-(defn str-insert
+(defn- str-insert
   "Insert c in string s at index i."
   [s c i]
   (str (subs s 0 i) c (subs s i)))
+
+(defn- operator-name [o]
+  (case o
+    "??" "or"
+    "||" "or"
+    "&&" "and"
+    "==" "="
+    "!=" "not="
+    "%"  "rem"
+    "~/" "quot"
+    o))
 
 (defnc- lsp->clojure [[tag v1 v2 v3 :as node] m]
 
@@ -105,8 +116,6 @@
   (= :assignment tag)
   (str "(set! " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
 
-  (= :_assignment tag) :unidiomatic
-
   (= :priority tag) (lsp->clojure v1 m)
 
   (= :convertion tag) (lsp->clojure v1 m)
@@ -117,8 +126,13 @@
           (lsp->clojure v3 m) ")")
 
   (= :not tag) (str "(not " (lsp->clojure v1 m) ")")
-  (= :or tag)
-  (str "(or " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
+  (= :dec tag) (str "(dec " (lsp->clojure v1 m) ")")
+  (= :inc tag) (str "(inc " (lsp->clojure v1 m) ")")
+  (= :neg tag) (str "(neg " (lsp->clojure v1 m) ")")
+  (#{:compare :add :mul :and :or :ifnull :equality} tag) 
+  (str "(" (operator-name v2) " " (lsp->clojure v1 m) " " (lsp->clojure v3 m) ")")
+
+  (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
 
   :unknown)
 
@@ -128,8 +142,11 @@
       (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "") ; /* comment block */ 
       (str/replace #"(\/\/)(.+?)(?=[\n\r]|\*\))" "" #_one-line-comment )))
 
+(defn- save-read [code]
+  (if (string? code) (read-string code) code))
+
 (defn dart->clojure [dart & {m :material :or {m "m"}}]
-  (-> dart clean widget-parser (lsp->clojure m) read-string))
+  (-> dart clean widget-parser (lsp->clojure m) save-read))
 
 (comment 
   

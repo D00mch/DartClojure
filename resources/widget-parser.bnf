@@ -1,52 +1,74 @@
-s            = value | statement
+s              = statement | expr
 
-<value>      = (number | string | !get identifier | lambda | ternary
-             | invocation | !invocation constructor 
-             | list | !lambda map | or | not | get | convertion 
-             | priority | relation-exp) <';'?> 
+<value>        = (number | string | !get identifier | lambda
+               | invocation | !invocation constructor 
+               | list | !lambda map | get | convertion
+               | inc | _inc | dec | _dec | identifier | number
+               | _tilda | neg | not ) <';'?> 
 
-<statement>  = assignment | _assignment
+<statement>    = _assignment
 
-invocation   = (constructor | priority) (<'.'> (constructor|identifier))*
-constructor  = <'return'?> 'const'? identifier params <';'?>
-params       = <'('>  <')'>
-             | (<'('> argument (<','> argument)* <','?> <')'>)
-argument     = value | (named-arg value)
-named-arg    = identifier <':'> 
+invocation     = (constructor | priority) (<'.'> (constructor|identifier))*
+constructor    = <'return'?> 'const'? identifier params <';'?>
+params         = <'('>  <')'>
+               | (<'('> argument (<','> argument)* <','?> <')'>)
+argument       = expr | (named-arg expr) 
+named-arg      = identifier <':'> 
 
-list         = 'const'? <type?> 
-               <'['> list-el (<','> list-el)* <','?> <']'>
-<list-el>    = spread | value      
-spread       = '...' value 
-map          = 'const'? <type?> 
-               <'{'> (identifier|string|number) <':'> value
-               (<','> (identifier|string|number) <':'> value)*  <'}'>
-get          = (get | identifier) <'['> (identifier | string | number) <']'>     
+list           = 'const'? <type?> 
+                 <'['> list-el (<','> list-el)* <','?> <']'>
+<list-el>      = spread | value      
+spread         = '...' value 
+map            = 'const'? <type?> 
+                 <'{'> (identifier|string|number) <':'> value
+                 (<','> (identifier|string|number) <':'> value)*  <'}'>
+get            = (get | identifier) <'['> (identifier | string | number) <']'>     
 
 
-lambda       = lambda-args <async?> (lambda-body | <'=>'> (value | statement))
-lambda-args  = <'('> typed-arg? (<','> typed-arg)* <')'> 
-<typed-arg>  = <(identifier)?> identifier  
-async        = 'async'
-lambda-exp   = value
-lambda-body  = <'{'> <nobracket+> lambda-body* <'}'>
+lambda         = lambda-args <async?> (lambda-body | <'=>'> (value | statement))
+lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> 
+<typed-arg>    = <(identifier)?> identifier  
+async          = 'async'
+lambda-exp     = value
+lambda-body    = <'{'> <nobracket+> lambda-body* <'}'>
 
-relation-exp = value relation-op value 
-relation-op  = '==' | '>=' | '<=' | '>' | '<'
-assignment   = identifier <'='> value
-_assignment  = identifier _operator value
-_operator    = '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
-             | '>>>=' | '&=' | '^=' | '|=' | '??='
-convertion   = value 'as' identifier type? 
-priority     = <'('> value <')'> 
+<expr>         = ternary-val
+<ternary-val>  = ifnull-val | ternary
+ternary        = ternary-val <'?'> ifnull-val <':'> ifnull-val
+<ifnull-val>   = and-val | ifnull
+ifnull         = ifnull-val '??' and-val
+<and-val>      = or-val | and
+and            = and-val '&&' or-val
+<or-val>       = equality-val | or
+or             = or-val '||' equality-val
+<equality-val> = compare-val | equality
+equality       = equality-val ( '==' | '!=' ) compare-val
+<compare-val>  = add-val | compare 
+compare        = compare-val ( '<' | '>' | '<=' | '>=' ) add-val 
+<add-val>      = mul-val | add
+add            = add-val ('+' | '-') mul-val
+<mul-val>      = term | mul
+mul            = mul-val ('*' | '/' | '%' | '~/' ) term
+<term>         = value | <'('> add-val <')'>
 
-<type>       = '<' (identifier type?) (',' (identifier type?))* '>'
-not          = <'!'> value
-or           = identifier <'??'> value
-ternary      = identifier <'?'> value <':'> value
-string       = #'([\"\'])(?:(?=(\\?))\2.)*?\1'
-<identifier> = #'[a-zA-Z_]+[a-zA-Z0-9.?_]*' 
-number       = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
+neg            = !number <'-'> value
+not            = <'!'> value
+dec            = <'--'> value
+inc            = <'++'> value
+_dec           = value <'--'>
+_inc           = value <'++'>
+_tilda         = <'~'> value
 
-<digit>      = #'[0-9]'
-nobracket    = #'[^{}]'
+_assignment    = identifier _operator value
+_operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
+               | '>>>=' | '&=' | '^=' | '|=' | '??='
+convertion     = value 'as' identifier type? 
+priority       = <'('> value <')'> 
+
+<type>         = '<' (identifier type?) (',' (identifier type?))* '>'
+string         = #'([\"\'])(?:(?=(\\?))\2.)*?\1'
+<identifier>   = #'[a-zA-Z_]+[a-zA-Z0-9.?_]*' 
+number         = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
+
+<digit>        = #'[0-9]'
+nobracket      = #'[^{}]'
