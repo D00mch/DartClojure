@@ -59,6 +59,7 @@
 
 (defn- operator-name [o]
   (case o
+    "is" "dart/is?"
     "??" "or"
     "||" "or"
     "&&" "and"
@@ -130,8 +131,6 @@
 
   (= :priority tag) (lsp->clojure v1 m)
 
-  (= :convertion tag) (lsp->clojure v1 m)
-
   (= :ternary tag)
   (str "(if " (lsp->clojure v1 m) " " 
           (lsp->clojure v2 m) " "
@@ -139,6 +138,8 @@
 
   (= :neg tag) (str "(- " (lsp->clojure v1 m) ")")
   (#{:not :dec :inc} tag) (str "(" (name tag) " " (lsp->clojure v1 m) ")") 
+
+  (and (= tag :compare) (= v2 "as")) (lsp->clojure v3 m)
   (#{:compare :add :mul :and :or :ifnull :equality} tag) 
   (str "(" (operator-name v2) " " (lsp->clojure v1 m) " " (lsp->clojure v3 m) ")")
 

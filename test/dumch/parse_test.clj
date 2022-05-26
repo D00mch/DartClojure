@@ -76,7 +76,8 @@
     (is (= (dart->clojure "b > a") '(> b a)))
     (is (= (dart->clojure "b < a") '(< b a)))
     (is (= (dart->clojure "b >= a") '(>= b a)))
-    (is (= (dart->clojure "b <= a") '(<= b a))))
+    (is (= (dart->clojure "b <= a") '(<= b a)))
+    (is (= (dart->clojure "1 is int") '(dart/is? 1 int))))
 
   (testing "equality: ==, !="
     (is (= (dart->clojure "b == a") '(= b a)))

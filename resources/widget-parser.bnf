@@ -2,7 +2,7 @@ s              = statement | expr
 
 <value>        = (number | string | !get identifier
                | invocation | !invocation constructor 
-               | list | map | get | convertion
+               | list | map | get
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not ) <';'?> 
 
@@ -47,7 +47,7 @@ or             = or-val '||' equality-val
 <equality-val> = compare-val | equality
 equality       = equality-val ( '==' | '!=' ) compare-val
 <compare-val>  = add-val | compare 
-compare        = compare-val ( '<' | '>' | '<=' | '>=' ) add-val 
+compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-val 
 <add-val>      = mul-val | add
 add            = add-val ('+' | '-') mul-val
 <mul-val>      = term | mul
@@ -65,7 +65,6 @@ _tilda         = <'~'> value
 _assignment    = identifier _operator value
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
                | '>>>=' | '&=' | '^=' | '|=' | '??='
-convertion     = value 'as' identifier type? 
 priority       = <'('> value <')'> 
 
 <type>         = '<' (identifier type?) (',' (identifier type?))* '>'
