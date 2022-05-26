@@ -54,9 +54,6 @@
   (is (= (dart->clojure "_packageInfo?.version ?? 1.0")
          '(or (.version _packageInfo?) 1.0))))
 
-(deftest not-test
-  (is (= (dart->clojure "!a") '(not a))))
-
 (deftest set!-test
   (is (= (dart->clojure "a = b") :unidiomatic)))
 
@@ -87,6 +84,12 @@
 
 (deftest ternary-test
   (is (= (dart->clojure "a ? b : c") '(if a b c))))
+
+(deftest unary-prefix-test
+  (testing "not" (is (= (dart->clojure "!a") '(not a))))
+  (testing "inc" (is (= (dart->clojure "++a") '(inc a))))
+  (testing "dec" (is (= (dart->clojure "--a") '(dec a))))
+  (testing "-" (is (= (dart->clojure "-a") '(- a)))))
 
 (deftest math-test
   (testing "difference"

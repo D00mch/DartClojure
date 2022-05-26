@@ -126,10 +126,8 @@
           (lsp->clojure v2 m) " "
           (lsp->clojure v3 m) ")")
 
-  (= :not tag) (str "(not " (lsp->clojure v1 m) ")")
-  (= :dec tag) (str "(dec " (lsp->clojure v1 m) ")")
-  (= :inc tag) (str "(inc " (lsp->clojure v1 m) ")")
-  (= :neg tag) (str "(neg " (lsp->clojure v1 m) ")")
+  (= :neg tag) (str "(- " (lsp->clojure v1 m) ")")
+  (#{:not :dec :inc} tag) (str "(" (name tag) " " (lsp->clojure v1 m) ")") 
   (#{:compare :add :mul :and :or :ifnull :equality} tag) 
   (str "(" (operator-name v2) " " (lsp->clojure v1 m) " " (lsp->clojure v3 m) ")")
 
