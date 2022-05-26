@@ -20,37 +20,41 @@
   (if (upper? s) (str material "/" s) s))
 
 (defn- identifier-name [s material]
-  (let [[v1 v2 :as parts] (str/split s #"\.")]
+  (let [with?? (re-matches #".*\?\..*" s)
+        [v1 v2 :as parts] (str/split (str/replace s #"\?\." ".") #"\.")
+        threading #(str
+                     "(" % " " 
+                         (identifier-name (first parts) material) 
+                         " ." (str/join " ."  (next parts)) ")")]
 
-    (case (count parts)
-      1 (str->with-import v1 material)
+    (cond
+      (= (count parts) 1) (str->with-import v1 material)
+      with?? (threading "some->")
 
-      2 (if (upper? v1)
-          (str material "." v1 "/" v2)
-          (str "(." v2 " " v1 ")"))
+      (= (count parts) 2)
+      (if (upper? v1)
+        (str material "." v1 "/" v2)
+        (str "(." v2 " " v1 ")"))
 
-      (str 
-        "(-> " 
-             (identifier-name (first parts) material) " ."
-             (str/join " ."  (next parts)) ")"))))
+      :else (threading "->"))))
 
 (defn- constructor-name
   "params: constructor name, params string, material require name"
-  [n p m]
+  [n p m] ;; TODO: how to remove duplication with identifier-name ?
+  (let [with?? (re-matches #".*\?\..*" n)
+        [v1 v2 :as parts] (str/split (str/replace n #"\?\." ".") #"\.")
+        threading #(str
+                     "(" % " "
+                         (str->with-import v1 m) (when (> (count parts) 2) " .")
+                         (str/join " ."  (butlast (next parts)))
+                         " (." (last parts) " " p ")"
+                         ")")]
 
-  (let [[v1 v2 :as parts] (str/split n #"\.")]
-
-    (case (count parts)
-      1 (str "(" (str->with-import v1 m) " " p ")")
-
-      2 (str "(." v2 " " (str->with-import v1 m) " " p ")")
-
-      (str 
-        "(-> " 
-             (str->with-import v1 m) " ."
-             (str/join " ."  (butlast (next parts)))
-             " (." (last parts) " " p ")"
-             ")"))))
+    (cond 
+      (= 1 (count parts)) (str "(" (str->with-import v1 m) " " p ")")
+      with?? (threading "some->") 
+      (= 2 (count parts)) (str "(." v2 " " (str->with-import v1 m) " " p ")")
+      :else (threading "->"))))
 
 (defn- str-insert
   "Insert c in string s at index i."
@@ -139,7 +143,7 @@
   (= :neg tag) (str "(- " (lsp->clojure v1 m) ")")
   (#{:not :dec :inc} tag) (str "(" (name tag) " " (lsp->clojure v1 m) ")") 
 
-  (and (= tag :compare) (= v2 "as")) (lsp->clojure v3 m)
+  (and (= tag :compare) (= v2 "as")) (lsp->clojure v1 m)
   (#{:compare :add :mul :and :or :ifnull :equality} tag) 
   (str "(" (operator-name v2) " " (lsp->clojure v1 m) " " (lsp->clojure v3 m) ")")
 

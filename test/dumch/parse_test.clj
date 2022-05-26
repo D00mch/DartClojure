@@ -24,6 +24,26 @@
     (is (= (dart->clojure "SClass.field.copyWith(border: 1)")
         '(-> m/SClass .field (.copyWith :border 1))))))
 
+(deftest optional-name-test
+  (testing "optional field somewhere in the chain"
+    (is (= (dart->clojure "obj?.field.name?.first")
+           '(some-> obj .field .name .first)))
+    (is (= (dart->clojure "obj.field?.name")
+           '(some-> obj .field .name))))
+  (testing "field in optional object"
+    (is (= (dart->clojure "obj?.name")
+           '(some-> obj .name)))))
+
+(deftest optional-invocation-test 
+  (testing "optional field somewhere in the invocation chain"
+    (is (= (dart->clojure "SClass?.field.copyWith(border: 1)")
+           '(some-> m/SClass .field (.copyWith :border 1))))
+    (is (= (dart->clojure "SClass.field?.copyWith()")
+           '(some-> m/SClass .field (.copyWith)))))
+  (testing "invocation on optional field"
+    (is (= (dart->clojure "instance?.copyWith(border: 1)")
+           '(some-> instance (.copyWith :border 1))))))
+
 (deftest list-test
   (testing "ignore spread operator"
     (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
@@ -50,10 +70,6 @@
       (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure lists->vectors)
          {1 [1 2]}))))
 
-(deftest or-test ;; TODO: support ? on names 
-  (is (= (dart->clojure "_packageInfo?.version ?? 1.0")
-         '(or (.version _packageInfo?) 1.0))))
-
 (deftest set!-test
   (is (= (dart->clojure "a = b") :unidiomatic)))
 
@@ -67,18 +83,15 @@
 (deftest logic-test
   (testing "and: &&"
     (is (= (dart->clojure "b && a") '(and b a))))
-
   (testing "or: ||, ??"
     (is (= (dart->clojure "b || a") '(or b a)))
     (is (= (dart->clojure "b ?? a") '(or b a))))
-
   (testing "compare: >, <, =>, <="
     (is (= (dart->clojure "b > a") '(> b a)))
     (is (= (dart->clojure "b < a") '(< b a)))
     (is (= (dart->clojure "b >= a") '(>= b a)))
     (is (= (dart->clojure "b <= a") '(<= b a)))
     (is (= (dart->clojure "1 is int") '(dart/is? 1 int))))
-
   (testing "equality: ==, !="
     (is (= (dart->clojure "b == a") '(= b a)))
     (is (= (dart->clojure "b != a") '(not= b a)))))
