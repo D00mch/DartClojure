@@ -2,7 +2,7 @@ s              = (statement | expr) (<';'> s)* <','?>
 
 <value>        = (number | string | !get identifier
                | invocation | !invocation constructor 
-               | list | map | get | typed-value
+               | list | map | get | typed-value | lambda
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not ) <';'?> 
 
@@ -15,7 +15,7 @@ invocation     = (constructor | priority) (<'.'> (constructor|identifier))*
 constructor    = 'const'? identifier params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
-argument       = (expr | lambda) | (named-arg (expr | lambda)) 
+argument       = expr | (named-arg expr) 
 named-arg      = identifier <':'> 
 
 list           = 'const'? <type?> 

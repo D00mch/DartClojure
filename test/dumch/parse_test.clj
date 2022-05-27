@@ -121,6 +121,14 @@
     (is (= (dart->clojure "b * a") '(* b a)))))
 
 (deftest lambda-test
+  (testing "lambda as ternary parameter"
+    (is (= (dart->clojure 
+             "TextButton(onPressed: _searchEnabled ? () { pop(); } : null)")
+           '(m/TextButton
+              :onPressed
+              (if _searchEnabled 
+                (fn [] (pop))
+                null)))))
   (testing "lambda with =>"
     (is (= (dart->clojure "Button(onPressed: (ctx) => 1 + 1;)")
            '(m/Button :onPressed (fn [ctx] (+ 1 1))))))
