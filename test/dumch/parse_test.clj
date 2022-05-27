@@ -1,7 +1,8 @@
 (ns dumch.parse-test
   (:require [clojure.test :refer :all]
             [dumch.improve :refer [lists->vectors]]
-            [dumch.parse :refer :all]))
+            [dumch.parse :refer :all]
+            [instaparse.core :as insta]))
 
 (deftest invocations-name-test
   (testing "simple constructor"
@@ -159,3 +160,23 @@
                                 '/* one more */'
                                 )")
            '(m/Text "http://looks-like-comment" "/* one more */")))))
+
+(deftest strings-test
+  (testing "special symbols inside string test"
+    (is 
+      (= 1 
+         (->> "'\n\t\\s\"'"
+              clean
+              (insta/parses widget-parser) 
+              count))))
+  (testing "multiline string with inner comments" 
+    (is 
+      (= 1 
+         (->>
+           "\"\"\"
+           multiline // comment like 
+           \" some string inside multiline string \"
+           /* another comment */ \"\"\""
+           clean
+           (insta/parses widget-parser) 
+           count)))))

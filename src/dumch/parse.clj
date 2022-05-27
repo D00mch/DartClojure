@@ -74,6 +74,9 @@
     "~/" "quot"
     o))
 
+(defn- substitute-curly-quotes [s]
+  (str/replace s #"\"|'" "”"))
+
 (defnc- lsp->clojure [[tag v1 v2 v3 :as node] m]
 
   (= v1 "const") 
@@ -84,7 +87,7 @@
   (= :typed-value tag) (lsp->clojure v1 m)
 
   (string? node) (identifier-name node m)
-  (= :string tag) (str/replace v1 #"\"|'" "\"")
+  (= :string tag) (str/replace v1 #"^.|.$" "\"")
   (= :named-arg tag) (str ":" v1)
   (= :number tag) (node->number node) 
 
@@ -159,15 +162,35 @@
 (defn- decode [to-decode]
   (String. (.decode (Base64/getDecoder) to-decode)))
 
-(defn- clean [code]
-  (let [str-reg #"([\"\'])(?:(?=(\\?))\2.)*?\1"
+(defn- multiline->single [s]
+  (let [pattern #"'{3}([\s\S]*?'{3})|\"{3}([\s\S]*?\"{3})"
+        transform (fn [[m]] (substitute-curly-quotes m))]
+    (-> s
+        (str/replace pattern transform)
+        (str/replace #"”””" "'"))))
+
+(defn clean
+  "removes comments from string, transforms multiline string
+   to singleline, replaces quotes (', \") with 'curly-quotes' (“)"
+  [code]
+  (let [str-pattern #"([\"\'])(?:(?=(\\?))\2.)*?\1"
         transform #(fn [[m]]
                      (str "'" (% (.substring m 1 (dec (count m)))) "'"))]
-    (-> code ;; TODO: find another wat to deal with comments
-        (str/replace str-reg (transform encode))       ; encode strings to Base64
-        (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "")   ; /* comment block */ 
-        (str/replace #"(\/\/)(.+?)(?=[\n\r]|\*\))" "") ; //one-line-comment 
-        (str/replace str-reg (transform decode)))))    ; decode strings from Base64
+    (-> code 
+
+        ;; to simplify modifications below
+        multiline->single
+
+        ;; TODO: find another wat to deal with comments
+        ;; the problem is that comments could appear inside strings
+        (str/replace str-pattern (transform encode))    ; encode strings to Base64
+
+        ;; cleaning code from comments
+        (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "")    ; /* ... */ 
+        (str/replace #"(\/\/).*" "")                    ; // ... 
+        (str/replace str-pattern 
+                     (transform (comp substitute-curly-quotes 
+                                      decode)))))) 
       
 (defn- save-read [code]
   (if (string? code) (read-string code) code))
