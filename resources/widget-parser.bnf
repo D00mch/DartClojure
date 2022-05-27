@@ -11,7 +11,8 @@ typed-value    = value 'as' identifier type?
 <statement>    = if | return
 return         = <'return'> expr;
 
-invocation     = (constructor | priority) (<'.'> (constructor|identifier))*
+invocation     = (list | map | constructor | priority) 
+                 (<'.'> (constructor|identifier))+
 constructor    = 'const'? identifier params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)

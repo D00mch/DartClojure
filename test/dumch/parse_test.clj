@@ -1,6 +1,6 @@
 (ns dumch.parse-test
   (:require [clojure.test :refer :all]
-            [dumch.improve :refer [lists->vectors]]
+            [dumch.improve :refer [lists->vectors wrap-nest]]
             [dumch.parse :refer :all]
             [instaparse.core :as insta]))
 
@@ -8,22 +8,28 @@
   (testing "simple constructor"
     (is (= (dart->clojure "Text('text')")
            (-> '(m/Text "text")))))
-
   (testing "line invocations"
     (is (= (dart->clojure "One(1).two().three(2, 3)")
            (-> '(-> (m/One 1) (.two) (.three 2 3))))))
-
   (testing "instance method invocation"
     (is (= (dart->clojure "_pinPut.copyWith(border: 1)")
            '(.copyWith _pinPut :border 1))))
-
   (testing "field's field.method invocation"
     (is (= (dart->clojure "field!.pinPut.copyWith(border: 1)")
            '(-> field .pinPut (.copyWith :border 1)))))
-
   (testing "static field method invocation"
     (is (= (dart->clojure "SClass.field.copyWith(border: 1)")
-        '(-> m/SClass .field (.copyWith :border 1))))))
+           '(-> m/SClass .field (.copyWith :border 1)))))
+  (testing "invocation on list"
+    (is (= (-> "[1].cast()" dart->clojure wrap-nest)
+           '(-> [1] (.cast))))
+    (is (= (-> "[1].length" dart->clojure wrap-nest)
+           '(-> [1] (.length)))))
+  (testing "invocation on map"
+    (is (= (-> "{1:1}.cast()" dart->clojure wrap-nest)
+           '(-> {1 1} (.cast))))
+    (is (= (-> "{1:1}.length" dart->clojure wrap-nest)
+           '(-> {1 1} (.length))))))
 
 (deftest optional-name-test
   (testing "optional field somewhere in the chain"

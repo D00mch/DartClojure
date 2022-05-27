@@ -62,6 +62,11 @@
   [s c i]
   (str (subs s 0 i) c (subs s i)))
 
+(defn- to-method-call [invocation]
+  (if (re-matches #"^\(.*\)$" invocation)
+    (str-insert invocation \. 1)
+    (str "(." invocation ")")))
+
 (defn- operator-name [o]
   (case o
     "is" "dart/is?"
@@ -105,7 +110,7 @@
             (->> node
                  (drop 2)
                  (map #(ast->clojure % m))
-                 (map #(str-insert % \. 1))
+                 (map to-method-call)
                  (str/join " "))
             ")")
 
