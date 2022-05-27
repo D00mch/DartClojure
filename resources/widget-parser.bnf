@@ -1,4 +1,4 @@
-s              = (statement | expr) (<';'> s)* <','?>
+s              = (statement | expr) ((<';'>|<#'\n'+>) s)* <','?>
 
 <value>        = (number | string | !get identifier
                | invocation | !invocation constructor 

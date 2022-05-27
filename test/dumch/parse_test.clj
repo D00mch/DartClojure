@@ -205,3 +205,12 @@
 
 (deftest await-test
   (is (= (dart->clojure  "await a") '(await a))))
+
+(deftest statement-test
+  (testing "several expressions | statements in a row with | without ';'"
+    (is (= (dart->clojure  "a = 2;
+                            if (item.isLoading) {
+                               print(1)
+                            }
+                            a") 
+           '(do :unidiomatic (when (.isLoading item) (print 1)) a)))))

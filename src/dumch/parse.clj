@@ -211,31 +211,25 @@
   
   (def code
     "
-Column(
-  children: [
-    Question(
-      questions[_questionIndex]['questionText'],
-    ),
-    (questions[_questionIndex]['answers'] as List<String>)
-        .map((answer) {
-      return Answer(_answerQuestion, answer);
-    }).toList()
-  ],
-)
-  ")
+var item = catalog.getByIndex(index);
+if (item.isLoading) {
+  print(1);
+}
+a 
+")
 
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (insta/parses widget-parser code)
+  (insta/parse widget-parser (clean code) :total 1)
 
   (dart->clojure code)
 
-  (-> code
+  (->> code
       clean 
-      widget-parser 
-      (ast->clojure "m") 
-      save-read
+      (insta/parses widget-parser :total true) 
+      ; (ast->clojure "m") 
+      ; save-read
       ))
