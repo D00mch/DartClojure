@@ -82,10 +82,6 @@
   (= v1 "const") 
   (str "^:private " (lsp->clojure (remove #(= % "const" ) node) m))
 
-  (= :s tag) (->> node rest (map #(lsp->clojure % m)) (str/join " ")) 
-  (= :return tag) (lsp->clojure v1 m) 
-  (= :typed-value tag) (lsp->clojure v1 m)
-
   (string? node) (identifier-name node m)
   (= :string tag) (str/replace v1 #"^.|.$" "\"")
   (= :named-arg tag) (str ":" v1)
@@ -102,6 +98,7 @@
   (= :get tag)
   (str "(get " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
 
+  ;; block below 
   (and (= :invocation tag) v2)
   (str "(-> " (lsp->clojure v1 m) 
             (->> node
@@ -110,15 +107,16 @@
                  (map #(str-insert % \. 1))
                  (str/join " "))
             ")")
-
-  (= :invocation tag) (lsp->clojure v1 m)
+  (and (= :argument tag) v2) (str/join " " (map #(lsp->clojure % m) (rest node)))
+  (and (= :s tag) v2) 
+  (str "(do" (->> node rest (map #(lsp->clojure % m)) (str/join " ")) ")") 
+  (#{:s :return :typed-value :invocation :priority :argument} tag)
+  (lsp->clojure v1 m)
 
   (= :constructor tag)
   (str (constructor-name v1 (lsp->clojure v2 m) m))
 
   (= :params tag) (str/join " " (map #(lsp->clojure % m) (rest node)))
-  (and (= :argument tag) v2) (str/join " " (map #(lsp->clojure % m) (rest node)))
-  (= :argument tag) (lsp->clojure v1 m)  
 
   (and (= :if tag) (= (count node) 3))
   (str "(when " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
@@ -137,8 +135,6 @@
 
   (= :assignment tag)
   (str "(set! " (lsp->clojure v1 m) " " (lsp->clojure v2 m) ")")
-
-  (= :priority tag) (lsp->clojure v1 m)
 
   (= :ternary tag)
   (str "(if " (lsp->clojure v1 m) " " 
