@@ -188,3 +188,14 @@
            clean
            (insta/parses widget-parser) 
            count)))))
+
+(deftest assignment-test
+  (testing "typeless var assignment"
+    (is (= (dart->clojure  "var a = b") :unidiomatic)))
+  (testing "final assignment"
+    (is (= (dart->clojure  "final String s = '1'; ") :unidiomatic)))
+  (testing "const assignment"
+    (is (= (dart->clojure  "const bar = 1000000") :unidiomatic))))
+
+(deftest await-test
+  (is (= (dart->clojure  "await a") '(await a))))

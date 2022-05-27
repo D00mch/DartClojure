@@ -4,11 +4,11 @@ s              = (statement | expr) (<';'> s)* <','?>
                | invocation | !invocation constructor 
                | list | map | get | typed-value | lambda
                | inc | _inc | dec | _dec | identifier | number
-               | _tilda | neg | not ) <';'?> 
+               | _tilda | neg | not | await) <';'?> 
 
 typed-value    = value 'as' identifier type?
 
-<statement>    = _assignment | if | return
+<statement>    = if | return
 return         = <'return'> expr;
 
 invocation     = (constructor | priority) (<'.'> (constructor|identifier))*
@@ -37,7 +37,10 @@ lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'>
 <typed-arg>    = <(identifier <type?>)?> identifier  
 lambda-body    = <'{'> s <'}'>
 
-<expr>         = ternary-val
+<expr>         = assign-val 
+<assign-val>   = ternary-val | _assign
+_assign        = ('const'|'final')? (identifier type?)? identifier 
+                 <_operator> ternary-val 
 <ternary-val>  = ifnull-val | ternary
 ternary        = ternary-val <'?'> ifnull-val <':'> ifnull-val
 <ifnull-val>   = and-val | ifnull
@@ -56,6 +59,7 @@ add            = add-val ('+' | '-') mul-val
 mul            = mul-val ('*' | '/' | '%' | '~/') term
 <term>         = value | <'('> add-val <')'>
 
+await          = <'await'> value
 neg            = !number <'-'> value
 not            = <'!'> value
 dec            = <'--'> value

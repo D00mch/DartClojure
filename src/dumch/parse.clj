@@ -79,8 +79,9 @@
 
 (defnc- ast->clojure [[tag v1 v2 v3 :as node] m]
 
-  (= v1 "const") 
-  (str "^:private " (ast->clojure (remove #(= % "const" ) node) m))
+  (= v1 "const") (ast->clojure (remove #(= % "const" ) node) m)
+  ;; read-string ignores ^:const
+  ;(str "^:const " (ast->clojure (remove #(= % "const" ) node) m))
 
   (string? node) (identifier-name node m)
   (= :string tag) (str/replace v1 #"^.|.$" "\"")
@@ -109,7 +110,7 @@
             ")")
 
   (and (= :s tag) v2) 
-  (str "(do" (->> node rest (map #(ast->clojure % m)) (str/join " ")) ")") 
+  (str "(do " (->> node rest (map #(ast->clojure % m)) (str/join " ")) ")") 
   (#{:s :return :typed-value :invocation :priority} tag)
   (ast->clojure v1 m)
 
@@ -143,6 +144,7 @@
           (ast->clojure v3 m) ")")
 
   (= :neg tag) (str "(- " (ast->clojure v1 m) ")")
+  (= :await tag) (str "(await " (ast->clojure v1 m) ")")
   (#{:not :dec :inc} tag) (str "(" (name tag) " " (ast->clojure v1 m) ")") 
 
   (and (= tag :compare) (= v2 "as")) (ast->clojure v1 m)
@@ -190,7 +192,12 @@
                                       decode)))))) 
       
 (defn- save-read [code]
-  (if (string? code) (read-string code) code))
+  (if (string? code) 
+    (try 
+      (read-string code)
+      (catch Exception e
+        code)) 
+    code))
 
 (defn dart->clojure [dart & {m :material :or {m "m"}}]
   (-> dart clean widget-parser (ast->clojure m) save-read))
@@ -212,18 +219,18 @@ Column(
 )
   ")
 
-  (def code "
-ListView(
-   scrollDirection: Axis.vertical,
-   children: [...state.a.map((acc) => _t(ctx, acc))],
-)"
-  )
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (insta/parse widget-parser code)
+  (insta/parses widget-parser code)
 
   (dart->clojure code)
-)
+
+  (-> code
+      clean 
+      widget-parser 
+      (ast->clojure "m") 
+      save-read
+      ))
