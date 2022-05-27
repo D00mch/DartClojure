@@ -20,12 +20,12 @@
 (defn- str->with-import [s material]
   (if (upper? s) (str material "/" s) s))
 
-(defn- identifier-name [s material]
+(defn- to-identifier-name [s material]
   (let [with?? (re-matches #".*\?\..*" s)
         [v1 v2 :as parts] (str/split (str/replace s #"\?|\!" "") #"\.")
         threading #(str
                      "(" % " " 
-                         (identifier-name (first parts) material) 
+                         (to-identifier-name (first parts) material) 
                          " ." (str/join " ."  (next parts)) ")")]
 
     (cond
@@ -39,7 +39,7 @@
 
       :else (threading "->"))))
 
-(defn- constructor-name
+(defn- to-constructor-name
   "params: constructor name, params string, material require name"
   [n p m] ;; TODO: how to remove duplication with identifier-name ?
   (let [with?? (re-matches #".*\?\..*" n)
@@ -67,7 +67,7 @@
     (str-insert invocation \. 1)
     (str "(." invocation ")")))
 
-(defn- operator-name [o]
+(defn- dart-op->clj-op [o]
   (case o
     "is" "dart/is?"
     "??" "or"
@@ -88,7 +88,7 @@
   ;; read-string ignores ^:const
   ;(str "^:const " (ast->clojure (remove #(= % "const" ) node) m))
 
-  (string? node) (identifier-name node m)
+  (string? node) (to-identifier-name node m)
   (= :string tag) (str/replace v1 #"^.|.$" "\"")
   (= :named-arg tag) (str ":" v1)
   (= :number tag) (node->number node) 
@@ -120,7 +120,7 @@
   (ast->clojure v1 m)
 
   (= :constructor tag)
-  (str (constructor-name v1 (ast->clojure v2 m) m))
+  (str (to-constructor-name v1 (ast->clojure v2 m) m))
 
   (= :if tag)
   (case (count node)
@@ -154,7 +154,7 @@
 
   (and (= tag :compare) (= v2 "as")) (ast->clojure v1 m)
   (#{:compare :add :mul :and :or :ifnull :equality} tag) 
-  (str "(" (operator-name v2) " " (ast->clojure v1 m) " " (ast->clojure v3 m) ")")
+  (str "(" (dart-op->clj-op v2) " " (ast->clojure v1 m) " " (ast->clojure v3 m) ")")
 
   (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
 
