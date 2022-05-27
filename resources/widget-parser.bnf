@@ -1,10 +1,12 @@
-s              = statement | expr <','?>
+s              = (statement | expr) (<';'> s)* <','?>
 
 <value>        = (number | string | !get identifier
                | invocation | !invocation constructor 
-               | list | map | get
+               | list | map | get | typed-value
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not ) <';'?> 
+
+typed-value    = value 'as' identifier type?
 
 <statement>    = _assignment | if | return
 return         = <'return'> expr;
@@ -26,14 +28,14 @@ map            = 'const'? <type?>
 get            = (get | identifier) <'['> (identifier | string | number) <']'>     
 
 if             = <'if'> if-condition if-else-body
-<if-else-body> =  (lambda-body | s <';'>) 
+<if-else-body> =  (lambda-body | s ) 
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
 lambda         = lambda-args <'async'?> (lambda-body | <'=>'> s)
 lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> 
 <typed-arg>    = <(identifier <type?>)?> identifier  
-lambda-body    = <'{'> s (<';'> s)* <'}'>
+lambda-body    = <'{'> s <'}'>
 
 <expr>         = ternary-val
 <ternary-val>  = ifnull-val | ternary
@@ -51,7 +53,7 @@ compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-val
 <add-val>      = mul-val | add
 add            = add-val ('+' | '-') mul-val
 <mul-val>      = term | mul
-mul            = mul-val ('*' | '/' | '%' | '~/' ) term
+mul            = mul-val ('*' | '/' | '%' | '~/') term
 <term>         = value | <'('> add-val <')'>
 
 neg            = !number <'-'> value

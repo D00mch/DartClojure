@@ -79,8 +79,9 @@
   (= v1 "const") 
   (str "^:private " (lsp->clojure (remove #(= % "const" ) node) m))
 
-  (= :s tag) (lsp->clojure v1 m)
+  (= :s tag) (->> node rest (map #(lsp->clojure % m)) (str/join " ")) 
   (= :return tag) (lsp->clojure v1 m) 
+  (= :typed-value tag) (lsp->clojure v1 m)
 
   (string? node) (identifier-name node m)
   (= :string tag) (str/replace v1 #"\"|'" "\"")

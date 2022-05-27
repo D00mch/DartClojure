@@ -53,3 +53,31 @@ AnimatedContainer(
            (m/Icon
              m.Icons/add
              :color (if _isOpened (.primaryColor theme) m.Colors/white)))))))
+
+(def code2 "
+Column(
+  children: [
+    Question(
+      questions[_questionIndex]['questionText'],
+    ),
+    (questions[_questionIndex]['answers'] as List<String>)
+        .map((answer) {
+      return Answer(_answerQuestion, answer);
+    }).toList()
+  ],
+),")
+
+(deftest complex-example-test2
+  (testing "no ambiguity"
+    (is (= 1 (count (insta/parses widget-parser code2)))))
+  (testing "dart->clojure, using nest macro"
+    (is 
+      (= 
+        (-> code2 dart->clojure wrap-nest)
+        '(m/Column
+           :children
+           [(m/Question (get (get questions _questionIndex) "questionText"))
+            (->
+              (get (get questions _questionIndex) "answers")
+              (.map (fn [answer] (m/Answer _answerQuestion answer)))
+              (.toList))])))))
