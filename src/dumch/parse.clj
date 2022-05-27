@@ -3,7 +3,8 @@
     [clojure.java.io :as io]
     [better-cond.core :refer [defnc-]]
     [clojure.string :as str]
-    [instaparse.core :as insta :refer [defparser]]))
+    [instaparse.core :as insta :refer [defparser]])
+  (:import java.util.Base64))
 
 (defparser widget-parser 
   (io/resource "widget-parser.bnf")
@@ -21,7 +22,7 @@
 
 (defn- identifier-name [s material]
   (let [with?? (re-matches #".*\?\..*" s)
-        [v1 v2 :as parts] (str/split (str/replace s #"\?\." ".") #"\.")
+        [v1 v2 :as parts] (str/split (str/replace s #"\?|\!" "") #"\.")
         threading #(str
                      "(" % " " 
                          (identifier-name (first parts) material) 
@@ -42,7 +43,7 @@
   "params: constructor name, params string, material require name"
   [n p m] ;; TODO: how to remove duplication with identifier-name ?
   (let [with?? (re-matches #".*\?\..*" n)
-        [v1 v2 :as parts] (str/split (str/replace n #"\?\." ".") #"\.")
+        [v1 v2 :as parts] (str/split (str/replace n #"\?|\!" "") #"\.")
         threading #(str
                      "(" % " "
                          (str->with-import v1 m) (when (> (count parts) 2) " .")
@@ -151,12 +152,22 @@
 
   :unknown)
 
-(defn- clean [code]
-  (-> code
-      (str/replace #",$" ";")
-      (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "") ; /* comment block */ 
-      (str/replace #"(\/\/)(.+?)(?=[\n\r]|\*\))" "" #_one-line-comment )))
+(defn- encode [to-encode]
+  (.encodeToString (Base64/getEncoder) (.getBytes to-encode)))
 
+(defn- decode [to-decode]
+  (String. (.decode (Base64/getDecoder) to-decode)))
+
+(defn- clean [code]
+  (let [str-reg #"([\"\'])(?:(?=(\\?))\2.)*?\1"
+        transform #(fn [[m]]
+                     (str "'" (% (.substring m 1 (dec (count m)))) "'"))]
+    (-> code ;; TODO: find another wat to deal with comments
+        (str/replace str-reg (transform encode))       ; encode strings to Base64
+        (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "")   ; /* comment block */ 
+        (str/replace #"(\/\/)(.+?)(?=[\n\r]|\*\))" "") ; //one-line-comment 
+        (str/replace str-reg (transform decode)))))    ; decode strings from Base64
+      
 (defn- save-read [code]
   (if (string? code) (read-string code) code))
 

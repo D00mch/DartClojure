@@ -17,7 +17,7 @@
            '(.copyWith _pinPut :border 1))))
 
   (testing "field's field.method invocation"
-    (is (= (dart->clojure "field.pinPut.copyWith(border: 1)")
+    (is (= (dart->clojure "field!.pinPut.copyWith(border: 1)")
            '(-> field .pinPut (.copyWith :border 1)))))
 
   (testing "static field method invocation"
@@ -143,3 +143,19 @@
   (testing "if, and else-if, and else"
     (is (= (dart->clojure "if (b) b; else if (a) a; else c;")
            '(cond b b a a c)))))
+
+(deftest comments-test
+  (testing "line comment"
+    (is (= (dart->clojure "Text(
+                             'name', // comment
+                           )")
+           '(m/Text "name"))))
+  (testing "block comment"
+    (is (= (dart->clojure "Text(widget.photo.user!.name /* comment */ )")
+           '(m/Text (-> widget .photo .user .name)))))
+  (testing "comment-like structure inside string"
+    (is (= (dart->clojure "Text(
+                                'http://looks-like-comment', 
+                                '/* one more */'
+                                )")
+           '(m/Text "http://looks-like-comment" "/* one more */")))))
