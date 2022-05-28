@@ -1,8 +1,8 @@
 (ns dumch.integration-test 
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest testing is]]
             [instaparse.core :as insta]
-            [dumch.improve :refer :all]
-            [dumch.parse :refer :all]))
+            [dumch.improve :refer [wrap-nest simplify]]
+            [dumch.parse :refer [dart->clojure widget-parser]]))
 
 (def ^:private code "
 AnimatedContainer(
@@ -73,7 +73,7 @@ Column(
   (testing "dart->clojure, using nest macro"
     (is 
       (= 
-        (-> code2 dart->clojure wrap-nest)
+        (-> code2 dart->clojure simplify)
         '(m/Column
            :children
            [(m/Question (get (get questions _questionIndex) "questionText"))

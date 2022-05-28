@@ -1,7 +1,7 @@
 (ns dumch.dartclojure
   (:require [clojure.pprint :refer [pprint]]
             [clojure.tools.cli :refer [parse-opts]]
-            [dumch.improve :refer [wrap-nest]]
+            [dumch.improve :refer [simplify wrap-nest]]
             [dumch.parse :refer [dart->clojure]]
             [clojure.string :as str])
   #_(:import (java.awt Toolkit)
@@ -47,6 +47,7 @@
             (-> (str/join " " acc)
                 (dart->clojure :material material)
                 (wrap-nest :flutter flutter)
+                simplify
                 (show! put-in-clipboard?))
             (catch Exception e (println "Can't convert the code; e " e)))
           (recur (read-line) []))
@@ -67,6 +68,7 @@
                   first
                   (dart->clojure :material material)
                   (wrap-nest :flutter flutter)
+                  simplify
                   (show! clipboard))
               (println "no arguments passed")))))
 

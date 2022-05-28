@@ -3,6 +3,16 @@
     [clojure.zip :as z]
     [clojure.walk :as walk]))
 
+(comment 
+  ; after parse.clj converted dart to clojure, we may introduce some improvements;
+  ; for example, use nest macro to eliminate wrap-hell, or flattern some forms.
+
+  ; `loc` below means `location`
+
+  (require '[flow-storm.api :as fs-api])
+  (fs-api/local-connect))
+
+
 (defn- unplug-child [f]
   #_(println :unplug-child f)
   (let [child-i (.indexOf f :child)
@@ -19,9 +29,6 @@
       (let [[parent child] (unplug-child f)]
         (recur (conj rslt parent) child)))))
 
-(defn- loc-child? [loc]
-  (-> loc z/node (= :child)))
-
 (defn- iter-depth [zipper]
   (->> (iterate z/next zipper)
        (take-while (complement z/end?))))
@@ -30,38 +37,59 @@
   (->> (iterate z/right zipper)
        (take-while (complement nil?))))
 
-(defn- find-child-node [iter zipper]
-  (->> (iter zipper)
-       (drop-while #(not (loc-child? %)))
+(defn- find-node [iterfn node zipper]
+  (->> (iterfn zipper)
+       (drop-while #(not= (z/node %) node))
        first))
 
-(defn- has-children? [n loc]
-  (loop [n n, loc loc]
-    #_(println :n n :ch (some-> loc node))
+(defn- has-children? [times loc]
+  (loop [n times, loc loc]
+    #_(println :n n :ch (some-> loc z/node))
     (cond (and loc (= 0 n)) true
           (not (some-> loc z/node seq?)) false 
           :else 
           (recur (dec n) 
-                 ;; go next level and nested child is right after :child name
-                 (some->> loc z/down (find-child-node iter-right) z/right)))))
+                 ;; go level down, find naved arg :child and take it's value
+                 (some->> loc z/down (find-node iter-right :child) z/right)))))
 
-(defn lists->vectors [widget]
-  (clojure.walk/postwalk 
-    (fn [node]
-      (if (and (seq? node) (some-> node first str (= "quote")))
-        (apply vec (rest node))
-        node))
-    widget))
+(defn- flatten-node [node]
+  (let [[f & params] node
+        params (mapcat #(if (and (seq? %) (= (first %) f)) (next %) [%])
+                       params)]
+    `(~f ~@params)))
 
 (defn wrap-nest [widget & {f :flutter :or {f "f"}}]
   (loop [loc (z/seq-zip widget)]
     (if (z/end? loc)
-      (lists->vectors (z/node loc))
+      (z/node loc)
       (if (has-children? 3 loc)
         (recur (->> loc z/node (nest-flatten f) (z/replace loc) z/next))
         (recur (z/next loc))))))
 
+(defn simplify [form]
+  (clojure.walk/postwalk 
+    (fn [node]
+      (cond (-> node seq? not) node
+            (some-> node first str (= "quote")) (apply vec (rest node))
+            (some-> node first (#{'+ '* 'or 'and }))
+            (flatten-node node)
+            :else node))
+    form))
+
 (comment 
+  (def sum-form '(not= 
+                   (and (and 1 4) (and 4 5))
+                   (+ 1 (+ 2 3) 4 
+                      (- (- 1 (- 3 (- 4) (- 3 4)) (- 2)) (* (* 3 2) 2 )))))
+
+  (simplify '(+ (+ 1 (+ 2 3) 4) 5))
+
+  (doseq [sym ['+ '* 'or 'and]]
+    (= (simplify `(~sym (~sym 1 (~sym 2 3) 4) 5))
+       `(~sym 1 2 3 4 5)))
+
+  (let [sym '+]
+    (simplify `(~sym (~sym 1 (~sym 2 3) 4) 5)))
 
   (def nested '(:Container 
                  :child 
@@ -74,12 +102,10 @@
                  ((:Padding :child (:Text "1"))
                   ~nested)))
 
-  (lists->vectors (wrap-nest widget))
-
-  (->> nested z/seq-zip (has-children? 3))
+  (simplify (wrap-nest widget))
 
   (->> widget z/seq-zip iter-depth 
-       (filter #(has-children? 3 %)) 
+       (filter #(has-children? % 2)) 
        (map z/node))
 
   (->>
@@ -100,7 +126,7 @@
            :curve ^:const (m/Interval. 0.0 0.5 :curve m.Curves/easeOut)
            :child
            (m/AnimatedOpacity.
-             :opacity (if @open 0.0 1.0)
+             :opacity (if @open 0.0 (+ (+ 2.0 1.0) (+ -3.0) 1.0))
              :curve ^:const (m/Interval. 0.25 1.0 :curve m.Curves/easeInOut)
              :duration ^:const (m/Duration. :milliseconds 250)
              :child
@@ -108,7 +134,6 @@
                :onPressed toggle
                :child
                (m/Icon. m.Icons/create)))))))
-
     wrap-nest
-    lists->vectors)
+    simplify)
   )

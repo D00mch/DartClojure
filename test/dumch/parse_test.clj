@@ -1,6 +1,6 @@
 (ns dumch.parse-test
   (:require [clojure.test :refer :all]
-            [dumch.improve :refer [lists->vectors wrap-nest]]
+            [dumch.improve :as improve :refer [wrap-nest simplify]]
             [dumch.parse :refer :all]
             [instaparse.core :as insta]))
 
@@ -24,14 +24,14 @@
     (is (= (dart->clojure "SClass.field.copyWith(border: 1)")
            '(-> m/SClass .field (.copyWith :border 1)))))
   (testing "invocation on list"
-    (is (= (-> "[1].cast()" dart->clojure wrap-nest)
+    (is (= (-> "[1].cast()" dart->clojure simplify)
            '(-> [1] (.cast))))
-    (is (= (-> "[1].length" dart->clojure wrap-nest)
+    (is (= (-> "[1].length" dart->clojure simplify)
            '(-> [1] (.length)))))
   (testing "invocation on map"
-    (is (= (-> "{1:1}.cast()" dart->clojure wrap-nest)
+    (is (= (-> "{1:1}.cast()" dart->clojure)
            '(-> {1 1} (.cast))))
-    (is (= (-> "{1:1}.length" dart->clojure wrap-nest)
+    (is (= (-> "{1:1}.length" dart->clojure)
            '(-> {1 1} (.length))))))
 
 (deftest optional-name-test
@@ -58,10 +58,10 @@
   (testing "ignore spread operator"
     (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
                dart->clojure
-               lists->vectors)
+               simplify)
            '(:unknown))))
   (testing "typed list"
-    (is (= (-> "<Int>[1, 2]" dart->clojure lists->vectors)
+    (is (= (-> "<Int>[1, 2]" dart->clojure simplify)
            '(1 2))))
   (testing "column children typeless list"
     (is 
@@ -77,7 +77,7 @@
          '(.icon m/ListCell :m {1 2, "a" b, c "d"}))))
   (testing "typed map" 
     (is 
-      (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure lists->vectors)
+      (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure simplify)
          {1 [1 2]}))))
 
 (deftest set!-test
