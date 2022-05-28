@@ -67,7 +67,7 @@
 (defn- to-method-call [invocation]
   (if (re-matches #"^\(.*\)$" invocation)
     (str-insert invocation \. 1)
-    (str "(." invocation ")")))
+    (str "." invocation "")))
 
 (defn- dart-op->clj-op [o]
   (case o
@@ -106,12 +106,15 @@
   (= :get tag)
   (str "(get " (ast->clojure v1 m) " " (ast->clojure v2 m) ")")
 
-  ;; block below 
+  ;; TODO: rewrite parser to proper support dot invocations  
   (and (= :invocation tag) v2)
   (str "(-> " (ast->clojure v1 m) 
             (->> node
                  (drop 2)
-                 (map #(ast->clojure % m))
+                 (map (fn [node] 
+                        (if (string? node)
+                          (str/replace node #"\." " .")
+                          (ast->clojure node m))))
                  (map to-method-call)
                  (str/join " "))
             ")")
@@ -228,7 +231,7 @@ a
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (insta/parse widget-parser (clean code) :total 1)
+  (insta/parses widget-parser (clean code) :total 1)
 
   (dart->clojure code)
 

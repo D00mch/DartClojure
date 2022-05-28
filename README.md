@@ -1,26 +1,24 @@
-# dartclojure
+# DartClojure
 
-App to convert dart code with flutter widgets creation into
-ClojureDart.
+Opinionated dart to clojure converter for flutter widgets. 
+It doesn't convert classs, methods, and assignments —
+only the part with widget creation.
 
-## Why it is not full dart->clojure converter
+<img src="https://github.com/Liverm0r/DartClojure/blob/main/resources/Screenshot
+2022-05-28 at 20.11.09.png" alt="alt text" width="632" height="302">
 
-Converted code would not be idiomatic. For example, how would 
-you convert this code:
+## Why is it  not a full dart->clojure converter?
 
-```dart?
-onPressed: () { a*= a },
-```
+Converted code would not be idiomatic. Instead of using classes there is 
+a [widget][1] macro. 
 
-What is `a`? Is it atom? Is it class field? is it a parameter that 
-will be modified somewhere else? 
+Assignments are also useless, there would be a `:state` atom
+and `swap!` or `reset!` functions for changing the state.
 
-So I see little value in converting expressions.
+So I see little value in converting everything.
 
-But rewriting widgets tree is a routine part in most of the 
-caseses.
-
-This code:
+But rewriting widgets is a routine part and most of the time 
+translates literally:
 
 ```dart 
 Center(
@@ -30,8 +28,6 @@ Center(
   ),
 );
 ```
-
-literally translates into:
 
 ```clojure
 (m/Center
@@ -50,18 +46,117 @@ literally translates into:
 - ternary operators;
 - lambdas;
 - comments (will be removed);
+- nesting children with f/nest macro;
 
 ## Not supported
 
 - constants;
-- class declarations;
-- methods declarations;
-- bitwise 
-- compound Assignment
+- class/methods declarations;
+- bitwise operators;
+- assignment (unideomatic);
+- early exits from lambdas;
+- variables in strings;
+- `...` and `..` operators;
+- proper aliases for everything, it's not possible to get this info generally;
+
+## TODO:
+
+- [ ] proper invocation (not it's a big crutch, some chaing of dots like
+`a.b().c.d()` wond work;
+- [ ] handle early exit from lambdas with `return`;
+- [ ] support variables in string `"${a}, $b"`;
+- [ ] support cascade `..`.
+- [ ] do not insert material import on core classes, like Duration
 
 ## How to use
 
-There are two options now: jar file or jvm repl.
+There are two options now: using jar or jvm repl.
+
+### Api with Jar
+
+There are two ways to interact with the jar. First one is to run it each time:
+
+```
+$ java -jar dartclj.jar "Divider(        
+    height: 0,
+    color: Colors.grey,
+)"       
+
+(m/Divider :height 0 :color m.Colors/grey)
+```
+
+Second one is to run repl-like console (and send code into it with your editor/idea):
+```
+$ java -jar dartclj.jar -r true -m "material"
+Paste dart code below, press enter and see the result:
+
+Divider(        
+    height: 0,
+    color: Colors.grey,
+)
+
+(material/Divider :height 0 :color material.Colors/grey)
+```
+
+For example, you may start the repl-like console app with -e key: 
+```
+$ java -jar dartclj.jar -r true -e :end
+```
+And then send code directly from Idea with hotkeys with 
+[Send To Terminal][3] plugin.
+
+(idea video here)
+
+For all the arguments see:
+```bash
+$ java -jar dartclj.jar -h
+```
+
+### Api from jvm repl
+
+[Clojars][2].
+
+Add Cli/deps:
+```clojure
+{:deps 
+    {
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.1-SNAPSHOT"}
+     }}
+```
+
+Or Leiningen/Boot: 
+```clojure
+[org.clojars.liverm0r/dartclojure "0.1.0-SNAPSHOT"]
+```
+
+Import:
+```clojure
+(:require
+    [dumch.dartclojure :refer [convert]]
+    [dumch.improve :refer [simplify wrap-nest]])
+```
+
+Simplify:
+```clojure
+(simplify '(and (and (and (> a b) (> b c)) (> c d)))) ; => (> a b c d)
+```
+
+Wrap with nest:
+```clojure
+ (wrap-nest '(Container ; => (f/nest (Container) (Box) (Padding) (:Text "2")) 
+                 :child 
+                 (Box :child (Padding :child (:Text "2")))))
+```
+
+Convert dart code (simplify and wrap-nest under the hood):
+```clojure
+(convert "1 + 1 + 2 * 1;") ; => (+ 1 1 (* 2 1))
+```
+
+You may pass aliases for material and flutter-macro:
+```clojure
+(convert "Text('1')" "m" "f") ; => (m/Text "1")
+```
 
 ## Contribution
 
@@ -95,4 +190,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-[1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md
+[1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.1-SNAPSHOT
+[3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal

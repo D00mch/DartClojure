@@ -14,6 +14,9 @@
     :default false
     :parse-fn #(Boolean/parseBoolean %)
     :validate [boolean? "Must be either true or false"]]
+   ["-e" "--end REPL" "Mode: text or symbol to show the end of code"
+    :default ""
+    :parse-fn str]
    ["-m" "--material MATERIAL" "material require alias, any string"
     :default "m"
     :parse-fn str
@@ -40,37 +43,45 @@
 
 (defn convert 
   "get dart code, material and flutter-macro aliases and returns clojure"
-  [code material flutter]
-  (let [ast (parse/dart->ast code) 
-        bad? (insta/failure? ast)]
-    (if bad?
-      (str "Can't convert the code: " (:text ast))
-      (-> 
-        (parse/ast->clojure ast material)
-        (improve/wrap-nest :flutter flutter)
-        improve/wrap-nest
-        parse/save-read))))
+  ([code]
+   (convert code "m" "f"))
+  ([code material flutter]
+   (let [ast (parse/dart->ast code) 
+         bad? (insta/failure? ast)]
+     (if bad?
+       (str "Can't convert the code: " (:text ast))
+       (-> 
+         (parse/ast->clojure ast material)
+         (improve/wrap-nest :flutter flutter)
+         improve/wrap-nest
+         parse/save-read
+         improve/simplify)))))
 
-(defn- stdin-loop! [material flutter put-in-clipboard?]
-  (println "Paste dart code below, press enter and see the result:\n")
+(defn- stdin-loop! [material flutter put-in-clipboard? end]
+  (println (str "Paste dart code below, press enter"
+                (when (seq end) (str ", write '" end "',"))
+                " and see the result:\n"))
   (loop [input (read-line)
          acc []]
-    (if (nil? (seq input))
-      (try 
-        (-> (convert (str/join "\n" acc) material flutter)
-            (show! put-in-clipboard?))
-        (catch Exception e (println "Can't convert the code; e " e)))
+    (if (= input end)
+      (do 
+        (try 
+          (-> (convert (str/join "\n" acc) material flutter)
+              (show! put-in-clipboard?))
+          (catch Exception e (println "Can't convert the code; e " e)))
+        (println)
+        (recur (read-line) []))
       (recur (read-line) (conj acc input)))))
 
 (defn -main [& args] 
-  (let [{{:keys [repl material flutter clipboard help]} :options, 
+  (let [{{:keys [repl end material flutter clipboard help]} :options, 
          errors :errors, 
          args :arguments :as m} 
         (parse-opts args cli-options)]
     (cond 
       help (println "here is the arguments\n" m)
       errors (println errors)
-      repl (stdin-loop! material flutter clipboard)
+      repl (stdin-loop! material flutter clipboard end)
       :else (if args
               (show!
                 (convert (first args) material flutter)

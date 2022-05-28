@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>net.clojars.dumch</groupId>
+  <groupId>org.clojars.liverm0r</groupId>
   <artifactId>dartclojure</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.1-SNAPSHOT</version>
   <name>dumch/dartclojure</name>
   <description>FIXME: my new application.</description>
   <url>https://github.com/dumch/dartclojure</url>
@@ -22,7 +22,7 @@
     <url>https://github.com/dumch/dartclojure</url>
     <connection>scm:git:git://github.com/dumch/dartclojure.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/dumch/dartclojure.git</developerConnection>
-    <tag>v0.1.0-SNAPSHOT</tag>
+    <tag>v0.1.1-SNAPSHOT</tag>
   </scm>
   <dependencies>
     <dependency>

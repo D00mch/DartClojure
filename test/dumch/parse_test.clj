@@ -27,12 +27,12 @@
     (is (= (-> "[1].cast()" dart->clojure simplify)
            '(-> [1] (.cast))))
     (is (= (-> "[1].length" dart->clojure simplify)
-           '(-> [1] (.length)))))
+           '(-> [1] .length))))
   (testing "invocation on map"
     (is (= (-> "{1:1}.cast()" dart->clojure)
            '(-> {1 1} (.cast))))
     (is (= (-> "{1:1}.length" dart->clojure)
-           '(-> {1 1} (.length))))))
+           '(-> {1 1} .length)))))
 
 (deftest optional-name-test
   (testing "optional field somewhere in the chain"

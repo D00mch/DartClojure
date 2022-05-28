@@ -12,6 +12,10 @@
                         :aot true
                         :compile-ns [dumch.dartclojure]
                         :main-class "dumch.dartclojure"}}
+  :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.0"}}
+           :exec-fn deps-deploy.deps-deploy/deploy
+           :exec-args {:installer :remote
+                       :artifact "dartclj.jar"}}
   :test {:extra-paths ["test"]
          :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
                       io.github.cognitect-labs/test-runner
