@@ -13,7 +13,7 @@ return         = <'return'> expr;
 
 invocation     = (list | map | constructor | priority) 
                  (<'.'> (constructor|identifier))+
-constructor    = 'const'? identifier params <';'?>
+constructor    = 'const'? identifier <type?> params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
 argument       = expr | (named-arg expr) 

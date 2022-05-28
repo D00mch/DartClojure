@@ -8,6 +8,9 @@
   (testing "simple constructor"
     (is (= (dart->clojure "Text('text')")
            (-> '(m/Text "text")))))
+  (testing "typed constructor"
+    (is (= (dart->clojure "Text<A<B>, C>('text')")
+           (-> '(m/Text "text")))))
   (testing "line invocations"
     (is (= (dart->clojure "One(1).two().three(2, 3)")
            (-> '(-> (m/One 1) (.two) (.three 2 3))))))
