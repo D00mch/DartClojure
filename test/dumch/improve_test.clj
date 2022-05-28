@@ -46,3 +46,11 @@
            '(and (>= 4 3) (>= 3 2) (>= 2 1) true)))
     (is (= (-> '(and (> 2 1) (> 3 2) (> 4 3)) simplify)
            '(> 4 3 2 1)))))
+
+(deftest remove-redundant 
+  (testing "should remove do"
+    (is (= (simplify '(fn [] (do (prn 1) (prn 2))))
+           '(fn [] (prn 1) (prn 2)))))
+  (testing "should not trigger" 
+    (is (= (simplify '(setState (fn [] :unidiomatic)))
+           '(setState (fn [] :unidiomatic))))))

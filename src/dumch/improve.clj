@@ -59,6 +59,13 @@
                     [%])
                  params)))
 
+(defn- remove-redundant-do [[f args body :as node]]
+  (if (and (= f 'fn) (seq? body))
+    (if (= (first body) 'do)
+      `(~f ~args ~@(rest body))
+      node)
+    node))
+
 (defnc- flatten-same-for-and [[parent-fn & params :as node]]
   ;; (and (<= a b) (<= b c)) -> (<= a b c)
   ;; returns nil if not appropriate structure
@@ -94,6 +101,7 @@
   (clojure.walk/postwalk 
     (fn [node]
       (cond (-> node seq? not) node
+            (some-> node first (= 'fn)) (remove-redundant-do node)
             (some-> node first (= 'quote)) (apply vec (rest node))
             (some-> node first (#{'+ '* 'or 'and })) 
             (flatten-same-node (or (flatten-same-for-and node) node))
