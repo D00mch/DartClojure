@@ -42,20 +42,22 @@
 (defn- to-constructor-name
   "params: constructor name, params string, material require name"
   [n p m] ;; TODO: how to remove duplication with identifier-name ?
-  (let [with?? (re-matches #".*\?\..*" n)
-        [v1 v2 :as parts] (str/split (str/replace n #"\?|\!" "") #"\.")
-        threading #(str
-                     "(" % " "
-                         (str->with-import v1 m) (when (> (count parts) 2) " .")
-                         (str/join " ."  (butlast (next parts)))
-                         " (." (last parts) " " p ")"
-                         ")")]
+  (if (re-matches #".*\.\..*" n)
+    :unknown
+    (let [with?? (re-matches #".*\?\..*" n)
+          [v1 v2 :as parts] (str/split (str/replace n #"\?|\!" "") #"\.")
+          threading #(str
+                       "(" % " "
+                           (str->with-import v1 m) (when (> (count parts) 2) " .")
+                           (str/join " ."  (butlast (next parts)))
+                           " (." (last parts) " " p ")"
+                           ")")]
 
-    (cond 
-      (= 1 (count parts)) (str "(" (str->with-import v1 m) " " p ")")
-      with?? (threading "some->") 
-      (= 2 (count parts)) (str "(." v2 " " (str->with-import v1 m) " " p ")")
-      :else (threading "->"))))
+      (cond 
+        (= 1 (count parts)) (str "(" (str->with-import v1 m) " " p ")")
+        with?? (threading "some->") 
+        (= 2 (count parts)) (str "(." v2 " " (str->with-import v1 m) " " p ")")
+        :else (threading "->")))))
 
 (defn- str-insert
   "Insert c in string s at index i."

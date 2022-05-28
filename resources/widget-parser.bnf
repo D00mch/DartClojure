@@ -12,7 +12,7 @@ typed-value    = value 'as' identifier type?
 return         = <'return'> expr;
 
 invocation     = (list | map | constructor | priority) 
-                 (<'.'> (constructor|identifier))+
+                 ((<'.'>|<'..'>) (constructor|identifier))+
 constructor    = 'const'? identifier <type?> params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
