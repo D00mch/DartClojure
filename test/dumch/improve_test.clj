@@ -1,6 +1,7 @@
 (ns dumch.improve-test
   (:require [clojure.test :refer [deftest is testing]]
-            [dumch.improve :refer [simplify wrap-nest]]))
+            [dumch.improve :refer [simplify wrap-nest]]
+            [dumch.parse :refer [dart->clojure]]))
 
 (deftest list->vector-test
   (is (= (simplify 
@@ -29,6 +30,12 @@
          '(:Box :child (:Padding :child (:Text "2")))))))
 
 (deftest flatten-same-operators
+  (testing "calculation results"
+    (is (-> "(2 + 1 + 1 == 4 && true) && (1 == 1 || false) && 3 == 3"
+            dart->clojure
+            simplify
+            eval)))
+
   (testing "+, *, and, or"
     (doseq [sym ['+ '* 'or 'and]]
       (is (= (simplify `(~sym (~sym 1 (~sym 2 3) 4) 5))

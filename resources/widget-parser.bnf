@@ -58,7 +58,7 @@ compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-val
 add            = add-val ('+' | '-') mul-val
 <mul-val>      = term | mul
 mul            = mul-val ('*' | '/' | '%' | '~/') term
-<term>         = value | <'('> add-val <')'>
+<term>         = value | <'('> ternary-val <')'>
 
 await          = <'await'> value
 neg            = !number <'-'> value
