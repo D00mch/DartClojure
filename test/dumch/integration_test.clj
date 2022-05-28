@@ -63,7 +63,8 @@ Column(
     (questions[_questionIndex]['answers'] as List<String>)
         .map((answer) {
       return Answer(_answerQuestion, answer);
-    }).toList()
+    }).toList(),
+    Numb(sorted: (1 < 2 && 2 < 3 && 3 < a) && (a == b)),
   ],
 ),")
 
@@ -80,4 +81,5 @@ Column(
             (->
               (get (get questions _questionIndex) "answers")
               (.map (fn [answer] (m/Answer _answerQuestion answer)))
-              (.toList))])))))
+              (.toList))
+            (m/Numb :sorted (and (< 1 2 3 a) (= a b)))])))))

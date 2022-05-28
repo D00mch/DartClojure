@@ -35,8 +35,14 @@
             dart->clojure
             simplify
             eval)))
-
   (testing "+, *, and, or"
     (doseq [sym ['+ '* 'or 'and]]
       (is (= (simplify `(~sym (~sym 1 (~sym 2 3) 4) 5))
-             `(~sym 1 2 3 4 5))))))
+             `(~sym 1 2 3 4 5)))))
+  (testing "flatten compare operators when possible"
+    (is (= (-> '(and (and (> 4 3) (> 3 2) (> 2 1)) true) simplify)
+           '(and (> 4 3 2 1) true)))
+    (is (= (-> '(and (>= 4 3) (>= 3 2) (>= 2 1) true) simplify)
+           '(and (>= 4 3) (>= 3 2) (>= 2 1) true)))
+    (is (= (-> '(and (> 2 1) (> 3 2) (> 4 3)) simplify)
+           '(> 4 3 2 1)))))

@@ -1,16 +1,17 @@
 (ns dumch.improve 
   (:require
+    [better-cond.core :refer [defnc-]]
     [clojure.zip :as z]
     [clojure.walk :as walk]))
 
 (comment 
-  ; after parse.clj converted dart to clojure, we may introduce some improvements;
-  ; for example, use nest macro to eliminate wrap-hell, or flattern some forms.
+  ; After parse.clj converted dart to clojure, we may introduce some improvements;
+  ; by using nest macro to eliminate wrap-hell, or flattern some forms.
+  ; The data we are working with is clojure symbols, like
+  '(+ a b)
 
   ; `loc` below means `location`
-
-  (require '[flow-storm.api :as fs-api])
-  (fs-api/local-connect))
+  )
 
 
 (defn- unplug-child [f]
@@ -52,11 +53,34 @@
                  ;; go level down, find naved arg :child and take it's value
                  (some->> loc z/down (find-node iter-right :child) z/right)))))
 
-(defn- flatten-node [node]
-  (let [[f & params] node
-        params (mapcat #(if (and (seq? %) (= (first %) f)) (next %) [%])
-                       params)]
-    `(~f ~@params)))
+(defn- flatten-same-node [[f & params]]
+  `(~f ~@(mapcat #(if (and (seq? %) (= (first %) f)) 
+                    (next %)
+                    [%])
+                 params)))
+
+(defnc- flatten-same-for-and [[parent-fn & params :as node]]
+  ;; (and (<= a b) (<= b c)) -> (<= a b c)
+  ;; returns nil if not appropriate structure
+  :when (= parent-fn 'and) 
+  :when-let [only-seq-params (not (seq (drop-while seq? params)))
+             proper-fn  (#{'> '< '>= '<=} (-> params first first))
+             same-fn    (->> params (map first) (apply =))
+             grouped-params (partition 2 1 params)
+             fitargs? #(->> % 
+                            (map (fn [[p1 p2]] (= (last p1) (second p2))))
+                            (apply = true))]
+  (fitargs? grouped-params) ;; like (> 4 3) (> 3 2)
+  `(~(-> params first first) 
+         ~@(->> params
+                (mapcat #(if (seq? %) (next %) [%]))
+                distinct))
+  (fitargs? (map reverse grouped-params)) ;; like (> 3 2) (> 4 3)
+  `(~(-> params first first) 
+         ~@(->> params 
+                reverse
+                (mapcat #(if (seq? %) (next %) [%]))
+                distinct)))
 
 (defn wrap-nest [widget & {f :flutter :or {f "f"}}]
   (loop [loc (z/seq-zip widget)]
@@ -70,19 +94,22 @@
   (clojure.walk/postwalk 
     (fn [node]
       (cond (-> node seq? not) node
-            (some-> node first str (= "quote")) (apply vec (rest node))
-            (some-> node first (#{'+ '* 'or 'and }))
-            (flatten-node node)
+            (some-> node first (= 'quote)) (apply vec (rest node))
+            (some-> node first (#{'+ '* 'or 'and })) 
+            (flatten-same-node (or (flatten-same-for-and node) node))
             :else node))
     form))
 
 (comment 
+  (require '[flow-storm.api :as fs-api])
+  (fs-api/local-connect)
+
   (def sum-form '(not= 
                    (and (and 1 4) (and 4 5))
                    (+ 1 (+ 2 3) 4 
                       (- (- 1 (- 3 (- 4) (- 3 4)) (- 2)) (* (* 3 2) 2 )))))
 
-  (simplify '(+ (+ 1 (+ 2 3) 4) 5))
+  (simplify '(and (and (> a b) (> b c)) (> c d)))
 
   (doseq [sym ['+ '* 'or 'and]]
     (= (simplify `(~sym (~sym 1 (~sym 2 3) 4) 5))
