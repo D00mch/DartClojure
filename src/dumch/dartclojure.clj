@@ -1,9 +1,10 @@
 (ns dumch.dartclojure
   (:require [clojure.pprint :refer [pprint]]
             [clojure.tools.cli :refer [parse-opts]]
-            [dumch.improve :refer [simplify wrap-nest]]
-            [dumch.parse :refer [dart->clojure]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [dumch.improve :as improve]
+            [dumch.parse :as parse]
+            [instaparse.core :as insta])
   #_(:import (java.awt Toolkit)
              (java.awt.datatransfer Clipboard StringSelection))
   (:gen-class))
@@ -35,23 +36,30 @@
 (defn- show! [data _]
   #_(defonce ^Clipboard clipboard (.. Toolkit getDefaultToolkit getSystemClipboard))
   (pprint data)
-  (println)
   #_(when put-in-clipboard? (clipboard-put! (str/join data) clipboard)))
 
-(defn- stdin-loop [material flutter put-in-clipboard?]
+(defn convert 
+  "get dart code, material and flutter-macro aliases and returns clojure"
+  [code material flutter]
+  (let [ast (parse/dart->ast code) 
+        bad? (insta/failure? ast)]
+    (if bad?
+      (str "Can't convert the code: " (:text ast))
+      (-> 
+        (parse/ast->clojure ast material)
+        (improve/wrap-nest :flutter flutter)
+        improve/wrap-nest
+        parse/save-read))))
+
+(defn- stdin-loop! [material flutter put-in-clipboard?]
   (println "Paste dart code below, press enter and see the result:\n")
   (loop [input (read-line)
          acc []]
     (if (nil? (seq input))
-      (do (try 
-            (-> (str/join " " acc)
-                (dart->clojure :material material)
-                (wrap-nest :flutter flutter)
-                simplify
-                (show! put-in-clipboard?))
-            (catch Exception e (println "Can't convert the code; e " e)))
-          (recur (read-line) []))
-
+      (try 
+        (-> (convert (str/join "\n" acc) material flutter)
+            (show! put-in-clipboard?))
+        (catch Exception e (println "Can't convert the code; e " e)))
       (recur (read-line) (conj acc input)))))
 
 (defn -main [& args] 
@@ -62,27 +70,30 @@
     (cond 
       help (println "here is the arguments\n" m)
       errors (println errors)
-      repl (stdin-loop material flutter clipboard)
+      repl (stdin-loop! material flutter clipboard)
       :else (if args
-              (-> args 
-                  first
-                  (dart->clojure :material material)
-                  (wrap-nest :flutter flutter)
-                  simplify
-                  (show! clipboard))
+              (show!
+                (convert (first args) material flutter)
+                clipboard)
               (println "no arguments passed")))))
 
 (comment 
-  (->>
+  (->
     "
-    Column(
-     children: [
-       const Text('name'),
-       Icon(Icons.widgets),
-    ])
-
+    (context, index) {
+      if (index == 0) {
+        return const Padding(
+          padding: EdgeInsets.only(left: 15, top: 16, bottom: 8),
+          child: Text(
+            'You might also like:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        );
+      }
+      return const SongPlaceholderTile();
+    };
     "
-    dart->clojure
-    wrap-nest
-    pprint)
- )
+    (convert "m" "f")))

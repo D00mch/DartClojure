@@ -1,7 +1,7 @@
 (ns dumch.parse
   (:require
     [clojure.java.io :as io]
-    [better-cond.core :refer [defnc-]]
+    [better-cond.core :refer [defnc]]
     [clojure.string :as str]
     [instaparse.core :as insta :refer [defparser]])
   (:import java.util.Base64))
@@ -82,7 +82,7 @@
 (defn- substitute-curly-quotes [s]
   (str/replace s #"\"|'" "”"))
 
-(defnc- ast->clojure [[tag v1 v2 v3 :as node] m]
+(defnc ast->clojure [[tag v1 v2 v3 :as node] m]
 
   (= v1 "const") (ast->clojure (remove #(= % "const" ) node) m)
   ;; read-string ignores ^:const
@@ -196,16 +196,19 @@
                      (transform (comp substitute-curly-quotes 
                                       decode)))))) 
       
-(defn- save-read [code]
+(defn save-read [code]
   (if (string? code) 
+    #_{:clj-kondo/ignore [:unused-binding]}
     (try 
       (read-string code)
-      (catch Exception e
-        code)) 
+      (catch Exception e code)) 
     code))
 
+(defn dart->ast [dart]
+  (insta/parse widget-parser (clean dart)))
+
 (defn dart->clojure [dart & {m :material :or {m "m"}}]
-  (-> dart clean widget-parser (ast->clojure m) save-read))
+  (-> dart dart->ast (ast->clojure m) save-read))
 
 (comment 
   
