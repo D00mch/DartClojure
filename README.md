@@ -4,8 +4,7 @@ Opinionated dart to clojure converter for flutter widgets.
 It doesn't convert classs, methods, and assignments —
 only the part with widget creation.
 
-<img src="https://github.com/Liverm0r/DartClojure/blob/main/resources/Screenshot
-2022-05-28 at 20.11.09.png" alt="alt text" width="632" height="302">
+<img src="https://github.com/Liverm0r/DartClojure/blob/main/resources/Screenshot%202022-05-28%20at%2020.11.09.png" alt="alt text" width="632" height="302">
 
 ## Why is it  not a full dart->clojure converter?
 
@@ -61,12 +60,13 @@ Center(
 
 ## TODO:
 
-- [ ] proper invocation (not it's a big crutch, some chaing of dots like
-`a.b().c.d()` wond work;
+- [ ] think how to integrate in into the editors;
+- [ ] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
+`a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
 - [ ] support variables in string `"${a}, $b"`;
 - [ ] support cascade `..`.
-- [ ] do not insert material import on core classes, like Duration
+- [ ] do not insert material import on core classes, like `Duration`;
 
 ## How to use
 
@@ -74,7 +74,7 @@ There are two options now: using jar or jvm repl.
 
 ### Api with Jar
 
-There are two ways to interact with the jar. First one is to run it each time:
+There are two ways to interact with the [jar][4]. First one is to run it each time:
 
 ```
 $ java -jar dartclj.jar "Divider(        
@@ -103,9 +103,8 @@ For example, you may start the repl-like console app with -e key:
 $ java -jar dartclj.jar -r true -e :end
 ```
 And then send code directly from Idea with hotkeys with 
-[Send To Terminal][3] plugin.
+[Send To Terminal][3] plugin. [Example video](https://youtu.be/b5M-d_CYH6w)
 
-(idea video here)
 
 For all the arguments see:
 ```bash
@@ -160,12 +159,6 @@ You may pass aliases for material and flutter-macro:
 
 ## Contribution
 
-### Installation
-
-Download from https://github.com/dumch/dartclojure
-
-### Usage
-
 Build jar:
   
     $ clj -X:depstar
@@ -193,3 +186,4 @@ limitations under the License.
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
 [2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.1-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.1
