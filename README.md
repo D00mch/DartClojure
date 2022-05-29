@@ -35,6 +35,11 @@ Center(
      :style (m/TextStyle :fontSize 32.0 :color m.Colors/white)))
 ```
 
+3 more examples:
+
+![Screen Recording 2022-05-29 at 19 38 44](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
+
+
 ## Supported
 
 - constructors invocation;
