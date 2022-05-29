@@ -75,9 +75,17 @@ Center(
 
 ## How to use
 
-There are two options now: using jar or jvm repl.
+Two things to note:
 
-### Api with Jar
+1. Copy-paste only widget's part, like `return Column(...),`, without method
+declaration.
+2. Quotes inside string are substituted with typographical quotes `“`. 
+
+There are two options now: 
+1. jar; 
+2. jvm repl.
+
+### API with Jar
 
 There are two ways to interact with the [jar][4]. First one is to run it each time:
 
@@ -116,7 +124,7 @@ For all the arguments see:
 $ java -jar dartclj.jar -h
 ```
 
-### Api from jvm repl
+### API from JVM-repl
 
 [Clojars][2].
 
@@ -191,4 +199,4 @@ limitations under the License.
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
 [2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.2-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.1
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.2
