@@ -1,7 +1,8 @@
 (ns dumch.integration-test 
   (:require [clojure.test :refer [deftest testing is]]
             [instaparse.core :as insta]
-            [dumch.improve :refer [wrap-nest simplify]]
+            [dumch.dartclojure :refer [convert]]
+            [dumch.improve :refer [simplify]]
             [dumch.parse :refer [dart->clojure widget-parser]]))
 
 (def ^:private code "
@@ -31,7 +32,7 @@ AnimatedContainer(
   (testing "dart->clojure, using nest macro"
     (is 
       (= 
-        (-> code dart->clojure wrap-nest)
+        (convert code)
         '(f/nest
            (m/AnimatedContainer
              :transformAlignment m.Alignment/center

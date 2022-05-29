@@ -53,8 +53,8 @@
        (-> 
          (parse/ast->clojure ast material)
          (improve/wrap-nest :flutter flutter)
-         improve/wrap-nest
          parse/save-read
+         improve/wrap-nest
          improve/simplify)))))
 
 (defn- stdin-loop! [material flutter put-in-clipboard? end]
