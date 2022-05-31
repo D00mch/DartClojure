@@ -24,7 +24,8 @@ AnimatedContainer(
             backgroundColor: _isOpened ? Colors.white : theme.primaryColor,
             child: Icon(Icons.add, color: _isOpened ? theme.primaryColor : Colors.white),
           )),
-)")
+)
+                    ")
 
 (deftest complex-example-test
   (testing "no ambiguity"
@@ -35,25 +36,26 @@ AnimatedContainer(
         (convert code)
         '(f/nest
            (m/AnimatedContainer
-             :transformAlignment m.Alignment/center
+             :transformAlignment (.center m/Alignment) 
              :transform (.diagonal3Values
                           m/Matrix4
                           (if _isOpened 0.7 1.0)
                           (if _isOpened 0.7 1.0)
                           1.0)
              :duration (m/Duration :milliseconds 250)
-             :curve (m/Interval 0.0 0.5 :curve m.Curves/easeOut))
+             :curve (m/Interval 0.0 0.5 :curve (.easeOut m/Curves)))
            (m/AnimatedRotation
              :turns (if _isOpened -0.1 0)
-             :curve (m/Interval 0.25 1.0 :curve m.Curves/easeInOut)
+             :curve (m/Interval 0.25 1.0 :curve (.easeInOut m/Curves))
              :duration (m/Duration :milliseconds 250))
            (m/FloatingActionButton
              :onPressed
              (fn [] :unidiomatic)
-             :backgroundColor (if _isOpened m.Colors/white (.primaryColor theme)))
+             :backgroundColor 
+             (if _isOpened (.white m/Colors) (.primaryColor theme)))
            (m/Icon
-             m.Icons/add
-             :color (if _isOpened (.primaryColor theme) m.Colors/white)))))))
+             (.add m/Icons)
+             :color (if _isOpened (.primaryColor theme) (.white m/Colors))))))))
 
 (def code2 "
 Column(
@@ -67,7 +69,8 @@ Column(
     }).toList(),
     Numb(sorted: (1 < 2 && 2 < 3 && 3 < a) && (a == b)),
   ],
-),")
+),
+           ")
 
 (deftest complex-example-test2
   (testing "no ambiguity"

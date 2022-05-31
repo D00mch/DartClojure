@@ -1,8 +1,8 @@
 s              = (statement | expr) ((<';'>|<#'\n'+>) s)* <','?>
 
 <value>        = (number | string | !get identifier
-               | invocation | !invocation constructor 
-               | list | map | get | typed-value | lambda
+               | constructor | invoke 
+               | list | map | get | typed-value
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not | await) <';'?> 
 
@@ -11,8 +11,6 @@ typed-value    = value 'as' identifier type?
 <statement>    = if | return
 return         = <'return'> expr;
 
-invocation     = (list | map | constructor | priority) 
-                 ((<'.'>|<'..'>) (constructor|identifier))+
 constructor    = 'const'? identifier <type?> params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
@@ -21,11 +19,11 @@ named-arg      = identifier <':'>
 
 list           = 'const'? <type?> 
                  <'['> list-el (<','> list-el)* <','?> <']'>
-<list-el>      = spread | value      
+<list-el>      = spread | expr     
 spread         = '...' value 
 map            = 'const'? <type?> 
-                 <'{'> (identifier|string|number) <':'> value
-                 (<','> (identifier|string|number) <':'> value)*  <'}'>
+                 <'{'> (identifier|string|number) <':'> expr
+                 (<','> (identifier|string|number) <':'> expr)*  <'}'>
 get            = (get | identifier) <'['> (identifier | string | number) <']'>     
 
 if             = <'if'> if-condition if-else-body
@@ -33,17 +31,20 @@ if             = <'if'> if-condition if-else-body
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
-lambda         = lambda-args <'async'?> (lambda-body | <'=>'> s)
-lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> 
+lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <(identifier <type?>)?> identifier  
 lambda-body    = <'{'> s <'}'>
 
-<expr>         = assign-val 
+<expr>         = lambda-val
+
+<lambda-val>   = assign-val | lambda 
+lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
 <assign-val>   = ternary-val | _assign
-_assign        = ('const'|'final')? (identifier type?)? identifier 
+_assign        = (dot-val | 
+                  ('const'|'final')? (identifier type?)? identifier) 
                  <_operator> ternary-val 
 <ternary-val>  = ifnull-val | ternary
-ternary        = ternary-val <'?'> ifnull-val <':'> ifnull-val
+ternary        = ternary-val <'?'> expr <':'> expr
 <ifnull-val>   = and-val | ifnull
 ifnull         = ifnull-val '??' and-val
 <and-val>      = or-val | and
@@ -56,10 +57,15 @@ equality       = equality-val ( '==' | '!=' ) compare-val
 compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-val 
 <add-val>      = mul-val | add
 add            = add-val ('+' | '-') mul-val
-<mul-val>      = term | mul
-mul            = mul-val ('*' | '/' | '%' | '~/') term
+<mul-val>      = dot-val | mul
+mul            = mul-val ('*' | '/' | '%' | '~/') dot-val
+<dot-val>      = term | dot | dot-op
+dot-op         = dot-val <'?'> (invoke | field)
+dot            = dot-val (invoke | field)
 <term>         = value | <'('> ternary-val <')'>
 
+invoke         = <'.'> identifier <type?> params  <';'?>
+field          = <'.'> identifier <';'?>
 await          = <'await'> value
 neg            = !number <'-'> value
 not            = <'!'> value
@@ -76,7 +82,7 @@ priority       = <'('> value <')'>
 
 <type>         = '<' (identifier type?) (',' (identifier type?))* '>'
 string         = #"'([^']*)'"
-<identifier>   = #'[a-zA-Z_]+[a-zA-Z0-9.?!_]*' 
+<identifier>   = #'[a-zA-Z_]+[a-zA-Z0-9!_]*' 
 number         = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
 
 <digit>        = #'[0-9]'

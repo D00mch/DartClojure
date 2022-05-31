@@ -13,7 +13,7 @@
            (-> '(m/Text "text")))))
   (testing "line invocations"
     (is (= (dart->clojure "One(1).two().three(2, 3)")
-           (-> '(-> (m/One 1) (.two) (.three 2 3))))))
+           '(-> (m/One 1) (.two) (.three 2 3)))))
   (testing "instance method invocation"
     (is (= (dart->clojure "_pinPut.copyWith(border: 1)")
            '(.copyWith _pinPut :border 1))))
@@ -25,14 +25,14 @@
            '(-> m/SClass .field (.copyWith :border 1)))))
   (testing "invocation on list"
     (is (= (-> "[1].cast()" dart->clojure simplify)
-           '(-> [1] (.cast))))
+           '(.cast [1])))
     (is (= (-> "[1].length" dart->clojure simplify)
-           '(-> [1] .length))))
+           '(.length [1]))))
   (testing "invocation on map"
     (is (= (-> "{1:1}.cast()" dart->clojure)
-           '(-> {1 1} (.cast))))
+           '(.cast {1 1})))
     (is (= (-> "{1:1}.length" dart->clojure)
-           '(-> {1 1} .length)))))
+           '(.length {1 1})))))
 
 (deftest optional-name-test
   (testing "optional field somewhere in the chain"
@@ -54,12 +54,14 @@
     (is (= (dart->clojure "instance?.copyWith(border: 1)")
            '(some-> instance (.copyWith :border 1))))))
 
-(deftest list-test
-  (testing "ignore spread operator"
-    (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
-               dart->clojure
-               simplify)
-           '(:unknown))))
+(optional-invocation-test)
+
+(deftest ^:current  list-test
+  #_(testing "ignore spread operator"
+      (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
+                 dart->clojure
+                 simplify)
+             '(:unknown))))
   (testing "typed list"
     (is (= (-> "<Int>[1, 2]" dart->clojure simplify)
            '(1 2))))
@@ -68,7 +70,7 @@
       (= (-> "Column(children: [const Text('name'),
                                 Icon(Icons.widgets)])" 
              dart->clojure)
-         '(m/Column :children '((m/Text "name") (m/Icon m.Icons/widgets)))))))
+         '(m/Column :children '((m/Text "name") (m/Icon (.widgets m/Icons))))))))
 
 (deftest map-test
   (testing "typeless map as named parameter"
