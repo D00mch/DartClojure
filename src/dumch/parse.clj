@@ -18,56 +18,9 @@
 (defn- upper? [s] (some-> s first Character/isUpperCase))
 
 (defn- str->with-import [s material]
-  (if (upper? s) (str material "/" s) s))
-
-(defn- to-identifier-name [s material]
-  (let [with?? (re-matches #".*\?\..*" s)
-        [v1 v2 :as parts] (str/split (str/replace s #"\?|\!" "") #"\.")
-        threading #(str
-                     "(" % " " 
-                         (to-identifier-name (first parts) material) 
-                         " ." (str/join " ."  (next parts)) ")")]
-
-    (cond
-      (= (count parts) 1) (str->with-import v1 material)
-      with?? (threading "some->")
-
-      (= (count parts) 2)
-      (if (upper? v1)
-        (str material "." v1 "/" v2)
-        (str "(." v2 " " v1 ")"))
-
-      :else (threading "->"))))
-
-(defn- to-constructor-name
-  "params: constructor name, params string, material require name"
-  [n p m] ;; TODO: how to remove duplication with identifier-name ?
-  (if (re-matches #".*\.\..*" n)
-    :unknown
-    (let [with?? (re-matches #".*\?\..*" n)
-          [v1 v2 :as parts] (str/split (str/replace n #"\?|\!" "") #"\.")
-          threading #(str
-                       "(" % " "
-                           (str->with-import v1 m) (when (> (count parts) 2) " .")
-                           (str/join " ."  (butlast (next parts)))
-                           " (." (last parts) " " p ")"
-                           ")")]
-
-      (cond 
-        (= 1 (count parts)) (str "(" (str->with-import v1 m) " " p ")")
-        with?? (threading "some->") 
-        (= 2 (count parts)) (str "(." v2 " " (str->with-import v1 m) " " p ")")
-        :else (threading "->")))))
-
-(defn- str-insert
-  "Insert c in string s at index i."
-  [s c i]
-  (str (subs s 0 i) c (subs s i)))
-
-(defn- to-method-call [invocation]
-  (if (re-matches #"^\(.*\)$" invocation)
-    (str-insert invocation \. 1)
-    (str "." invocation "")))
+  (str/replace
+   (if (upper? s) (str material "/" s) s)
+   #"!" ""))
 
 (defn- dart-op->clj-op [o]
   (case o
@@ -84,13 +37,27 @@
 (defn- substitute-curly-quotes [s]
   (str/replace s #"\"|'" "”"))
 
-(defnc ast->clojure [[tag v1 v2 v3 :as node] m]
+(defn- flatten-dot [node ast->clj]
+  (loop [[tag v1 v2 :as node] node ;; having structure like [dot [dot a b] c]
+         stack [] ;; put here 'c', then 'b', while trying to find 'a' ^
+         [a [_ n params :as b] :as rslt] []  ;; result will look like [a b c]
+         op? false]
+    (cond (= :dot tag) (recur v1 (conj stack v2) rslt op?)
+          (= :dot-op tag) (recur v1 (conj stack v2) rslt true)
+          node (recur nil (conj stack node) rslt op?)
+          (seq stack) (recur node (pop stack) (conj rslt (peek stack)) op?)
+          ;; return results
+          op? (str "(some-> " (str/join " " (map ast->clj rslt)) ")")
+          (= (count rslt) 2) (ast->clj [:invoke n (cons :params (cons a (next params)))])
+          :else (str "(-> " (str/join " " (map ast->clj rslt)) ")"))))
 
-  (= v1 "const") (ast->clojure (remove #(= % "const" ) node) m)
+(defnc ast->clj [[tag v1 v2 v3 :as node] m]
+
+  (= v1 "const") (ast->clj (remove #(= % "const" ) node) m)
   ;; read-string ignores ^:const
   ;(str "^:const " (ast->clojure (remove #(= % "const" ) node) m))
 
-  (string? node) (to-identifier-name node m)
+  (string? node) (str->with-import node m)
   (= :string tag) (str/replace v1 #"^.|.$" "\"")
   (= :named-arg tag) (str ":" v1)
   (= :number tag) (node->number node) 
@@ -98,68 +65,58 @@
   ;; the only reason for it being quoted list and not vector is the problem
   ;; with using zipper (improve) on a collectoin with both seq and vector 
   (= :list tag) 
-  (str "'(" (str/join " " (map #(ast->clojure % m) (rest node))) ")")
+  (str "'(" (str/join " " (map #(ast->clj % m) (rest node))) ")")
 
   (= :map tag)
-  (str "{" (str/join " " (map #(ast->clojure % m) (rest node))) "}" )
+  (str "{" (str/join " " (map #(ast->clj % m) (rest node))) "}" )
 
   (= :get tag)
-  (str "(get " (ast->clojure v1 m) " " (ast->clojure v2 m) ")")
-
-  ;; TODO: rewrite parser to proper support dot invocations  
-  (and (= :invocation tag) v2)
-  (str "(-> " (ast->clojure v1 m) 
-            (->> node
-                 (drop 2)
-                 (map (fn [node] 
-                        (if (string? node)
-                          (str/replace node #"\." " .")
-                          (ast->clojure node m))))
-                 (map to-method-call)
-                 (str/join " "))
-            ")")
+  (str "(get " (ast->clj v1 m) " " (ast->clj v2 m) ")")
 
   (and (= :s tag) v2) 
-  (str "(do " (->> node rest (map #(ast->clojure % m)) (str/join " ")) ")") 
-  (#{:s :return :typed-value :invocation :priority} tag)
-  (ast->clojure v1 m)
+  (str "(do " (->> node rest (map #(ast->clj % m)) (str/join " ")) ")") 
+  (#{:s :return :typed-value :priority} tag)
+  (ast->clj v1 m)
 
   (= :constructor tag)
-  (str (to-constructor-name v1 (ast->clojure v2 m) m))
+  (str "(" (str->with-import v1 m) " " (ast->clj v2 m) ")")
 
   (= :if tag)
   (case (count node)
-    3 (str "(when " (ast->clojure v1 m) " " (ast->clojure v2 m) ")")
-    4 (str "(if " (->> (rest node) (map #(ast->clojure % m)) (str/join " ")) ")") 
-    (str "(cond " (->> (rest node) (map #(ast->clojure % m)) (str/join " ")) ")"
-         (when (even? (count node)) (str " " (ast->clojure (last node) m)))) )
+    3 (str "(when " (ast->clj v1 m) " " (ast->clj v2 m) ")")
+    4 (str "(if " (->> (rest node) (map #(ast->clj % m)) (str/join " ")) ")") 
+    (str "(cond " (->> (rest node) (map #(ast->clj % m)) (str/join " ")) ")"
+         (when (even? (count node)) (str " " (ast->clj (last node) m)))) )
 
   (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
-  (= :lambda-body tag) (str/join " " (map #(ast->clojure % m) (rest node)))
-  (= :params tag) (str/join " " (map #(ast->clojure % m) (rest node)))
+  (= :lambda-body tag) (str/join " " (map #(ast->clj % m) (rest node)))
+  (= :params tag) (str/join " " (map #(ast->clj % m) (rest node)))
   (= :argument tag)
   (if v2 
-    (str/join " " (map #(ast->clojure % m) (rest node)))
-    (ast->clojure v1 m))
+    (str/join " " (map #(ast->clj % m) (rest node)))
+    (ast->clj v1 m))
   (= :lambda tag) 
-  (str "(fn " (str/join " " (map #(ast->clojure % m) (rest node))) ")")
-
+  (str "(fn " (str/join " " (map #(ast->clj % m) (rest node))) ")")
 
   (= :assignment tag)
-  (str "(set! " (ast->clojure v1 m) " " (ast->clojure v2 m) ")")
+  (str "(set! " (ast->clj v1 m) " " (ast->clj v2 m) ")")
 
   (= :ternary tag)
-  (str "(if " (ast->clojure v1 m) " " 
-          (ast->clojure v2 m) " "
-          (ast->clojure v3 m) ")")
+  (str "(if " (ast->clj v1 m) " " 
+          (ast->clj v2 m) " "
+          (ast->clj v3 m) ")")
 
-  (= :neg tag) (str "(- " (ast->clojure v1 m) ")")
-  (= :await tag) (str "(await " (ast->clojure v1 m) ")")
-  (#{:not :dec :inc} tag) (str "(" (name tag) " " (ast->clojure v1 m) ")") 
+  (= :neg tag) (str "(- " (ast->clj v1 m) ")")
+  (= :await tag) (str "(await " (ast->clj v1 m) ")")
+  (#{:not :dec :inc} tag) (str "(" (name tag) " " (ast->clj v1 m) ")") 
 
-  (and (= tag :compare) (= v2 "as")) (ast->clojure v1 m)
+  (and (= tag :compare) (= v2 "as")) (ast->clj v1 m)
   (#{:compare :add :mul :and :or :ifnull :equality} tag) 
-  (str "(" (dart-op->clj-op v2) " " (ast->clojure v1 m) " " (ast->clojure v3 m) ")")
+  (str "(" (dart-op->clj-op v2) " " (ast->clj v1 m) " " (ast->clj v3 m) ")")
+
+  (or (= :dot tag) (= :dot-op tag)) (flatten-dot node #(ast->clj % m)) 
+  (= :invoke tag) (str "(." (str->with-import v1 m) " " (ast->clj v2 m) ")")
+  (= :field tag) (str "." (str->with-import v1 m))
 
   (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
 
@@ -213,7 +170,7 @@
   (insta/parse widget-parser (clean dart)))
 
 (defn dart->clojure [dart & {m :material :or {m "m"}}]
-  (-> dart dart->ast (ast->clojure m) save-read))
+  (-> dart dart->ast (ast->clj m) save-read))
 
 (comment 
   
