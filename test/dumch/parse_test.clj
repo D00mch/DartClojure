@@ -57,11 +57,11 @@
 (optional-invocation-test)
 
 (deftest ^:current  list-test
-  #_(testing "ignore spread operator"
-      (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
-                 dart->clojure
-                 simplify)
-             '(:unknown))))
+  (testing "ignore spread operator"
+    (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
+               dart->clojure
+               simplify)
+           '[(-> :unidiomatic .a (.map (fn [acc] (_t ctx acc))))])))
   (testing "typed list"
     (is (= (-> "<Int>[1, 2]" dart->clojure simplify)
            '(1 2))))

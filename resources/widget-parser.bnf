@@ -42,8 +42,8 @@ dot            = dot-val (invoke | field)
 <term>         = value | <'('> ternary-val <')'>
 
 <value>        = (number | string | !get identifier
-               | constructor | invoke 
-               | list | map | get | typed-value
+               | constructor | invoke | typed-value  
+               | list | map | get | _spread
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not | await) <';'?> 
 
@@ -68,8 +68,8 @@ named-arg      = identifier <':'>
 
 list           = 'const'? <type?> 
                  <'['> list-el (<','> list-el)* <','?> <']'>
-<list-el>      = spread | expr     
-spread         = '...' value 
+<list-el>      = _spread | expr     
+_spread        = '...' value 
 map            = 'const'? <type?> 
                  <'{'> (identifier|string|number) <':'> expr
                  (<','> (identifier|string|number) <':'> expr)*  <'}'>
