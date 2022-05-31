@@ -32,17 +32,23 @@
     (is (= (-> "{1:1}.cast()" dart->clojure)
            '(.cast {1 1})))
     (is (= (-> "{1:1}.length" dart->clojure)
-           '(.length {1 1})))))
+           '(.length {1 1}))))
+  (testing "long chaing of dots"
+    (is (= (-> "a.b().c.d().e()" dart->clojure)
+           '(-> a (.b) .c (.d) (.e))))))
 
 (deftest optional-name-test
   (testing "optional field somewhere in the chain"
-    (is (= (dart->clojure "obj?.field.name?.first")
+    (is (= (-> "obj?.field.name?.first" dart->clojure)
            '(some-> obj .field .name .first)))
-    (is (= (dart->clojure "obj.field?.name")
+    (is (= (-> "obj.field?.name" dart->clojure)
            '(some-> obj .field .name))))
   (testing "field in optional object"
-    (is (= (dart->clojure "obj?.name")
-           '(some-> obj .name)))))
+    (is (= (-> "obj?.name" dart->clojure)
+           '(some-> obj .name))))
+  (testing "only one optional in the chain"
+    (is (= (-> "a.b?.c.d().e" dart->clojure)
+           '(some-> a .b .c (.d) .e)))))
 
 (deftest optional-invocation-test 
   (testing "optional field somewhere in the invocation chain"
@@ -70,7 +76,10 @@
       (= (-> "Column(children: [const Text('name'),
                                 Icon(Icons.widgets)])" 
              dart->clojure)
-         '(m/Column :children '((m/Text "name") (m/Icon (.widgets m/Icons))))))))
+         '(m/Column :children '((m/Text "name") (m/Icon (.widgets m/Icons)))))))
+  (testing "ifnull and ternary list elements"
+    (is (= (-> "[ a? 1 : b, c ?? d ]" dart->clojure simplify)
+           '[(if a 1 b) (or c d)]))))
 
 (deftest map-test
   (testing "typeless map as named parameter"
@@ -80,7 +89,11 @@
   (testing "typed map" 
     (is 
       (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure simplify)
-         {1 [1 2]}))))
+         {1 [1 2]})))
+  (testing "ifnull and ternary map elements" 
+    (is 
+      (= (-> "<int, List<int>>{ a ? 1 : 2 : a ?? b}" dart->clojure simplify)
+         '{(if a 1 2) (or a b)}))))
 
 (deftest set!-test
   (is (= (dart->clojure "a = b") :unidiomatic)))

@@ -71,7 +71,7 @@ list           = 'const'? <type?>
 <list-el>      = _spread | expr     
 _spread        = '...' value 
 map            = 'const'? <type?> 
-                 <'{'> (identifier|string|number) <':'> expr
+                 <'{'> expr <':'> expr
                  (<','> (identifier|string|number) <':'> expr)*  <'}'>
 get            = (get | identifier) <'['> (identifier | string | number) <']'>     
 
