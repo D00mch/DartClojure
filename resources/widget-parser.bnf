@@ -1,30 +1,7 @@
 s              = (statement | expr) ((<';'>|<#'\n'+>) s)* <','?>
 
-<value>        = (number | string | !get identifier
-               | constructor | invoke 
-               | list | map | get | typed-value
-               | inc | _inc | dec | _dec | identifier | number
-               | _tilda | neg | not | await) <';'?> 
-
-typed-value    = value 'as' identifier type?
-
 <statement>    = if | return
 return         = <'return'> expr;
-
-constructor    = 'const'? identifier <type?> params <';'?>
-params         = <'('>  <')'>
-               | (<'('> argument (<','> argument)* <','?> <')'>)
-argument       = expr | (named-arg expr) 
-named-arg      = identifier <':'> 
-
-list           = 'const'? <type?> 
-                 <'['> list-el (<','> list-el)* <','?> <']'>
-<list-el>      = spread | expr     
-spread         = '...' value 
-map            = 'const'? <type?> 
-                 <'{'> (identifier|string|number) <':'> expr
-                 (<','> (identifier|string|number) <':'> expr)*  <'}'>
-get            = (get | identifier) <'['> (identifier | string | number) <']'>     
 
 if             = <'if'> if-condition if-else-body
 <if-else-body> =  (lambda-body | s ) 
@@ -64,6 +41,14 @@ dot-op         = dot-val <'?'> (invoke | field)
 dot            = dot-val (invoke | field)
 <term>         = value | <'('> ternary-val <')'>
 
+<value>        = (number | string | !get identifier
+               | constructor | invoke 
+               | list | map | get | typed-value
+               | inc | _inc | dec | _dec | identifier | number
+               | _tilda | neg | not | await) <';'?> 
+
+typed-value    = value 'as' identifier type?
+
 invoke         = <'.'> identifier <type?> params  <';'?>
 field          = <'.'> identifier <';'?>
 await          = <'await'> value
@@ -74,6 +59,22 @@ inc            = <'++'> value
 _dec           = value <'--'>
 _inc           = value <'++'>
 _tilda         = <'~'> value
+
+constructor    = 'const'? identifier <type?> params <';'?>
+params         = <'('>  <')'>
+               | (<'('> argument (<','> argument)* <','?> <')'>)
+argument       = expr | (named-arg expr) 
+named-arg      = identifier <':'> 
+
+list           = 'const'? <type?> 
+                 <'['> list-el (<','> list-el)* <','?> <']'>
+<list-el>      = spread | expr     
+spread         = '...' value 
+map            = 'const'? <type?> 
+                 <'{'> (identifier|string|number) <':'> expr
+                 (<','> (identifier|string|number) <':'> expr)*  <'}'>
+get            = (get | identifier) <'['> (identifier | string | number) <']'>     
+
 
 _assignment    = identifier _operator value
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
