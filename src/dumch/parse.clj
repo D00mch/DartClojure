@@ -52,14 +52,9 @@
           :else (str "(-> " (str/join " " (map ast->clj rslt)) ")"))))
 
 (defnc ast->clj [[tag v1 v2 v3 :as node] m]
-
-  (= v1 "const") (ast->clj (remove #(= % "const" ) node) m)
-  ;; read-string ignores ^:const
-  ;(str "^:const " (ast->clojure (remove #(= % "const" ) node) m))
-
-  (string? node) (str->with-import node m)
+  (= :identifier tag) (str->with-import v1 m)
   (= :string tag) (str/replace v1 #"^.|.$" "\"")
-  (= :named-arg tag) (str ":" v1)
+  (= :named-arg tag) (str ":" (ast->clj v1 m))
   (= :number tag) (node->number node) 
 
   ;; the only reason for it being quoted list and not vector is the problem
@@ -75,11 +70,11 @@
 
   (and (= :s tag) v2) 
   (str "(do " (->> node rest (map #(ast->clj % m)) (str/join " ")) ")") 
-  (#{:s :return :typed-value :priority} tag)
+  (#{:s :return :typed-value :priority :const} tag)
   (ast->clj v1 m)
 
   (= :constructor tag)
-  (str "(" (str->with-import v1 m) " " (ast->clj v2 m) ")")
+  (str "(" (ast->clj v1 m) " " (ast->clj v2 m) ")")
 
   (= :if tag)
   (case (count node)
@@ -88,7 +83,8 @@
     (str "(cond " (->> (rest node) (map #(ast->clj % m)) (str/join " ")) ")"
          (when (even? (count node)) (str " " (ast->clj (last node) m)))) )
 
-  (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
+  (= :lambda-args tag) 
+  (str "[" (str/join " " (map #(ast->clj % m) (rest node))) "]")
   (= :lambda-body tag) (str/join " " (map #(ast->clj % m) (rest node)))
   (= :params tag) (str/join " " (map #(ast->clj % m) (rest node)))
   (= :argument tag)
@@ -115,8 +111,8 @@
   (str "(" (dart-op->clj-op v2) " " (ast->clj v1 m) " " (ast->clj v3 m) ")")
 
   (or (= :dot tag) (= :dot-op tag)) (flatten-dot node #(ast->clj % m)) 
-  (= :invoke tag) (str "(." (str->with-import v1 m) " " (ast->clj v2 m) ")")
-  (= :field tag) (str "." (str->with-import v1 m))
+  (= :invoke tag) (str "(." (ast->clj v1 m) " " (ast->clj v2 m) ")")
+  (= :field tag) (str "." (ast->clj v1 m))
 
   (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
 
