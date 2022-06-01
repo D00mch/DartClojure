@@ -1,10 +1,11 @@
-s              = (statement | expr) ((<';'>|<#'\n'+>) s)* <','?>
+s              = (statement | expr <end>)* return?
 
-<statement>    = if | return
-return         = <'return'> expr;
+<end>          = <(';'|#'\n'+|','|#'$')>
+<statement>    = if
+return         = <'return'> expr <';'>
 
 if             = <'if'> if-condition if-else-body
-<if-else-body> =  (lambda-body | s ) 
+<if-else-body> =  (lambda-body | return | expr <end>) 
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
@@ -79,7 +80,6 @@ get            = (get | identifier) <'['> (identifier | string | number) <']'>
 _assignment    = identifier _operator value
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
                | '>>>=' | '&=' | '^=' | '|=' | '??='
-priority       = <'('> value <')'> 
 
 <type>         = '<' (identifier type?) (',' (identifier type?))* '>'
 string         = #"'([^']*)'"
