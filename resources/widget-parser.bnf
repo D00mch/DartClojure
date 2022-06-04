@@ -77,8 +77,7 @@ _spread        = '...' value
 map            = <type?> 
                  <'{'> expr <':'> expr
                  (<','> (identifier|string|number) <':'> expr)*  <'}'>
-get            = (get | identifier) <'['> (identifier | string | number) <']'>     
-
+get            = (get | identifier | map) <'['> (identifier | string | number) <']'>     
 
 _assignment    = identifier _operator value
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
