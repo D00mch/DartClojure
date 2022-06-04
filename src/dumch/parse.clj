@@ -103,7 +103,7 @@
     :identifier (symbol (str/replace v1 #"!" ""))
     :list (n/vector-node (maps ast->clj (rest node))) 
     :map (mnode (maps ast->clj (rest node)))
-    :get (lnode [(ast->clj v1)  (ast->clj v2)])
+    :get (lnode [(ast->clj v1) ws (ast->clj v2)])
     :string (str/replace v1 #"^.|.$" "") 
     :number (node->number node)
 

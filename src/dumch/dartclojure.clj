@@ -5,7 +5,8 @@
             [dumch.improve :as improve]
             [dumch.parse :as parse]
             [instaparse.core :as insta]
-            [rewrite-clj.zip :as z])
+            [rewrite-clj.zip :as z]
+            [zprint.core :as zpr])
   #_(:import (java.awt Toolkit)
              (java.awt.datatransfer Clipboard StringSelection))
   (:gen-class))
@@ -37,13 +38,13 @@
 #_(defn- clipboard-put! [^String s clipboard]
     (.setContents clipboard (StringSelection. s) nil))
 
-(defn- show! [data _]
+(defn show! [data _]
   #_(defonce ^Clipboard clipboard (.. Toolkit getDefaultToolkit getSystemClipboard))
-  (pprint data)
+  (zpr/czprint data {:parse-string? true})
   #_(when put-in-clipboard? (clipboard-put! (str/join data) clipboard)))
 
 (defn convert 
-  "get dart code, material and flutter-macro aliases and returns clojure"
+  "get dart code, material and flutter-macro aliases and returns clojure as string"
   ([code]
    (convert code "m" "f"))
   ([code material flutter]
@@ -54,7 +55,7 @@
        (-> 
          (parse/ast->clj ast)
          (improve/simplify :flutter flutter :material material)
-         rewrite-clj.zip/sexpr)))))
+         z/string)))))
 
 (defn- stdin-loop! [material flutter put-in-clipboard? end]
   (println (str "Paste dart code below, press enter"

@@ -51,10 +51,10 @@ Center(
 - lambdas;
 - comments (will be removed);
 - nesting children with f/nest macro;
+- constants;
 
 ## Not supported
 
-- constants;
 - class/methods declarations;
 - bitwise operators;
 - assignment (unideomatic);
@@ -162,13 +162,15 @@ Wrap with nest:
 
 Convert dart code (simplify and wrap-nest under the hood):
 ```clojure
-(convert "1 + 1 + 2 * 1;") ; => (+ 1 1 (* 2 1))
+(convert "1 + 1 + 2 * 1;") ; => "(+ 1 1 (* 2 1))"
 ```
 
 You may pass aliases for material and flutter-macro:
 ```clojure
-(convert "Text('1')" "m" "f") ; => (m/Text "1")
+(convert "Text('1')" "m" "f") ; => "(m/Text "1")" 
 ```
+
+Use `show!` function to pretty print the result.
 
 ## Contribution
 
