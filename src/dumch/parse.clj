@@ -1,41 +1,29 @@
 (ns dumch.parse
   (:require
     [clojure.java.io :as io]
-    [better-cond.core :refer [defnc]]
     [clojure.string :as str]
-    [instaparse.core :as insta :refer [defparser]])
+    [dumch.util :refer [ws maps mapcats]]
+    [instaparse.core :as insta :refer [defparser]]
+    [rewrite-clj.node :as n 
+     :refer [list-node map-node token-node keyword-node vector-node]
+     :rename {list-node lnode, vector-node vnode,  map-node mnode, 
+              token-node tnode, keyword-node knode}])
   (:import java.util.Base64))
 
-(defparser widget-parser 
-  (io/resource "widget-parser.bnf")
-  :auto-whitespace :standard)
+(defn- dart-op->clj-op [o]
+  (case o
+    "is" 'dart/is?
+    "??" 'or
+    "==" '=
+    "!=" 'not=
+    "%"  'rem
+    "~/" 'quot
+    (symbol o)))
 
 (defn- node->number [[tag value]]
   (if (= tag :number)
     (-> value (str/replace #"^\." "0.") read-string)
     (throw (ex-info "node with wrong tag passed" {:tag tag}))))
-
-(defn- upper? [s] (some-> s first Character/isUpperCase))
-
-(defn- str->with-import [s material]
-  (str/replace
-   (if (upper? s) (str material "/" s) s)
-   #"!" ""))
-
-(defn- dart-op->clj-op [o]
-  (case o
-    "is" "dart/is?"
-    "??" "or"
-    "||" "or"
-    "&&" "and"
-    "==" "="
-    "!=" "not="
-    "%"  "rem"
-    "~/" "quot"
-    o))
-
-(defn- substitute-curly-quotes [s]
-  (str/replace s #"\"|'" "”"))
 
 (defn- flatten-dot [node ast->clj]
   (loop [[tag v1 v2 :as node] node ;; having structure like [dot [dot a b] c]
@@ -46,81 +34,101 @@
           (= :dot-op tag) (recur v1 (conj stack v2) rslt true)
           node (recur nil (conj stack node) rslt op?)
           (seq stack) (recur node (pop stack) (conj rslt (peek stack)) op?)
-          ;; return results
-          op? (str "(some-> " (str/join " " (map ast->clj rslt)) ")")
-          (= (count rslt) 2) (ast->clj [:invoke n (cons :params (cons a (next params)))])
-          :else (str "(-> " (str/join " " (map ast->clj rslt)) ")"))))
 
-(defnc ast->clj [[tag v1 v2 v3 :as node] m]
+          op? (lnode (list* (tnode 'some->) ws (maps ast->clj rslt)))
+          (= (count rslt) 2) 
+          (ast->clj [:invoke n (cons :params (cons [:argument a] (next params)))])
+          :else (lnode (list* (tnode '->) ws (maps ast->clj rslt))))))
 
-  (= v1 "const") (ast->clj (remove #(= % "const" ) node) m)
-  ;; read-string ignores ^:const
-  ;(str "^:const " (ast->clojure (remove #(= % "const" ) node) m))
+(defn flatten-same-node [[f & params]]
+  (list* 
+    [:identifier (case f :and 'and, :or 'or, :add '+, :mul '*)]
+    (mapcat 
+      #(if (and (sequential? %) (= (first %) f))
+         (next (flatten-same-node %))
+         [%])
+      params)))
 
-  (string? node) (str->with-import node m)
-  (= :string tag) (str/replace v1 #"^.|.$" "\"")
-  (= :named-arg tag) (str ":" v1)
-  (= :number tag) (node->number node) 
+(defn- flatten-compare [[_ & params :as and-node]]
+  (let [compare-nodes (->> params (filter (fn [[f]] (= f :compare))))
+        get-adjacent (fn [mapfn]
+                       (->> compare-nodes
+                            mapfn
+                            (partition 2 1) 
+                            (take-while (fn [[p1 p2]] (= (last p1) (second p2))))
+                            (mapcat identity)
+                            seq))
+        build-ast #(list* :compare+ 
+                          (vector :identifier (nth (first %) 2))
+                          (distinct (mapcat (fn [[_ a _ b]] [a b]) %)))
+        compare-vals (or (get-adjacent identity) (get-adjacent reverse))]
+    (if compare-vals 
+      (conj (filterv (fn [v] (not (some #(= v %) compare-vals))) and-node) 
+            (build-ast compare-vals))
+      and-node)))
 
-  ;; the only reason for it being quoted list and not vector is the problem
-  ;; with using zipper (improve) on a collectoin with both seq and vector 
-  (= :list tag) 
-  (str "'(" (str/join " " (map #(ast->clj % m) (rest node))) ")")
+(defn ast->clj [[tag v1 v2 v3 :as node]]
+  #_(println :node node)
+  (case tag
+    :s (if v2 
+         (lnode (list* (tnode 'do) ws (->> node rest (maps ast->clj)))) 
+         (ast->clj v1))
 
-  (= :map tag)
-  (str "{" (str/join " " (map #(ast->clj % m) (rest node))) "}" )
+    :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))
+    :params (mapcats ast->clj (rest node))
+    :argument (if v2 (map ast->clj (rest node)) [(ast->clj v1)])
+    :named-arg (knode (keyword (ast->clj v1)))
 
-  (= :get tag)
-  (str "(get " (ast->clj v1 m) " " (ast->clj v2 m) ")")
+    :dot  (flatten-dot node ast->clj)
+    :dot-op (flatten-dot node ast->clj)
+    :invoke (lnode (list* (ast->clj [:field v1]) ws (ast->clj v2)))
+    :field (tnode (symbol (str "." (ast->clj v1))))
 
-  (and (= :s tag) v2) 
-  (str "(do " (->> node rest (map #(ast->clj % m)) (str/join " ")) ")") 
-  (#{:s :return :typed-value :priority} tag)
-  (ast->clj v1 m)
+    :lambda (lnode [(tnode 'fn) ws (ast->clj v1) ws (ast->clj v2)])
+    :lambda-body (ast->clj v1)
+    :lambda-args (vnode (->> node rest (maps ast->clj)))
 
-  (= :constructor tag)
-  (str "(" (str->with-import v1 m) " " (ast->clj v2 m) ")")
+    :ternary (ast->clj [:if v1 v2 v3])
+    :if (case (count node)
+          3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
+          4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
+          (lnode 
+            (if (even? (count node))
+              (concat 
+                (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
+                [ws (knode :else) ws (ast->clj (last node))])
+              (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))) 
 
-  (= :if tag)
-  (case (count node)
-    3 (str "(when " (ast->clj v1 m) " " (ast->clj v2 m) ")")
-    4 (str "(if " (->> (rest node) (map #(ast->clj % m)) (str/join " ")) ")") 
-    (str "(cond " (->> (rest node) (map #(ast->clj % m)) (str/join " ")) ")"
-         (when (even? (count node)) (str " " (ast->clj (last node) m)))) )
+    :const (n/meta-node (tnode :const) (ast->clj v1))
+    :identifier (symbol (str/replace v1 #"!" ""))
+    :list (n/vector-node (maps ast->clj (rest node))) 
+    :map (mnode (maps ast->clj (rest node)))
+    :get (lnode [(ast->clj v1)  (ast->clj v2)])
+    :string (str/replace v1 #"^.|.$" "") 
+    :number (node->number node)
 
-  (= :lambda-args tag) (str "[" (str/join " " (rest node)) "]")
-  (= :lambda-body tag) (str/join " " (map #(ast->clj % m) (rest node)))
-  (= :params tag) (str/join " " (map #(ast->clj % m) (rest node)))
-  (= :argument tag)
-  (if v2 
-    (str/join " " (map #(ast->clj % m) (rest node)))
-    (ast->clj v1 m))
-  (= :lambda tag) 
-  (str "(fn " (str/join " " (map #(ast->clj % m) (rest node))) ")")
+    :neg (lnode [(tnode '-) ws (ast->clj v1)])
+    :sub (lnode [(tnode '-) ws (ast->clj v1) ws (ast->clj v2)])
+    :await (lnode [(tnode 'await) ws (ast->clj v1)])
 
-  (= :assignment tag)
-  (str "(set! " (ast->clj v1 m) " " (ast->clj v2 m) ")")
+    :and (->> node flatten-same-node flatten-compare (maps ast->clj) lnode)
+    :compare+ (lnode (list* (ast->clj v1) ws (->> node (drop 2) (maps ast->clj))))
 
-  (= :ternary tag)
-  (str "(if " (ast->clj v1 m) " " 
-          (ast->clj v2 m) " "
-          (ast->clj v3 m) ")")
+    (cond 
+      (#{:or :add :mul} tag) (lnode (maps ast->clj (flatten-same-node node)))
+      (#{:return :typed-value} tag) (ast->clj v1)
+      (#{:not :dec :inc} tag) (lnode [(tnode (symbol tag)) ws (ast->clj v1)])
+      (#{:compare :div :ifnull :equality} tag)
+      (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])
+      (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
+      :else :unknown)))
 
-  (= :neg tag) (str "(- " (ast->clj v1 m) ")")
-  (= :await tag) (str "(await " (ast->clj v1 m) ")")
-  (#{:not :dec :inc} tag) (str "(" (name tag) " " (ast->clj v1 m) ")") 
+(defparser widget-parser 
+  (io/resource "widget-parser.bnf")
+  :auto-whitespace :standard)
 
-  (and (= tag :compare) (= v2 "as")) (ast->clj v1 m)
-  (#{:compare :add :mul :and :or :ifnull :equality} tag) 
-  (str "(" (dart-op->clj-op v2) " " (ast->clj v1 m) " " (ast->clj v3 m) ")")
-
-  (or (= :dot tag) (= :dot-op tag)) (flatten-dot node #(ast->clj % m)) 
-  (= :invoke tag) (str "(." (str->with-import v1 m) " " (ast->clj v2 m) ")")
-  (= :field tag) (str "." (str->with-import v1 m))
-
-  (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
-
-  :unknown)
+(defn- substitute-curly-quotes [s]
+  (str/replace s #"\"|'" "”"))
 
 (defn- encode [to-encode]
   (.encodeToString (Base64/getEncoder) (.getBytes to-encode)))
@@ -137,7 +145,7 @@
 
 (defn clean
   "removes comments from string, transforms multiline string
-   to singleline, replaces quotes (', \") with 'curly-quotes' (“)"
+  to singleline, replaces quotes (', \") with 'curly-quotes' (“)"
   [code]
   (let [str-pattern #"([\"\'])(?:(?=(\\?))\2.)*?\1"
         transform #(fn [[m]]
@@ -157,44 +165,33 @@
         (str/replace str-pattern 
                      (transform (comp substitute-curly-quotes 
                                       decode)))))) 
-      
+
 (defn save-read [code]
-  (if (string? code) 
-    #_{:clj-kondo/ignore [:unused-binding]}
-    (try 
-      (read-string code)
-      (catch Exception e code)) 
-    code))
+  (try 
+    (n/sexpr code)
+    (catch Exception e (n/string code))))
 
 (defn dart->ast [dart]
   (insta/parse widget-parser (clean dart)))
 
-(defn dart->clojure [dart & {m :material :or {m "m"}}]
-  (-> dart dart->ast (ast->clj m) save-read))
+(defn dart->clojure [dart]
+  (-> dart dart->ast (ast->clj) save-read))
 
 (comment 
-  
-  (def code
-    "
-var item = catalog.getByIndex(index);
-if (item.isLoading) {
-  print(1);
-}
-a 
-")
 
+  (def code "1 < 2 && true && 2 < 3")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (insta/parses widget-parser (clean code) :total 1)
+  (insta/parses widget-parser code)
 
   (dart->clojure code)
 
-  (->> code
-      clean 
-      (insta/parses widget-parser :total true) 
-      ; (ast->clojure "m") 
-      ; save-read
-      ))
+  (-> "a && b && c" 
+    dart->ast 
+    ast->clj 
+    n/string
+    ))
+

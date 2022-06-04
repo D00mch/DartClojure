@@ -1,9 +1,9 @@
 (ns dumch.integration-test 
-  (:require [clojure.test :refer [deftest testing is]]
-            [instaparse.core :as insta]
+  (:require [clojure.test :refer [deftest is testing]]
             [dumch.dartclojure :refer [convert]]
             [dumch.improve :refer [simplify]]
-            [dumch.parse :refer [dart->clojure widget-parser]]))
+            [dumch.parse :refer [dart->clojure widget-parser]]
+            [instaparse.core :as insta]))
 
 (def ^:private code "
 AnimatedContainer(
@@ -23,9 +23,10 @@ AnimatedContainer(
             onPressed: () => widget.closeHint.value = !widget.closeHint.value,
             backgroundColor: _isOpened ? Colors.white : theme.primaryColor,
             child: Icon(Icons.add, color: _isOpened ? theme.primaryColor : Colors.white),
-          )),
-)
-                    ")
+          )
+      )
+);
+")
 
 (deftest complex-example-test
   (testing "no ambiguity"
@@ -78,12 +79,12 @@ Column(
   (testing "dart->clojure, using nest macro"
     (is 
       (= 
-        (-> code2 dart->clojure simplify)
+        (-> code2 convert)
         '(m/Column
            :children
-           [(m/Question (get (get questions _questionIndex) "questionText"))
+           [(m/Question ((questions _questionIndex) "questionText"))
             (->
-              (get (get questions _questionIndex) "answers")
+              ((questions _questionIndex) "answers")
               (.map (fn [answer] (m/Answer _answerQuestion answer)))
               (.toList))
-            (m/Numb :sorted (and (< 1 2 3 a) (= a b)))])))))
+            (m/Numb :sorted (and (= a b) (< 1 2 3 a)))])))))
