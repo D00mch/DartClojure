@@ -112,6 +112,10 @@ Divider(
 (material/Divider :height 0 :color material.Colors/grey)
 ```
 
+Colors are also supported:
+
+![image](https://user-images.githubusercontent.com/14236531/172026319-0f770f8c-5a33-4703-91d0-37cbd3772700.png)
+
 For example, you may start the repl-like console app with -e key: 
 ```
 $ java -jar dartclj.jar -r true -e :end
