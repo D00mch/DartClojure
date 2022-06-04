@@ -7,8 +7,6 @@
             [instaparse.core :as insta]
             [rewrite-clj.zip :as z]
             [zprint.core :as zpr])
-  #_(:import (java.awt Toolkit)
-             (java.awt.datatransfer Clipboard StringSelection))
   (:gen-class))
 
 (def cli-options 
@@ -29,19 +27,16 @@
     :parse-fn str
     :validate [#(re-matches #"^[A-Za-z][A-Za-z0-9]*$" %) 
                "invalid require alias for flutter-materail"]]
-   ["-c" "--clipboard BOOLEAN" "whether or not to put result in clipboard; not supported"
-    :default true
+   ["-c" "--colors BOOLEAN" "colorize output"
+    :default false
     :parse-fn #(Boolean/parseBoolean %)
     :validate [boolean? "Must be either true or false"]]
    ["-h" "--help"]])
 
-#_(defn- clipboard-put! [^String s clipboard]
-    (.setContents clipboard (StringSelection. s) nil))
-
-(defn show! [data _]
-  #_(defonce ^Clipboard clipboard (.. Toolkit getDefaultToolkit getSystemClipboard))
-  (zpr/zprint data {:parse-string? true})
-  #_(when put-in-clipboard? (clipboard-put! (str/join data) clipboard)))
+(defn show! [data & {:keys [colors] :or {colors false}}]
+  (if colors
+    (zpr/czprint data {:parse-string? true})
+    (println data)))
 
 (defn convert 
   "get dart code, return clojure code
@@ -49,21 +44,19 @@
    :material — material alias name, default to \"m\";
    :flutter — alias for ClojureDart helper macro, default to \"f\";
    :format — or of :string (default), :sexpr, :zipper, :node; last 2 about rewrite-clj"
-  ([code]
-   (convert code :material "m" :flutter "f"))
-  ([code & {m :material f :flutter frm :format :or {frm :string}}]
+  [code & {m :material f :flutter frm :format :or {m "m", f "f"}}]
    (let [ast (parse/dart->ast code) 
          bad? (insta/failure? ast)]
      (if bad?
        (str "Can't convert the code: " (:text ast))
        (let [rslt (improve/simplify (parse/ast->clj ast) :flutter f :material m)] 
          (case frm
-          :string (z/string rslt)
           :zipper rslt
           :sexpr (z/sexpr rslt)
-          :node (z/node rslt)))))))
+          :node (z/node rslt)
+          (-> rslt z/string (zpr/zprint-str {:parse-string? true})))))))
 
-(defn- stdin-loop! [material flutter put-in-clipboard? end]
+(defn- stdin-loop! [& {:keys [material flutter end colors]}]
   (println (str "Paste dart code below, press enter"
                 (when (seq end) (str ", write '" end "',"))
                 " and see the result:\n"))
@@ -74,26 +67,27 @@
         (try 
           (-> (convert (str/join "\n" acc) 
                       :material material 
-                      :flatter flutter)
-              (show! put-in-clipboard?))
+                      :flutter flutter)
+              (show! :colors colors))
           (catch Exception e (println "Can't convert the code; e " e)))
         (println)
         (recur (read-line) []))
       (recur (read-line) (conj acc input)))))
 
 (defn -main [& args] 
-  (let [{{:keys [repl end material flutter clipboard help]} :options, 
+  (let [{{:keys [repl help] :as params} :options, 
          errors :errors, 
          args :arguments :as m} 
-        (parse-opts args cli-options)]
+        (parse-opts args cli-options)
+        params (mapcat identity params)]
     (cond 
       help (println "here is the arguments\n" m)
       errors (println errors)
-      repl (stdin-loop! material flutter clipboard end)
+      repl (apply stdin-loop! params)
       :else (if args
-              (show!
-                (convert (first args) material flutter)
-                clipboard)
+              (apply show! 
+                     (apply convert (first args) params)
+                     params)
               (println "no arguments passed")))))
 
 (comment 
