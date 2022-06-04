@@ -135,12 +135,15 @@
                             (mapcat identity)
                             seq))
         build-ast #(list* :compare+ 
-                          (vector :identifier (nth (first %) 2))
+                          [:identifier (nth (first %) 2)]
                           (distinct (mapcat (fn [[_ a _ b]] [a b]) %)))
         compare-vals (or (get-adjacent identity) (get-adjacent reverse))]
     (if compare-vals 
-      (conj (filterv (fn [v] (not (some #(= v %) compare-vals))) and-node) 
-            (build-ast compare-vals))
+      (let [and-node (filterv (fn [v] (not (some #(= v %) compare-vals))) and-node)
+            compare-ast (build-ast compare-vals)]
+        (if (= (count and-node) 1) 
+          (next compare-ast)
+          (conj and-node compare-ast)))
       and-node)))
 
 (defn ast->clj [[tag v1 v2 v3 :as node]]
