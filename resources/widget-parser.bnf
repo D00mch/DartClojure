@@ -26,17 +26,19 @@ ternary        = ternary-val <'?'> expr <':'> expr
 <ifnull-val>   = and-val | ifnull
 ifnull         = ifnull-val '??' and-val
 <and-val>      = or-val | and
-and            = and-val '&&' or-val
+and            = and-val <'&&'> or-val
 <or-val>       = equality-val | or
-or             = or-val '||' equality-val
+or             = or-val <'||'> equality-val
 <equality-val> = compare-val | equality
 equality       = equality-val ( '==' | '!=' ) compare-val
-<compare-val>  = add-val | compare 
-compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-val 
-<add-val>      = mul-val | add
-add            = add-val ('+' | '-') mul-val
-<mul-val>      = dot-val | mul
-mul            = mul-val ('*' | '/' | '%' | '~/') dot-val
+<compare-val>  = add-sub-val | compare 
+compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-sub-val 
+<add-sub-val>  = mul-div-val | add | sub
+add            = add-sub-val <'+'> mul-div-val
+sub            = add-sub-val <'-'> mul-div-val
+<mul-div-val>  = dot-val | mul | div
+mul            = mul-div-val <'*'> dot-val
+div            = mul-div-val ('/' | '%' | '~/') dot-val
 <dot-val>      = term | dot | dot-op
 dot-op         = dot-val <'?'> (invoke | field)
 dot            = dot-val (invoke | field)

@@ -1,6 +1,7 @@
 {:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
         org.clojure/tools.cli {:mvn/version "1.0.206"}
+        rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}
         instaparse/instaparse {:mvn/version "1.4.12"}
         better-cond/better-cond {:mvn/version "2.1.4"}}
  :aliases

@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [dumch.improve :as improve]
             [dumch.parse :as parse]
-            [instaparse.core :as insta])
+            [instaparse.core :as insta]
+            [rewrite-clj.zip :as z])
   #_(:import (java.awt Toolkit)
              (java.awt.datatransfer Clipboard StringSelection))
   (:gen-class))
@@ -51,11 +52,9 @@
      (if bad?
        (str "Can't convert the code: " (:text ast))
        (-> 
-         (parse/ast->clj ast material)
-         (improve/wrap-nest :flutter flutter)
-         parse/save-read
-         improve/wrap-nest
-         improve/simplify)))))
+         (parse/ast->clj ast)
+         (improve/simplify :flutter flutter :material material)
+         rewrite-clj.zip/sexpr)))))
 
 (defn- stdin-loop! [material flutter put-in-clipboard? end]
   (println (str "Paste dart code below, press enter"
