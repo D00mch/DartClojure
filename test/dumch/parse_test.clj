@@ -218,7 +218,10 @@
            /* another comment */ \"\"\""
            clean
            (insta/parses widget-parser) 
-           count)))))
+           count))))
+  (testing "$ substitution"
+    (is (= (dart->clojure "Text('Some $field and ${Factory.create()}')")
+           '(Text (str "Some " field " and " (.create Factory)))))))
 
 (deftest assignment-test
   (testing "typeless var assignment"

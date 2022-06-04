@@ -8,7 +8,13 @@
      :refer [list-node map-node token-node keyword-node vector-node]
      :rename {list-node lnode, vector-node vnode,  map-node mnode, 
               token-node tnode, keyword-node knode}])
-  (:import java.util.Base64))
+  (:import java.util.ArrayDeque
+           java.util.Base64
+           java.lang.StringBuilder))
+
+(defparser widget-parser 
+  (io/resource "widget-parser.bnf")
+  :auto-whitespace :standard)
 
 (defn- dart-op->clj-op [o]
   (case o
@@ -27,6 +33,58 @@
         (str/replace #"’" "'"))
     (-> (str/replace s #"\"" "”")
         (str/replace #"'" "’"))))
+
+(defn- split-by-$-expr [^:String s]
+  ;; two reasons for it to be that complex:
+  ;; - can't make regex for nested {{}} work in jvm: (?=\{((?:[^{}]++|\{(?1)\})++)\})
+  ;; - regex is slow anyway;
+  (loop [stack (ArrayDeque.) ;; to count balanced curly: '{', '}'
+         rslt []
+         cur-str (StringBuilder.)
+         cur-expr (StringBuilder.)
+         i 0]
+    (if (>= i (count s))
+      (conj rslt (.toString (if (.isEmpty cur-expr) cur-str cur-expr)))
+
+      (let [ch (.charAt s i)
+            building-str? (.isEmpty stack)
+            allow-open-b? (and (> i 0) (= (.charAt s (dec i)) \$))
+            open-b? (and (or allow-open-b? (not (.isEmpty stack))) (= ch \{)) 
+            close-b? (= ch \})
+            expr-ends? (and close-b? (= (count stack) 1)) ]
+
+        (if building-str?
+          (recur 
+            (if open-b? (doto stack (.push 1)) stack)
+            (if open-b? 
+              (conj rslt (subs (.toString cur-str) 0 (dec (.length cur-str)))) 
+              rslt)
+            (if open-b? (StringBuilder.) (.append cur-str ch))
+            cur-expr
+            (inc i))
+
+          (recur
+            (cond open-b? (doto stack (.push 1))
+                  close-b? (doto stack .pop)
+                  :else stack)
+            (if expr-ends? (conj rslt (.toString cur-expr)) rslt)
+            cur-str
+            (if expr-ends? (StringBuilder.) (.append cur-expr ch))
+            (inc i)))))))
+
+(defn- substitute-$ 
+  "Returns ast of string with $ substitutions"
+  [^:String s]
+  (let [p #"\$[a-zA-Z_]+[a-zA-Z0-9!_]*"
+        s (str/replace s p (fn [m] (str "${" (subs m 1) "}")))
+        sq (split-by-$-expr s)]
+    (if (= (count sq) 1)
+      [:string+ s]
+      [:strings+ (->> sq
+                      (map-indexed #(if (zero? (mod (inc %1) 2))
+                                      (widget-parser %2)
+                                      (when (seq %2) [:string+ %2])))
+                      (filter some?))])))
 
 (defn- node->number [[tag value]]
   (if (= tag :number)
@@ -48,7 +106,7 @@
           (ast->clj [:invoke n (cons :params (cons [:argument a] (next params)))])
           :else (lnode (list* (tnode '->) ws (maps ast->clj rslt))))))
 
-(defn flatten-same-node [[f & params]]
+(defn flatten-same-node [[f & params]] ;; [f [f 1 2 [f 3 4]]] -> [f 1 2 3 4] 
   (list* 
     [:identifier (case f :and 'and, :or 'or, :add '+, :mul '*)]
     (mapcat 
@@ -112,7 +170,13 @@
     :list (n/vector-node (maps ast->clj (rest node))) 
     :map (mnode (maps ast->clj (rest node)))
     :get (lnode [(ast->clj v1) ws (ast->clj v2)])
-    :string (substitute-curly-quotes (str/replace v1 #"^.|.$" "") :backward true) 
+    :string (-> v1
+                (str/replace #"^.|.$" "")
+                (substitute-curly-quotes :backward true)
+                substitute-$
+                ast->clj) 
+    :string+ v1
+    :strings+ (lnode (list* (tnode 'str) ws (maps ast->clj v1)))
     :number (node->number node)
 
     :neg (lnode [(tnode '-) ws (ast->clj v1)])
@@ -130,10 +194,6 @@
       (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])
       (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
       :else :unknown)))
-
-(defparser widget-parser 
-  (io/resource "widget-parser.bnf")
-  :auto-whitespace :standard)
 
 (defn- encode [to-encode]
   (.encodeToString (Base64/getEncoder) (.getBytes to-encode)))
@@ -183,8 +243,9 @@
   (-> dart dart->ast (ast->clj) save-read))
 
 (comment 
+  (set! *warn-on-reflection* true)
 
-  (def code "1 < 2 && true && 2 < 3")
+  (def code "Text('Some $field and ${Factory.create()}')")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
@@ -199,4 +260,3 @@
     ast->clj 
     n/string
     ))
-

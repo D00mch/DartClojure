@@ -52,6 +52,7 @@ Center(
 - comments (will be removed);
 - nesting children with f/nest macro;
 - constants;
+- variables in strings with$;
 
 ## Not supported
 
@@ -59,9 +60,9 @@ Center(
 - bitwise operators;
 - assignment (unideomatic);
 - early exits from lambdas;
-- variables in strings;
 - `...` and `..` operators;
 - proper aliases for everything, it's not possible to get this info generally;
+- raw (interpreted) strings like `r'some string $dollar'`
 
 ## TODO:
 
@@ -69,7 +70,7 @@ Center(
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
-- [ ] support variables in string `"${a}, $b"`;
+- [X] support variables in string `"${a}, $b"`;
 - [ ] support cascade `..`.
 - [ ] do not insert material import on core classes, like `Duration`;
 
