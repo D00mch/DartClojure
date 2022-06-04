@@ -40,7 +40,7 @@
 
 (defn show! [data _]
   #_(defonce ^Clipboard clipboard (.. Toolkit getDefaultToolkit getSystemClipboard))
-  (zpr/czprint data {:parse-string? true})
+  (zpr/zprint data {:parse-string? true})
   #_(when put-in-clipboard? (clipboard-put! (str/join data) clipboard)))
 
 (defn convert 
