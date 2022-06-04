@@ -196,6 +196,13 @@
 (deftest strings-test
   (testing "special symbols inside string test"
     (is 
+      (= (->> "''' cat's name \"bob\" '''"
+              clean
+              dart->clojure
+              )
+         " cat's name \"bob\" ")))
+  (testing "special symbols inside string test"
+    (is 
       (= 1 
          (->> "'\n\t\\s\"'"
               clean

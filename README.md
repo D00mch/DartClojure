@@ -79,7 +79,7 @@ Two things to note:
 
 1. Copy-paste only widget's part, like `return Column(...),`, without method
 declaration.
-2. Quotes inside string are substituted with typographical quotes `“`. 
+2. Typographical quotes `“`, `’` are not supported. 
 
 There are two options now: 
 1. jar; 

@@ -20,6 +20,14 @@
     "~/" 'quot
     (symbol o)))
 
+(defn- substitute-curly-quotes [s & {f :backward}]
+  ;; crutch for cases like ''' ' ''' and '\'' 
+  (if f
+    (-> (str/replace s #"”" "\"")
+        (str/replace #"’" "'"))
+    (-> (str/replace s #"\"" "”")
+        (str/replace #"'" "’"))))
+
 (defn- node->number [[tag value]]
   (if (= tag :number)
     (-> value (str/replace #"^\." "0.") read-string)
@@ -104,7 +112,7 @@
     :list (n/vector-node (maps ast->clj (rest node))) 
     :map (mnode (maps ast->clj (rest node)))
     :get (lnode [(ast->clj v1) ws (ast->clj v2)])
-    :string (str/replace v1 #"^.|.$" "") 
+    :string (substitute-curly-quotes (str/replace v1 #"^.|.$" "") :backward true) 
     :number (node->number node)
 
     :neg (lnode [(tnode '-) ws (ast->clj v1)])
@@ -127,9 +135,6 @@
   (io/resource "widget-parser.bnf")
   :auto-whitespace :standard)
 
-(defn- substitute-curly-quotes [s]
-  (str/replace s #"\"|'" "”"))
-
 (defn- encode [to-encode]
   (.encodeToString (Base64/getEncoder) (.getBytes to-encode)))
 
@@ -141,7 +146,7 @@
         transform (fn [[m]] (substitute-curly-quotes m))]
     (-> s
         (str/replace pattern transform)
-        (str/replace #"”””" "'"))))
+        (str/replace #"”””|’’’" "'"))))
 
 (defn clean
   "removes comments from string, transforms multiline string
@@ -171,10 +176,10 @@
     (n/sexpr code)
     (catch Exception e (n/string code))))
 
-(defn dart->ast [dart]
+(defn dart->ast [^:String dart]
   (insta/parse widget-parser (clean dart)))
 
-(defn dart->clojure [dart]
+(defn dart->clojure [^:String dart]
   (-> dart dart->ast (ast->clj) save-read))
 
 (comment 
