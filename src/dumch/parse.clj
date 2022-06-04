@@ -86,6 +86,15 @@
                                       (when (seq %2) [:string+ %2])))
                       (filter some?))])))
 
+(defn- node->string-ast 
+  "Returns ast, handling $, de-`substitute-curly-quotes`, commas and r (raw str)"
+  [[_ s]]
+  (if (-> s first (= \r))
+    [:string+ (str/replace s #"^r.|.$" "")]
+    (-> (str/replace s #"^.|.$" "")
+        (substitute-curly-quotes :backward true)
+        substitute-$)))
+
 (defn- node->number [[tag value]]
   (if (= tag :number)
     (-> value (str/replace #"^\." "0.") read-string)
@@ -170,11 +179,7 @@
     :list (n/vector-node (maps ast->clj (rest node))) 
     :map (mnode (maps ast->clj (rest node)))
     :get (lnode [(ast->clj v1) ws (ast->clj v2)])
-    :string (-> v1
-                (str/replace #"^.|.$" "")
-                (substitute-curly-quotes :backward true)
-                substitute-$
-                ast->clj) 
+    :string (-> node node->string-ast ast->clj) 
     :string+ v1
     :strings+ (lnode (list* (tnode 'str) ws (maps ast->clj v1)))
     :number (node->number node)

@@ -53,6 +53,7 @@ Center(
 - nesting children with f/nest macro;
 - constants;
 - variables in strings with$;
+- raw (interpreted) strings like `r'some string $dollar'`
 
 ## Not supported
 
@@ -62,7 +63,6 @@ Center(
 - early exits from lambdas;
 - `...` and `..` operators;
 - proper aliases for everything, it's not possible to get this info generally;
-- raw (interpreted) strings like `r'some string $dollar'`
 
 ## TODO:
 

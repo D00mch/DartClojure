@@ -221,7 +221,10 @@
            count))))
   (testing "$ substitution"
     (is (= (dart->clojure "Text('Some $field and ${Factory.create()}')")
-           '(Text (str "Some " field " and " (.create Factory)))))))
+           '(Text (str "Some " field " and " (.create Factory))))))
+  (testing "ignore $-substitution on raw sting"
+    (is (= (dart->clojure "Text(r\"Some $field and ${Factory.create()}\")")
+           '(Text "Some $field and ${Factory.create()}")))))
 
 (deftest assignment-test
   (testing "typeless var assignment"
