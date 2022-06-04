@@ -125,7 +125,8 @@
       params)))
 
 (defn- flatten-compare [[_ & params :as and-node]]
-  (let [compare-nodes (->> params (filter (fn [[f]] (= f :compare))))
+  (let [compare-nodes (->> (filter (fn [[f]] (= f :compare)) params)
+                           (sort-by (fn [[_ [_ value]]] value)))
         get-adjacent (fn [mapfn]
                        (->> compare-nodes
                             mapfn
