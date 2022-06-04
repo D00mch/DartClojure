@@ -1,9 +1,10 @@
 {:paths ["src" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.10.3"}
         org.clojure/tools.cli {:mvn/version "1.0.206"}
-        rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}
+        better-cond/better-cond {:mvn/version "2.1.4"}
         instaparse/instaparse {:mvn/version "1.4.12"}
-        better-cond/better-cond {:mvn/version "2.1.4"}}
+        rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}
+        zprint/zprint {:mvn/version "1.2.3"}}
  :aliases
  {:depstar {:replace-deps
             {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}

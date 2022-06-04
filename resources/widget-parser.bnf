@@ -77,15 +77,14 @@ _spread        = '...' value
 map            = <type?> 
                  <'{'> expr <':'> expr
                  (<','> (identifier|string|number) <':'> expr)*  <'}'>
-get            = (get | identifier) <'['> (identifier | string | number) <']'>     
-
+get            = (get | identifier | map) <'['> (identifier | string | number) <']'>     
 
 _assignment    = identifier _operator value
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
                | '>>>=' | '&=' | '^=' | '|=' | '??='
 
 <type>         = '<' (identifier type?) (',' (identifier type?))* '>'
-string         = #"'([^']*)'"
+string         = #"r?'([^']*)'"
 identifier     = #'[a-zA-Z_]+[a-zA-Z0-9!_]*' 
 number         = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
 

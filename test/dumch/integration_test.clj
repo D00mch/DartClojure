@@ -34,7 +34,7 @@ AnimatedContainer(
   (testing "dart->clojure, using nest macro"
     (is 
       (= 
-        (convert code)
+        (read-string (convert code))
         '(f/nest
            (m/AnimatedContainer
              :transformAlignment (.center m/Alignment) 
@@ -79,7 +79,7 @@ Column(
   (testing "dart->clojure, using nest macro"
     (is 
       (= 
-        (-> code2 convert)
+        (-> code2 convert read-string)
         '(m/Column
            :children
            [(m/Question ((questions _questionIndex) "questionText"))

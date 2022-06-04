@@ -51,15 +51,16 @@ Center(
 - lambdas;
 - comments (will be removed);
 - nesting children with f/nest macro;
+- constants;
+- variables in strings with$;
+- raw (interpreted) strings like `r'some string $dollar'`
 
 ## Not supported
 
-- constants;
 - class/methods declarations;
 - bitwise operators;
 - assignment (unideomatic);
 - early exits from lambdas;
-- variables in strings;
 - `...` and `..` operators;
 - proper aliases for everything, it's not possible to get this info generally;
 
@@ -69,7 +70,7 @@ Center(
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
-- [ ] support variables in string `"${a}, $b"`;
+- [X] support variables in string `"${a}, $b"`;
 - [ ] support cascade `..`.
 - [ ] do not insert material import on core classes, like `Duration`;
 
@@ -79,7 +80,7 @@ Two things to note:
 
 1. Copy-paste only widget's part, like `return Column(...),`, without method
 declaration.
-2. Quotes inside string are substituted with typographical quotes `“`. 
+2. Typographical quotes `“`, `’` are not supported. 
 
 There are two options now: 
 1. jar; 
@@ -132,42 +133,38 @@ Add Cli/deps:
 ```clojure
 {:deps 
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.3-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.6-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot: 
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.1.0-SNAPSHOT"]
-```
-
-Import:
-```clojure
-(:require
-    [dumch.dartclojure :refer [convert]]
-    [dumch.improve :refer [simplify wrap-nest]])
-```
-
-Simplify:
-```clojure
-(simplify '(and (and (and (> a b) (> b c)) (> c d)))) ; => (> a b c d)
-```
-
-Wrap with nest:
-```clojure
- (wrap-nest '(Container ; => (f/nest (Container) (Box) (Padding) (:Text "2")) 
-                 :child 
-                 (Box :child (Padding :child (:Text "2")))))
+[org.clojars.liverm0r/dartclojure "0.1.6-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
 ```clojure
-(convert "1 + 1 + 2 * 1;") ; => (+ 1 1 (* 2 1))
+(require '[dumch.dartclojure :refer [convert]])
+
+(convert "1 + 1 + 2 * 1;" :format :sexpr) ; => (+ 1 1 (* 2 1))
 ```
 
 You may pass aliases for material and flutter-macro:
 ```clojure
-(convert "Text('1')" "m" "f") ; => (m/Text "1")
+(convert "Text('1')" :material "m" :flutter "f") ; => "(m/Text "1")" 
+```
+
+If you just need to wrap clojure code with nest:
+```clojure
+(require
+  '[dumch.improve :as impr]
+  '[rewrite-clj.zip :as z])
+
+(-> "(Container :child (Box :child (Padding :child (:Text \"2\"))))"
+    z/of-string
+    impr/wrap-nest
+    z/sexpr)
+; => (f/nest (Container) (Box) (Padding) (:Text "2"))
 ```
 
 ## Contribution
@@ -197,6 +194,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.3-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.6-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.3
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.6

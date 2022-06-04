@@ -5,7 +5,8 @@
             [dumch.improve :as improve]
             [dumch.parse :as parse]
             [instaparse.core :as insta]
-            [rewrite-clj.zip :as z])
+            [rewrite-clj.zip :as z]
+            [zprint.core :as zpr])
   #_(:import (java.awt Toolkit)
              (java.awt.datatransfer Clipboard StringSelection))
   (:gen-class))
@@ -37,24 +38,30 @@
 #_(defn- clipboard-put! [^String s clipboard]
     (.setContents clipboard (StringSelection. s) nil))
 
-(defn- show! [data _]
+(defn show! [data _]
   #_(defonce ^Clipboard clipboard (.. Toolkit getDefaultToolkit getSystemClipboard))
-  (pprint data)
+  (zpr/zprint data {:parse-string? true})
   #_(when put-in-clipboard? (clipboard-put! (str/join data) clipboard)))
 
 (defn convert 
-  "get dart code, material and flutter-macro aliases and returns clojure"
+  "get dart code, return clojure code
+   pass keyword arguments, like: (convert code :format :sexpr, :material \"m\")
+   :material — material alias name, default to \"m\";
+   :flutter — alias for ClojureDart helper macro, default to \"f\";
+   :format — or of :string (default), :sexpr, :zipper, :node; last 2 about rewrite-clj"
   ([code]
-   (convert code "m" "f"))
-  ([code material flutter]
+   (convert code :material "m" :flutter "f"))
+  ([code & {m :material f :flutter frm :format :or {frm :string}}]
    (let [ast (parse/dart->ast code) 
          bad? (insta/failure? ast)]
      (if bad?
        (str "Can't convert the code: " (:text ast))
-       (-> 
-         (parse/ast->clj ast)
-         (improve/simplify :flutter flutter :material material)
-         rewrite-clj.zip/sexpr)))))
+       (let [rslt (improve/simplify (parse/ast->clj ast) :flutter f :material m)] 
+         (case frm
+          :string (z/string rslt)
+          :zipper rslt
+          :sexpr (z/sexpr rslt)
+          :node (z/node rslt)))))))
 
 (defn- stdin-loop! [material flutter put-in-clipboard? end]
   (println (str "Paste dart code below, press enter"
@@ -65,7 +72,9 @@
     (if (= input end)
       (do 
         (try 
-          (-> (convert (str/join "\n" acc) material flutter)
+          (-> (convert (str/join "\n" acc) 
+                      :material material 
+                      :flatter flutter)
               (show! put-in-clipboard?))
           (catch Exception e (println "Can't convert the code; e " e)))
         (println)
@@ -106,4 +115,6 @@
       return const SongPlaceholderTile();
     };
     "
-    (convert "m" "f")))
+    (convert :format :sexpr)
+    )
+  )

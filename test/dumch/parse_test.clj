@@ -196,6 +196,13 @@
 (deftest strings-test
   (testing "special symbols inside string test"
     (is 
+      (= (->> "''' cat's name \"bob\" '''"
+              clean
+              dart->clojure
+              )
+         " cat's name \"bob\" ")))
+  (testing "special symbols inside string test"
+    (is 
       (= 1 
          (->> "'\n\t\\s\"'"
               clean
@@ -211,7 +218,13 @@
            /* another comment */ \"\"\""
            clean
            (insta/parses widget-parser) 
-           count)))))
+           count))))
+  (testing "$ substitution"
+    (is (= (dart->clojure "Text('Some $field and ${Factory.create()}')")
+           '(Text (str "Some " field " and " (.create Factory))))))
+  (testing "ignore $-substitution on raw sting"
+    (is (= (dart->clojure "Text(r\"Some $field and ${Factory.create()}\")")
+           '(Text "Some $field and ${Factory.create()}")))))
 
 (deftest assignment-test
   (testing "typeless var assignment"
@@ -245,8 +258,8 @@
         (is (= (-> (str 1 sym 2 sym 3 sym 4 sym 5) dart->clojure)
                `(~(symbol (case sym "||" 'or, "&&" 'and sym)) 1 2 3 4 5)))))
   (testing "flatten compare operators when possible"
-      (is (= (-> "3 > 2 && 2 > 1 && true" dart->clojure n/string)
-             "(and true (> 3 2 1))"))
+      (is (= (-> "3 > 2 && 2 > 1 && 4 > 3 && true" dart->clojure n/string)
+             "(and true (> 4 3 2 1))"))
       (is (= (-> "4 >= 3 && 3 >= 2 || 2 >= 1" dart->clojure)
              '(and (>= 4 3) (or (>= 3 2) (>= 2 1)))))
       (is (= (-> "5 >= 4 && 4 >= 3 && 3 >= 2 || 2 >= 1" dart->clojure)
