@@ -133,13 +133,13 @@ Add Cli/deps:
 ```clojure
 {:deps 
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.6-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.7-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot: 
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.1.6-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.1.7-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -194,6 +194,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.6-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.7-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.6
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.7
