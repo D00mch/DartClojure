@@ -24,3 +24,7 @@
              wrap-nest
              z/sexpr) 
          '(Box :child (Padding :child (Text "2")))))))
+
+(deftest redundant-do 
+  (is (= (-> "(fn [a] (do a b))" p/parse-string simplify z/sexpr)
+         '(fn [a] a b))))

@@ -30,6 +30,18 @@
              #(and (z/list? %) (nested-children? % 3))
              #(nest-flatten % :flutter fl)))
 
+(b/defnc- try-remove-redundant-do [zloc] 
+  :when-let [fn-node (-> zloc z/down)
+             _ (= (z/sexpr fn-node) 'fn)
+             do-zloc (-> fn-node z/right z/right z/down)]
+  (= (z/sexpr do-zloc) 'do)
+  (-> do-zloc z/remove z/splice z/up))
+
+#_(-> "(fn [a b] (do (when a ^:return a) (print 1) (when c ^:return c) ^:return b))"
+      z/of-string
+      try-remove-redundant-do
+      z/sexpr)
+
 (defn simplify [node & {fl :flutter, m :material :or {fl "f", m "m"}}]
   (-> node 
       z/edn
@@ -38,6 +50,9 @@
           (b/cond 
             (and (z/list? zloc) (nested-children? zloc 3))
             (nest-flatten zloc :flutter fl)
+
+            :let [undo-node (try-remove-redundant-do zloc)]
+            undo-node undo-node
 
             :let [expr (z/sexpr zloc)] 
 
