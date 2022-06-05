@@ -178,6 +178,8 @@
                 [ws (knode :else) ws (ast->clj (last node))])
               (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))) 
 
+    :return (if v1 (ast->clj v1) (tnode 'nil))
+    :typed-value (ast->clj v1) 
     :const (n/meta-node (tnode :const) (ast->clj v1))
     :identifier (symbol (str/replace v1 #"!" ""))
     :list (n/vector-node (maps ast->clj (rest node))) 
@@ -197,7 +199,6 @@
 
     (cond 
       (#{:or :add :mul} tag) (lnode (maps ast->clj (flatten-same-node node)))
-      (#{:return :typed-value} tag) (ast->clj v1)
       (#{:not :dec :inc} tag) (lnode [(tnode (symbol tag)) ws (ast->clj v1)])
       (#{:compare :div :ifnull :equality} tag)
       (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])

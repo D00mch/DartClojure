@@ -246,6 +246,9 @@
                             a") 
            '(do :unidiomatic (when (.isLoading item) (print 1)) a)))))
 
+(deftest return-test 
+  (is (= (-> "if (a) return;" dart->clojure) '(when a nil))))
+
 (deftest flatten-same-operators
   (testing "calculation results"
     (is (-> "(2 + 1 + 1 == 4 && true) && (1 == 1 || false) && 3 == 3"
