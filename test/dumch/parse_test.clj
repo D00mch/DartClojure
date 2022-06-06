@@ -20,7 +20,10 @@
   (testing "void method with expression"
     (is (= (dart->clojure 
              "void _toggleFavorite() => setState(() { print(1); });")
-           '(defn _toggleFavorite [] (setState (fn [] (print 1))))))))
+           '(defn _toggleFavorite [] (setState (fn [] (print 1))))))
+    (is (= (dart->clojure 
+             "void main() => runApp(App());")
+           '(defn main [] (runApp (App)))))))
 
 (deftest invocations-name-test
   (testing "simple constructor"

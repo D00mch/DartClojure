@@ -1,11 +1,22 @@
-s              = (statement | expr <end>)* return?
+s              = code | file
+code           = (statement | expr <end>)* return?
+
+file           = import* (method | _assign | class)*
+method         = <'@override'>? typed-value? identifier
+                 lambda-args (lambda-body | <'=>'> assign-val)
+import         = 'import' string ('as' identifier)? ';'?
+class          = 'abstract'? 'class' identifier ('extends' identifier)? '{'
+                    (method | field-dec | construct-dec)*
+                 '}'
+construct-dec  = 'const'? identifier ('.' identifier)?  
+                 '(' ( typed-arg? (<','> typed-arg)*)? <','>? args-bloc? ')'
+                 (':' 'super' params)? ';'
+args-bloc      = '{' #'[^{}]*' '}' 
+field-dec      = 'static'? ('const'|'final')? typed-value? identifier ('=' expr)? ';'
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = if | method
+<statement>    = if
 return         = <'return'> expr? <';'>
-method         = <'@override'>? (typed-value? | 'void') identifier
-                 lambda-args (lambda-body | <'=>'> assign-val)
-
 
 if             = <'if'> if-condition if-else-body
 <if-else-body> =  (lambda-body | return | expr <end>) 
@@ -14,7 +25,7 @@ if             = <'if'> if-condition if-else-body
 
 lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <typed-value?> identifier  
-lambda-body    = <'{'> s <'}'>
+lambda-body    = <'{'> code <'}'>
 
 <expr>         = lambda-val <'!'>?
 
@@ -24,7 +35,9 @@ lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
 cascade        = cascade-val <'..'> assign-val
 <assign-val>   = ternary-val | _assign
 _assign        = (dot-val | 
-                  ('const'|'final')? typed-value? identifier) 
+                  'static' ('const'|'final') typed-value identifier |
+                  ('const'|'final') typed-value identifier |
+                  typed-value? identifier) 
                  <_operator> ternary-val 
 <ternary-val>  = ifnull-val | ternary
 ternary        = ternary-val <'?'> expr <':'> expr
