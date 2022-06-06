@@ -179,12 +179,12 @@
               (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))) 
 
     :return (if v1 (ast->clj v1) (tnode 'nil))
-    :typed-value (ast->clj v1) 
+    :typecasting (ast->clj v1) 
     :const (n/meta-node (tnode :const) (ast->clj v1))
     :identifier (symbol (str/replace v1 #"!" ""))
     :list (n/vector-node (maps ast->clj (rest node))) 
     :map (mnode (maps ast->clj (rest node)))
-    :get (lnode [(ast->clj v1) ws (ast->clj v2)])
+    :get (lnode [(tnode 'get) ws (ast->clj v1) ws (ast->clj v2)])
     :string (-> node node->string-ast ast->clj) 
     :string+ v1
     :strings+ (lnode (list* (tnode 'str) ws (maps ast->clj v1)))

@@ -82,9 +82,9 @@ Column(
         (-> code2 convert read-string)
         '(m/Column
            :children
-           [(m/Question ((questions _questionIndex) "questionText"))
+           [(m/Question (get (get questions _questionIndex) "questionText"))
             (->
-              ((questions _questionIndex) "answers")
+              (get (get questions _questionIndex) "answers")
               (.map (fn [answer] (m/Answer _answerQuestion answer)))
               (.toList))
             (m/Numb :sorted (and (= a b) (< 1 2 3 a)))])))))

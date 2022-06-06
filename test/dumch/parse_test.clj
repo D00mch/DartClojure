@@ -99,10 +99,10 @@
 
 (deftest get-test
   (testing "single get"
-   (is (= (dart->clojure "tabs[2]") '(tabs 2))))
+   (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
   (testing "serveral get in a row"
     (is (= (dart->clojure "questions[1]['two']") 
-           '((questions 1) "two")))))
+           '(get (get questions 1) "two")))))
 
 (deftest logic-test
   (testing "and: &&"
