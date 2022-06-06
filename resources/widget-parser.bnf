@@ -65,7 +65,7 @@ _dec           = value <'--'>
 _inc           = value <'++'>
 _tilda         = <'~'> value
 
-const          = <'const'> (constructor | get | map | list)
+const          = <'const'> (constructor | get | map | list | dot)
 constructor    = typed-value params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)

@@ -1,10 +1,13 @@
 (ns dumch.parse-test
   (:require [clojure.test :refer :all]
             [dumch.improve :as improve :refer [simplify]]
-            [dumch.parse :refer [clean widget-parser dart->clojure]]
+            [dumch.parse :refer [clean widget-parser dart->clojure dart->ast ast->clj]]
             [instaparse.core :as insta]
             [rewrite-clj.zip :as z]
             [rewrite-clj.node :as n]))
+
+(def ^:private dart->clj-string 
+  (comp z/string simplify ast->clj dart->ast))
 
 (deftest invocations-name-test
   (testing "simple constructor"
@@ -146,6 +149,20 @@
             :unidiomatic
             (.zip 66666 :extended 6666)))))
 
+(deftest const-test
+  (testing "invocation const"
+    (is (= (dart->clj-string 
+             "IconButton(padding: const EdgeInsets.all(0),);")
+           "(m/IconButton :padding ^:const (.all m/EdgeInsets 0))")))
+  (testing "invocation constructor"
+    (is (= (dart->clj-string 
+             "const Icon(Icons.star)")
+           "^:const (m/Icon (.star m/Icons))")))
+  (testing "invocation constructor"
+    (is (= (dart->clj-string 
+             "const Icon(Icons.star)")
+           "^:const (m/Icon (.star m/Icons))"))))
+
 (deftest unary-prefix-test
   (testing "not" (is (= (dart->clojure "!a") '(not a))))
   (testing "inc" (is (= (dart->clojure "++a") '(inc a))))
@@ -266,8 +283,7 @@
 (deftest flatten-same-operators
   (testing "calculation results"
     (is (-> "(2 + 1 + 1 == 4 && true) && (1 == 1 || false) && 3 == 3"
-            dart->clojure
-            n/string 
+            dart->clj-string 
             read-string
             eval)))
   (testing "+, *, and, or"
@@ -277,7 +293,7 @@
   (testing "flatten compare operators when possible"
     (is (= (-> "1 < 2 && 2 < 3" dart->clojure)
            '(< 1 2 3)))
-    (is (= (-> "3 > 2 && 2 > 1 && 4 > 3 && true" dart->clojure n/string)
+    (is (= (-> "3 > 2 && 2 > 1 && 4 > 3 && true" dart->clj-string)
            "(and true (> 4 3 2 1))"))
     (is (= (-> "4 >= 3 && 3 >= 2 || 2 >= 1" dart->clojure)
            '(and (>= 4 3) (or (>= 3 2) (>= 2 1)))))
