@@ -15,8 +15,10 @@ lambda-body    = <'{'> s <'}'>
 
 <expr>         = lambda-val
 
-<lambda-val>   = assign-val | lambda 
+<lambda-val>   = cascade-val | lambda 
 lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
+<cascade-val>  = assign-val | cascade
+cascade        = cascade-val <'..'> assign-val
 <assign-val>   = ternary-val | _assign
 _assign        = (dot-val | 
                   ('const'|'final')? typed-value? identifier) 

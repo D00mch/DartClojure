@@ -132,6 +132,20 @@
                 (fn [] (pop))
                 null))))))
 
+(deftest cascade-test 
+  (is (= (dart->clojure 
+           "getAddress()
+           ..setStreet('Elm', '13a')
+           ..city = 'Carthage'
+           ..state = 'Eurasia'
+           ..zip(66666, extended: 6666);")
+         '(doto
+            (.getAddress)
+            (.setStreet "Elm" "13a")
+            :unidiomatic
+            :unidiomatic
+            (.zip 66666 :extended 6666)))))
+
 (deftest unary-prefix-test
   (testing "not" (is (= (dart->clojure "!a") '(not a))))
   (testing "inc" (is (= (dart->clojure "++a") '(inc a))))

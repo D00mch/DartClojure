@@ -115,14 +115,28 @@
           (ast->clj [:invoke n (cons :params (cons [:argument a] (next params)))])
           :else (lnode (list* (tnode '->) ws (maps ast->clj rslt))))))
 
-(defn flatten-same-node [[f & params]] ;; [f [f 1 2 [f 3 4]]] -> [f 1 2 3 4] 
+(defn flatten-same-node [[f & params]] ;; [f [f 1 2] 3] -> [f 1 2 3]  
+  (mapcat 
+    #(if (and (sequential? %) (= (first %) f))
+       (flatten-same-node %)
+       [%])
+    params))
+
+(defn flatten-cascade [node ast->clj]
+  (lnode
+   (list* (tnode 'doto) ws
+          (->> node
+               flatten-same-node
+               (map (fn [[tag & params :as node]]
+                      (if (= tag :constructor)
+                        (cons :invoke params)
+                        node)))
+               (maps ast->clj)))))
+
+(defn- flatten-commutative-node [[f :as node]]
   (list* 
     [:identifier (case f :and 'and, :or 'or, :add '+, :mul '*)]
-    (mapcat 
-      #(if (and (sequential? %) (= (first %) f))
-         (next (flatten-same-node %))
-         [%])
-      params)))
+    (flatten-same-node node)))
 
 (defn- flatten-compare [[_ & params :as and-node]]
   (let [compare-nodes (->> (filter (fn [[f]] (= f :compare)) params)
@@ -177,6 +191,7 @@
                 (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
                 [ws (knode :else) ws (ast->clj (last node))])
               (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))) 
+    :cascade (flatten-cascade node ast->clj)
 
     :return (if v1 (ast->clj v1) (tnode 'nil))
     :typecasting (ast->clj v1) 
@@ -194,11 +209,11 @@
     :sub (lnode [(tnode '-) ws (ast->clj v1) ws (ast->clj v2)])
     :await (lnode [(tnode 'await) ws (ast->clj v1)])
 
-    :and (->> node flatten-same-node flatten-compare (maps ast->clj) lnode)
+    :and (->> node flatten-commutative-node flatten-compare (maps ast->clj) lnode)
     :compare+ (lnode (list* (ast->clj v1) ws (->> node (drop 2) (maps ast->clj))))
 
     (cond 
-      (#{:or :add :mul} tag) (lnode (maps ast->clj (flatten-same-node node)))
+      (#{:or :add :mul} tag) (lnode (maps ast->clj (flatten-commutative-node node)))
       (#{:not :dec :inc} tag) (lnode [(tnode (symbol tag)) ws (ast->clj v1)])
       (#{:compare :div :ifnull :equality} tag)
       (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])

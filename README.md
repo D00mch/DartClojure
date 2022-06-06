@@ -45,7 +45,7 @@ Center(
 - constructors invocation;
 - static, factory methods invocation;
 - named arguments;
-- (typed) lists, maps;
+- (typed) lists, maps, cascade operator (`..`);
 - math and logical expressions;
 - ternary operators;
 - lambdas;
@@ -61,7 +61,7 @@ Center(
 - bitwise operators;
 - assignment (unideomatic);
 - early exits from lambdas;
-- `...` and `..` operators;
+- `...` operator;
 - proper aliases for everything, it's not possible to get this info generally;
 
 ## TODO:
@@ -71,7 +71,7 @@ Center(
 `a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
 - [X] support variables in string `"${a}, $b"`;
-- [ ] support cascade `..`.
+- [X] support cascade `..`.
 - [ ] do not insert material import on core classes, like `Duration`;
 
 ## How to use
