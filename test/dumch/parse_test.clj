@@ -30,7 +30,7 @@
     (is (= (dart->clojure "Text('text')")
            (-> '(Text "text")))))
   (testing "typed constructor"
-    (is (= (dart->clojure "Text<A<B>, C>('text')")
+    (is (= (dart->clojure "Text<A<B>, C?>('text')")
            (-> '(Text "text")))))
   (testing "line invocations"
     (is (= (dart->clojure "One(1).two().three(2, 3)")
