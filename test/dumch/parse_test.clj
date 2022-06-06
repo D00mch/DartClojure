@@ -101,6 +101,9 @@
   (is (= (dart->clojure "a = b") :unidiomatic)))
 
 (deftest get-test
+  (testing "get for field"
+    (is (= (dart->clojure "Colors.red[500]!")
+           '(get (.red Colors) 500))))
   (testing "single get"
    (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
   (testing "serveral get in a row"

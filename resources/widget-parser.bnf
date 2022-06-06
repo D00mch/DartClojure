@@ -13,7 +13,7 @@ lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> <'async'?>
 <typed-arg>    = <typed-value?> identifier  
 lambda-body    = <'{'> s <'}'>
 
-<expr>         = lambda-val
+<expr>         = lambda-val <'!'>?
 
 <lambda-val>   = cascade-val | lambda 
 lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
@@ -65,7 +65,7 @@ _dec           = value <'--'>
 _inc           = value <'++'>
 _tilda         = <'~'> value
 
-const          = <'const'> (constructor | get | map | list | dot)
+const          = <'const'> (constructor | get | map | list | dot | dot-op)
 constructor    = typed-value params <';'?>
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
@@ -79,10 +79,11 @@ _spread        = '...' value
 map            = <type?> 
                  <'{'> expr <':'> expr
                  (<','> (identifier|string|number) <':'> expr)*  <'}'>
-get            = (get | identifier | map) <'['> (identifier | string | number) <']'>     
+get            = (get | identifier | map | dot | dot-op)
+                 <'['> (identifier | string | number | dot | dot-op) <']'>     
 
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
-               | '>>>=' | '&=' | '^=' | '|=' | '??='
+               | '>>>=' | '&=' | '^=' | '|=' | '??=' | '-='
 
 <type>         = '<' typed-value (',' typed-value)* '>'
 <typed-value>  = identifier <type?> 
