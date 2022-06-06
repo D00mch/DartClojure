@@ -9,6 +9,19 @@
 (def ^:private dart->clj-string 
   (comp z/string simplify ast->clj dart->ast))
 
+(deftest methods-test 
+  (testing "method with body"
+    (is (= (dart->clojure 
+             "@override
+              Widget build(BuildContext context) {
+                return Text('name');
+              }")
+           '(defn build [context] (Text "name")))))
+  (testing "void method with expression"
+    (is (= (dart->clojure 
+             "void _toggleFavorite() => setState(() { print(1); });")
+           '(defn _toggleFavorite [] (setState (fn [] (print 1))))))))
+
 (deftest invocations-name-test
   (testing "simple constructor"
     (is (= (dart->clojure "Text('text')")

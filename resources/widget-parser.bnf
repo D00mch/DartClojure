@@ -1,8 +1,11 @@
 s              = (statement | expr <end>)* return?
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = if
+<statement>    = if | method
 return         = <'return'> expr? <';'>
+method         = <'@override'>? (typed-value? | 'void') identifier
+                 lambda-args (lambda-body | <'=>'> assign-val)
+
 
 if             = <'if'> if-condition if-else-body
 <if-else-body> =  (lambda-body | return | expr <end>) 

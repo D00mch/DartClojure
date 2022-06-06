@@ -160,7 +160,7 @@
           (conj and-node compare-ast)))
       and-node)))
 
-(defn ast->clj [[tag v1 v2 v3 :as node]]
+(defn ast->clj [[tag v1 v2 v3 v4 :as node]]
   #_(println :node node)
   (case tag
     :s (if v2 
@@ -180,6 +180,11 @@
     :lambda (lnode [(tnode 'fn) ws (ast->clj v1) ws (ast->clj v2)])
     :lambda-body (ast->clj v1)
     :lambda-args (vnode (->> node rest (maps ast->clj)))
+
+    :method (lnode [(tnode 'defn) ws 
+                    (ast->clj v2) ws
+                    (ast->clj v3) ws
+                    (ast->clj v4) ws])
 
     :ternary (ast->clj [:if v1 v2 v3])
     :if (case (count node)
