@@ -31,13 +31,38 @@
                 return Text('name');
               }")
            '(defn build [context] (Text "name")))))
+  (testing "static method"
+    (is (= (dart->clojure 
+             "static void staticVoid() { print(1); }")
+           '(defn staticVoid [] (print 1)))))
   (testing "void method with expression"
     (is (= (dart->clojure 
              "void _toggleFavorite() => setState(() { print(1); });")
            '(defn _toggleFavorite [] (setState (fn [] (print 1))))))
     (is (= (dart->clojure 
              "void main() => runApp(App());")
-           '(defn main [] (runApp (App)))))))
+           '(defn main [] (runApp (App))))))
+  (testing "method with dot in type"
+    (is (= (dart->clojure "A.B<A> a() => 1") '(defn a [] 1)))))
+
+(deftest get-set-test
+  (testing "getter with => and with body {}"
+    (is (= (dart->clojure "class A { 
+                            Key get dividerKey => Key('$this');
+                            Key get dividerKey2 { return 1; };
+                          }")
+           '(comment "use flutter/widget macro instead of classes" 
+                     :unknown 
+                     :unknown))))
+  (testing "setter with => and with body {}"
+    (is (= (dart->clojure "class A { 
+                            set right(double value) => left = value - width;
+                            set right(double value) { a = b; }
+                          }")
+           '(comment
+              "use flutter/widget macro instead of classes"
+              (defn right [value] :unidiomatic)
+              (defn right [value] :unidiomatic))))))
 
 (deftest invocations-name-test
   (testing "simple constructor"
@@ -96,6 +121,7 @@
            '(some-> instance (.copyWith :border 1))))))
 
 (deftest ^:current  list-test
+  (testing "empty list" (is (=  (dart->clojure "[]") '[])))
   (testing "ignore spread operator"
     (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
                dart->clojure)
@@ -114,6 +140,7 @@
            '[(if a 1 b) (or c d)]))))
 
 (deftest map-test
+  (testing "empty map" (is (=  (dart->clojure "{}") '{})))
   (testing "typeless map as named parameter"
     (is 
       (= (dart->clojure "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})")
@@ -296,7 +323,10 @@
   (testing "final assignment"
     (is (= (dart->clojure  "final String s = '1'; ") '(def s "1"))))
   (testing "const assignment"
-    (is (= (dart->clojure  "const bar = 100") '(def ^:const bar 100)))))
+    (is (= (dart->clj-string "const bar = 100") 
+           "(def ^:const bar 100)")))
+  (testing "assign value with type with dot"
+    (is (= (dart->clojure  "A.C<D> bar = 1;") '(def bar 1)))))
 
 (deftest await-test
   (is (= (dart->clojure  "await a") '(await a))))

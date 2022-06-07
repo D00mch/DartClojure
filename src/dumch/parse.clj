@@ -165,13 +165,13 @@
   (case tag
     :s (ast->clj v1)
     :code (if v2 
-            (lnode (list* (tnode 'do) ws (maps ast->clj (rest node)))) 
+            (lnode (list* (tnode 'do) nl (mapn ast->clj (rest node)))) 
             (ast->clj v1))
 
     :file (if v2
-            (lnode (list* (tnode 'do) ws (mapn ast->clj (rest node))))
+            (lnode (list* (tnode 'do) nl (mapn ast->clj (rest node))))
             (ast->clj v1))
-    :import-block (lnode (list* (tnode 'require) (maps ast->clj (rest node))))
+    :import-block (lnode (list* (tnode 'require) ws (mapn ast->clj (rest node))))
     :import-as (vnode [(ast->clj v1) ws (knode :as) ws (ast->clj v2)])
     :import-naked (vnode [(ast->clj v1) ws (knode :as) ws 'give-an-alias-or-refer]) 
     :import-show (vnode [(ast->clj v1) ws 
@@ -187,18 +187,18 @@
     :global-assign (lnode [(tnode 'def) ws
                            (ast->clj v1) ws
                            (ast->clj v2)])
-    :modified-val (if (= "const" v1)
+    :modified-val (if (= "const" (second v1))
                     (n/meta-node (tnode :const) (ast->clj v2))
                     (ast->clj v2))
     :class 
     (lnode 
-      (list* (tnode 'comment) ws
+      (list* (tnode 'comment) nl
              "use flutter/widget macro instead of classes" nl
              (mapn ast->clj (rest node))))
     :method (lnode [(tnode 'defn) ws 
+                    (ast->clj v1) ws
                     (ast->clj v2) ws
-                    (ast->clj v3) ws
-                    (ast->clj v4) ws])
+                    (ast->clj v3) ws])
     :field-decl (ast->clj [:global-assign v1 (or v2 [:identifier "nil"])])
 
     :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))
@@ -212,7 +212,7 @@
     :field (tnode (symbol (str "." (ast->clj v1))))
 
     :lambda (lnode [(tnode 'fn) ws (ast->clj v1) ws (ast->clj v2)])
-    :lambda-body (ast->clj v1)
+    :lambda-body (ast->clj (cons :code (rest node)))
     :lambda-args (vnode (->> node rest (maps ast->clj)))
 
     :ternary (ast->clj [:if v1 v2 v3])
@@ -282,6 +282,9 @@
         ;; TODO: find another wat to deal with comments
         ;; the problem is that comments could appear inside strings
         (str/replace str-pattern (transform encode))    ; encode strings to Base64
+
+        ;; clean from annotations
+        (str/replace #"(\s*@.*\n)" "\n")
 
         ;; cleaning code from comments
         (str/replace #"\/\*(\*(?!\/)|[^*])*\*\/" "")    ; /* ... */ 
