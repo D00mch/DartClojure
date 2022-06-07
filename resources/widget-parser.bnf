@@ -1,20 +1,32 @@
-s              = file | code
+s              = file / code
 code           = (statement | expr <end>)* return?
 
-file           = import-block? (method | global-assign | class)*
+file           = import-block? (method | global-assign | class | typedef)*
 method         = <'@override'>? <(identifier '.')*> typed-value? identifier
-                 lambda-args (lambda-body | <'=>'> assign-val)
-import-block   = import+ 
-import         = <'import'> string (<'as'> identifier)? <';'?> 
-class          = 'abstract'? 'class' identifier ('extends' identifier)? '{'
-                    (method | field-decl | construct-decl)*
-                 '}'
+                 lambda-args (lambda-body | <'=>'> assign-val | <';'>)
+
+import-block   = (import <';'?>)+ 
+<import>       = (import-full | import-as | import-hide | import-show | import-naked)
+import-naked   = im-body
+import-full    = im-body im-as-part (im-show-part | im-hide-part)  
+import-as      = im-body im-as-part
+import-show    = im-body im-show-part
+import-hide    = im-body im-hide-part
+<im-body>      = <'import'> string
+<im-as-part>   = (<'deferred'?> <'as'> identifier)
+<im-show-part> = <'show'> identifier+
+<im-hide-part> = <'hide'> identifier+
+
+class          = <'abstract'? 'class' #'[^{}]*' '{'>
+                    (method | field-decl | <construct-decl>)*
+                 <'}'>
 construct-decl = 'const'? identifier ('.' identifier)?  
                  '(' ( typed-arg? (<','> typed-arg)*)? <','>? args-bloc? ')'
                  (':' 'super' params)? ';'
 args-bloc      = '{' #'[^{}]*' '}' 
-global-assign  = field-type <'='> ternary-val
-field-decl     = field-type (<'='> expr)? ';'
+global-assign  = field-type <'='> ternary-val <';'>?
+field-decl     = field-type (<'='> expr)? <';'>
+typedef      = 'typedef' typed-value <'='> (typed-value | method) 
 
 <end>          = <(';'|#'\n'+|','|#'$')>
 <statement>    = if
@@ -35,8 +47,8 @@ lambda-body    = <'{'> code <'}'>
 lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
 <cascade-val>  = assign-val | cascade
 cascade        = cascade-val <'..'> assign-val
-<assign-val>   = ternary-val | _assign
-_assign        = !global-assign (dot-val | field-type) <_operator> ternary-val 
+<assign-val>   = ternary-val | global-assign | _set
+_set           = dot-val <_operator> ternary-val 
 <ternary-val>  = ifnull-val | ternary
 ternary        = ternary-val <'?'> expr <':'> expr
 <ifnull-val>   = and-val | ifnull

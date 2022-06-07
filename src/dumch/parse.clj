@@ -2,7 +2,7 @@
   (:require
     [clojure.java.io :as io]
     [clojure.string :as str]
-    [dumch.util :refer [ws maps mapn mapcats]]
+    [dumch.util :refer [ws nl maps mapn mapcats]]
     [instaparse.core :as insta :refer [defparser]]
     [rewrite-clj.node :as n 
      :refer [list-node map-node token-node keyword-node vector-node]
@@ -165,29 +165,41 @@
   (case tag
     :s (ast->clj v1)
     :code (if v2 
-            (lnode (list* (tnode 'do) ws (->> node rest (maps ast->clj)))) 
+            (lnode (list* (tnode 'do) ws (maps ast->clj (rest node)))) 
             (ast->clj v1))
 
     :file (if v2
-            (lnode (list* (tnode 'do) ws (->> node rest (mapn ast->clj))))
+            (lnode (list* (tnode 'do) ws (mapn ast->clj (rest node))))
             (ast->clj v1))
-    :import-block (lnode (list* (tnode 'require) (->> node rest (maps ast->clj))))
-    :import (vnode [(ast->clj v1) 
-                    (knode :as)
-                    (or (some-> v2 ast->clj) 'give-alias-or-refer)])
+    :import-block (lnode (list* (tnode 'require) (maps ast->clj (rest node))))
+    :import-as (vnode [(ast->clj v1) ws (knode :as) ws (ast->clj v2)])
+    :import-naked (vnode [(ast->clj v1) ws (knode :as) ws 'give-an-alias-or-refer]) 
+    :import-show (vnode [(ast->clj v1) ws 
+                         (knode :refer) ws 
+                         (vnode (maps ast->clj (drop 2 node)))])
+    :import-hide (vnode [(ast->clj v1) ws (knode :as) ws 'be-aware-of-hide-here])
+    :import-full 
+    (vnode [(ast->clj v1) ws 
+            (knode :as) ws 
+            (ast->clj v2) ws 
+            (knode :refer) ws 
+            (vnode (maps ast->clj (drop 3 node)))])
     :global-assign (lnode [(tnode 'def) ws
                            (ast->clj v1) ws
                            (ast->clj v2)])
-    :modified-val (if (= "final" v1)
+    :modified-val (if (= "const" v1)
                     (n/meta-node (tnode :const) (ast->clj v2))
                     (ast->clj v2))
-    :class :unknown
+    :class 
+    (lnode 
+      (list* (tnode 'comment) ws
+             "use flutter/widget macro instead of classes" nl
+             (mapn ast->clj (rest node))))
     :method (lnode [(tnode 'defn) ws 
                     (ast->clj v2) ws
                     (ast->clj v3) ws
                     (ast->clj v4) ws])
-    :construct-decl :unidiomatic
-    :field-decl :unknown
+    :field-decl (ast->clj [:global-assign v1 (or v2 [:identifier "nil"])])
 
     :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))
     :params (mapcats ast->clj (rest node))

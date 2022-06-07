@@ -9,6 +9,20 @@
 (def ^:private dart->clj-string 
   (comp z/string simplify ast->clj dart->ast))
 
+(deftest import-test 
+  (testing "import with 'hide'"
+    (is (= (dart->clojure "import 'pkg:goog/maps.dart' hide LatLng")
+           '(require ["pkg:goog/maps.dart" :as be-aware-of-hide-here]))))
+  (testing "import with 'show'"
+    (is (= (dart->clojure "import 'package:f/s.dart' show Delta;")
+           '(require ["package:f/s.dart" :refer [Delta]]))))
+  (testing "import without specifications"
+    (is (= (dart->clojure "import 'package:flutter/widgets.dart';")
+           '(require ["package:flutter/widgets.dart" :as give-an-alias-or-refer]))))
+  (testing "import with 'as' and 'show'"
+    (is (= (dart->clojure "import 'pkg:goog/maps.dart' as GMap show LatLng;")
+           '(require ["pkg:goog/maps.dart" :as GMap :refer [LatLng]])))))
+
 (deftest methods-test 
   (testing "method with body"
     (is (= (dart->clojure 
