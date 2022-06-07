@@ -7,6 +7,9 @@
 (defn maps [f sq] (spaces (map f sq)))
 (defn mapcats [f sq] (spaces (mapcat f sq)))
 
+(def nl (n/newlines 1))
+(defn mapn [f sq] (interpose nl (map f sq)))
+
 (defn with-print [arg]
   (println :with-print arg)
   arg)

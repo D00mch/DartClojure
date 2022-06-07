@@ -63,6 +63,7 @@ Center(
 - early exits from lambdas;
 - `...` operator;
 - proper aliases for everything, it's not possible to get this info generally;
+- try-catch
 
 ## TODO:
 

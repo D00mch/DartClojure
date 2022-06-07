@@ -1,10 +1,11 @@
-s              = code | file
+s              = file | code
 code           = (statement | expr <end>)* return?
 
-file           = import* (method | _assign | class)*
+file           = import-block? (method | global-assign | class)*
 method         = <'@override'>? <(identifier '.')*> typed-value? identifier
                  lambda-args (lambda-body | <'=>'> assign-val)
-import         = 'import' string ('as' identifier)? ';'?
+import-block   = import+ 
+import         = <'import'> string (<'as'> identifier)? <';'?> 
 class          = 'abstract'? 'class' identifier ('extends' identifier)? '{'
                     (method | field-decl | construct-decl)*
                  '}'
@@ -12,7 +13,8 @@ construct-decl = 'const'? identifier ('.' identifier)?
                  '(' ( typed-arg? (<','> typed-arg)*)? <','>? args-bloc? ')'
                  (':' 'super' params)? ';'
 args-bloc      = '{' #'[^{}]*' '}' 
-field-decl     = field-type ('=' expr)? ';'
+global-assign  = field-type <'='> ternary-val
+field-decl     = field-type (<'='> expr)? ';'
 
 <end>          = <(';'|#'\n'+|','|#'$')>
 <statement>    = if
@@ -34,7 +36,7 @@ lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
 <cascade-val>  = assign-val | cascade
 cascade        = cascade-val <'..'> assign-val
 <assign-val>   = ternary-val | _assign
-_assign        = (dot-val | field-type) <_operator> ternary-val 
+_assign        = !global-assign (dot-val | field-type) <_operator> ternary-val 
 <ternary-val>  = ifnull-val | ternary
 ternary        = ternary-val <'?'> expr <':'> expr
 <ifnull-val>   = and-val | ifnull
@@ -97,13 +99,12 @@ get            = (get | identifier | map | dot | dot-op)
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
                | '>>>=' | '&=' | '^=' | '|=' | '??=' | '-='
 
-<field-type>   = 'static' (modifier) typed-value identifier |
-                  (modifier) typed-value identifier |
-                  typed-value? identifier
-<modifier>     = 'var' | 'const' | 'final'
-<generic-type> = '<' typed-value ('.' identifier)*  <'?'>? 
-                     (',' typed-value ('.' identifier)* <'?'>?)* '>'
-<typed-value>  = identifier <generic-type?> <'?'>? 
+<field-type>   = <'static'> modified-val | modified-val |
+                  <typed-value> identifier
+modified-val   = ('const' | 'final') <typed-value> identifier 
+<generic-type> = '<' typed-value ('.' identifier)*  <'?'?> 
+                     (',' typed-value ('.' identifier)* <'?'?>)* '>'
+<typed-value>  = identifier <generic-type?> <'?'?> 
 string         = #"r?'([^']*)'"
 identifier     = !return #'[a-zA-Z_]+[a-zA-Z0-9!_]*' 
 number         = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'

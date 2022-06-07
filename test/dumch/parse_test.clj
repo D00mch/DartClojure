@@ -278,11 +278,11 @@
 
 (deftest assignment-test
   (testing "typeless var assignment"
-    (is (= (dart->clojure  "var a = b") :unidiomatic)))
+    (is (= (dart->clojure  "var a = b") '(def a b))))
   (testing "final assignment"
-    (is (= (dart->clojure  "final String s = '1'; ") :unidiomatic)))
+    (is (= (dart->clojure  "final String s = '1'; ") '(def s "1"))))
   (testing "const assignment"
-    (is (= (dart->clojure  "const bar = 1000000") :unidiomatic))))
+    (is (= (dart->clojure  "const bar = 100") '(def ^:const bar 100)))))
 
 (deftest await-test
   (is (= (dart->clojure  "await a") '(await a))))
