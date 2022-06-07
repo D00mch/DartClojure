@@ -62,6 +62,10 @@ Center(
 - try-catch;
 - for, while, switch;
 - proper aliases for everything, it's not possible to get this info generally;
+- enums;
+- external keywork;
+- yield;
+- exports;
 - early exits from lambdas (ignored);
 - `...` operator (ignored);
 - typedefs (ignored);
