@@ -1,9 +1,10 @@
 s              = file / code
-code           = (statement | expr <end>)* return?
+code           = (statement | expr <end>)*
 
-file           = import-block? (method | global-assign | class | typedef)*
-method         = <'@override'>? <(identifier '.')*> typed-value? identifier
-                 lambda-args (lambda-body | <'=>'> assign-val | <';'>)
+file           = import-block? (method | global-assign | class | _typedef)*
+method         = <'static'?> 
+                 <(typed-value '.')*> <typed-value> identifier
+                 lambda-args (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 import-block   = (import <';'?>)+ 
 <import>       = (import-full | import-as | import-hide | import-show | import-naked)
@@ -18,15 +19,24 @@ import-hide    = im-body im-hide-part
 <im-hide-part> = <'hide'> identifier+
 
 class          = <'abstract'? 'class' #'[^{}]*' '{'>
-                    (method | field-decl | <construct-decl>)*
+                    (method | getter-decl | field-decl | <construct-decl> |
+                     _fileds-decl )*
                  <'}'>
 construct-decl = 'const'? identifier ('.' identifier)?  
-                 '(' ( typed-arg? (<','> typed-arg)*)? <','>? args-bloc? ')'
-                 (':' 'super' params)? ';'
+                 '(' ( 
+                       (typed-arg '.')* typed-arg? 
+                       (<','> (typed-arg '.')* typed-arg)*
+                     )?
+                     <','>? args-bloc? 
+                  ')'
+                 ( (':' 'super' params)? ';' | ':' (identifier '=' expr (','|';'))* )
 args-bloc      = '{' #'[^{}]*' '}' 
-global-assign  = field-type <'='> ternary-val <';'>?
+global-assign  = field-type <'='> ternary-val <end>
 field-decl     = field-type (<'='> expr)? <';'>
-typedef      = 'typedef' typed-value <'='> (typed-value | method) 
+_fileds-decl   = field-type (',' identifier)* ';'
+_typedef       = 'typedef' typed-value <'='> (typed-value | method) 
+getter-decl    = <(typed-value '.')*> <typed-value?> 'get'
+                 identifier (lambda-body | <'=>'> assign-val | <';'>) <';'?>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
 <statement>    = if
@@ -37,9 +47,10 @@ if             = <'if'> if-condition if-else-body
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
-lambda-args    = <'('> typed-arg? (<','> typed-arg)* <')'> <'async'?>  
+lambda-args    = <'('> (typed-arg '.')* typed-arg? 
+                       (<','> (typed-arg '.')* typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <typed-value?> identifier  
-lambda-body    = <'{'> code <'}'>
+lambda-body    = <'{'> ( statement | expr <end> | method )* return? <'}'>
 
 <expr>         = lambda-val <'!'>?
 
@@ -60,7 +71,7 @@ or             = or-val <'||'> equality-val
 <equality-val> = compare-val | equality
 equality       = equality-val ( '==' | '!=' ) compare-val
 <compare-val>  = add-sub-val | compare 
-compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is' | 'as') add-sub-val 
+compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is') add-sub-val 
 <add-sub-val>  = mul-div-val | add | sub
 add            = add-sub-val <'+'> mul-div-val
 sub            = add-sub-val <'-'> mul-div-val
@@ -99,21 +110,23 @@ argument       = expr | (named-arg expr)
 named-arg      = identifier <':'> 
 
 list           = <generic-type?> 
-                 <'['> list-el (<','> list-el)* <','?> <']'>
+                 <'['> (list-el (<','> list-el)* <','?> | EPSILON ) <']'>
 <list-el>      = _spread | expr     
 _spread        = '...' value 
 map            = <generic-type?> 
-                 <'{'> expr <':'> expr
-                 (<','> (identifier|string|number) <':'> expr)*  <'}'>
+                 <'{'> (expr <':'> expr
+                        (<','> (identifier|string|number) <':'> expr)* 
+                        | EPSILON ) <'}'>
 get            = (get | identifier | map | dot | dot-op)
                  <'['> (identifier | string | number | dot | dot-op) <']'>     
 
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
                | '>>>=' | '&=' | '^=' | '|=' | '??=' | '-='
 
-<field-type>   = <'static'> modified-val | modified-val |
-                  <typed-value> identifier
-modified-val   = ('const' | 'final') <typed-value> identifier 
+<field-type>   = <'static'>? modified-val | modified-val |
+                 !modifier <(typed-value '.')*> <typed-value> identifier
+modified-val   = modifier <(typed-value '.')*> <typed-value>? identifier 
+modifier       = 'const' | 'final' | 'late'
 <generic-type> = '<' typed-value ('.' identifier)*  <'?'?> 
                      (',' typed-value ('.' identifier)* <'?'?>)* '>'
 <typed-value>  = identifier <generic-type?> <'?'?> 
