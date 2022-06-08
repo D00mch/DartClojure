@@ -73,7 +73,7 @@ Center(
 
 ## TODO:
 
-- [ ] think on how to integrate it into the editors;
+- [ ] support cljc to be able to work with Calva;
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
@@ -84,7 +84,6 @@ Center(
 - [ ] convert files;
 - [ ] support for, while;
 - [ ] support switch;
-
 
 ## How to use
 
