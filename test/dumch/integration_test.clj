@@ -1,6 +1,6 @@
 (ns dumch.integration-test 
   (:require [clojure.test :refer [deftest is testing]]
-            [dumch.dartclojure :refer [convert]]
+            [dumch.convert :refer [convert]]
             [dumch.improve :refer [simplify]]
             [dumch.parse :refer [dart->clojure widget-parser]]
             [instaparse.core :as insta]))
