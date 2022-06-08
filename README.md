@@ -1,17 +1,17 @@
 # DartClojure
 
 Opinionated dart to clojure converter for flutter widgets. 
-It doesn't convert classs, methods, and assignments —
-only the part with widget creation.
+It doesn't (and probably will not) convert classes, setters, annotations —
+only the part that could be reused after translation.
 
 <img src="https://github.com/Liverm0r/DartClojure/blob/main/resources/Screenshot%202022-05-28%20at%2020.11.09.png" alt="alt text" width="632" height="302">
 
 ## Why is it  not a full dart->clojure converter?
 
-Converted code would not be idiomatic. Instead of using classes there is 
-a [widget][1] macro. 
+All the converted code would not be idiomatic. Instead of using 
+classes there is a [widget][1] macro. 
 
-Assignments are also useless, there would be a `:state` atom
+Setters are also useless, there would be a `:state` atom
 and `swap!` or `reset!` functions for changing the state.
 
 So I see little value in converting everything.
@@ -54,30 +54,34 @@ Center(
 - constants;
 - variables in strings with$;
 - raw (interpreted) strings like `r'some string $dollar'`
+- class/methods declarations (not tested well, pre-alpha);
 
 ## Not supported
 
-- class/methods declarations;
 - bitwise operators;
-- assignment (unideomatic);
-- early exits from lambdas;
-- `...` operator;
-- proper aliases for everything, it's not possible to get this info generally;
 - try-catch;
-- typedefs;
-- annotations;
 - for, while, switch;
+- proper aliases for everything, it's not possible to get this info generally;
+- enums;
+- external keywork;
+- yield;
+- exports;
+- early exits from lambdas (ignored);
+- `...` operator (ignored);
+- typedefs (ignored);
+- annotations (ignored);
+>>>>>>> main
 
 ## TODO:
 
-- [ ] think on how to integrate it into the editors;
+- [ ] support cljc to be able to work with Calva;
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
 - [X] support variables in string `"${a}, $b"`;
 - [X] support cascade `..`.
 - [ ] do not insert material import on core classes, like `Duration`;
-- [ ] parse classes and methods;
+- [ ] test classes and methods extensively;
 - [ ] convert files;
 - [ ] support for, while;
 - [ ] support switch;
