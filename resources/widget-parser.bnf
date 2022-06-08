@@ -3,7 +3,7 @@ code           = (statement | expr <end>)*
 
 file           = import-block? (method | global-assign | class | _typedef)*
 method         = <'static'?> 
-                 <(typed-value '.')*> <typed-value> identifier
+                 <dtype> identifier
                  lambda-args (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 import-block   = (import <';'?>)+ 
@@ -34,8 +34,8 @@ args-bloc      = '{' #'[^{}]*' '}'
 global-assign  = field-type <'='> ternary-val <end>
 field-decl     = field-type (<'='> expr)? <';'>
 _fileds-decl   = field-type (',' identifier)* ';'
-_typedef       = 'typedef' typed-value <'='> (typed-value | method) 
-getter-decl    = <(typed-value '.')*> <typed-value?> 'get'
+_typedef       = 'typedef' dtype <'='> (dtype | method) 
+getter-decl    = <dtype?> 'get'
                  identifier (lambda-body | <'=>'> assign-val | <';'>) <';'?>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
@@ -47,9 +47,8 @@ if             = <'if'> if-condition if-else-body
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
-lambda-args    = <'('> (typed-arg '.')* typed-arg? 
-                       (<','> (typed-arg '.')* typed-arg)* <')'> <'async'?>  
-<typed-arg>    = <typed-value?> identifier  
+lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
+<typed-arg>    = <dtype?> identifier  
 lambda-body    = <'{'> ( statement | expr <end> | method )* return? <'}'>
 
 <expr>         = lambda-val <'!'>?
@@ -89,7 +88,7 @@ dot            = dot-val (invoke | field)
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not | await) <';'?> 
 
-typecasting    = value 'as' typed-value
+typecasting    = value 'as' dtype
 
 invoke         = <'.'> typed-value params  <';'?>
 field          = <'.'> identifier <';'?>
@@ -104,16 +103,17 @@ _tilda         = <'~'> value
 
 const          = <'const'> (constructor | get | map | list | dot | dot-op)
 constructor    = typed-value params <';'?>
+<typed-value>  = identifier <type-args?> 
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
 argument       = expr | (named-arg expr) 
 named-arg      = identifier <':'> 
 
-list           = <generic-type?> 
+list           = <type-args?> 
                  <'['> (list-el (<','> list-el)* <','?> | EPSILON ) <']'>
 <list-el>      = _spread | expr     
 _spread        = '...' value 
-map            = <generic-type?> 
+map            = <type-args?> 
                  <'{'> (expr <':'> expr
                         (<','> (identifier|string|number) <':'> expr)* 
                         | EPSILON ) <'}'>
@@ -124,12 +124,14 @@ _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>='
                | '>>>=' | '&=' | '^=' | '|=' | '??=' | '-='
 
 <field-type>   = <'static'>? modified-val | modified-val |
-                 !modifier <(typed-value '.')*> <typed-value> identifier
-modified-val   = modifier <(typed-value '.')*> <typed-value>? identifier 
+                 !modifier <dtype> identifier
+modified-val   = modifier <dtype?> identifier 
 modifier       = 'const' | 'final' | 'late'
-<generic-type> = '<' typed-value ('.' identifier)*  <'?'?> 
-                     (',' typed-value ('.' identifier)* <'?'?>)* '>'
-<typed-value>  = identifier <generic-type?> <'?'?> 
+dtype          = qualified type-args? <'?'?> 
+qualified      = (identifier '.')* identifier
+type-args      = '<' type-list '>'
+type-list      = dtype (',' dtype)*
+
 string         = #"r?'([^']*)'"
 identifier     = !return #'[a-zA-Z_]+[a-zA-Z0-9!_]*' 
 number         = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
