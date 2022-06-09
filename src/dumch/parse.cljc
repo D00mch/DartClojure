@@ -60,7 +60,7 @@
             building-str? (empty? stack)
             allow-open-b? (and (> i 0) (= (.charAt s (dec i)) \$))
             open-b? (and (or allow-open-b? (seq stack)) (= ch \{))
-                                                                close-b? (= ch \})
+            close-b? (= ch \})
             expr-ends? (and close-b? (= (count stack) 1))]
 
         (if building-str?
