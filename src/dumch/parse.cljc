@@ -179,7 +179,6 @@
 
 (defn ast->clj [[tag v1 v2 v3 v4 :as node]]
   #_(println :node node)
-  (def v1 v1)
   (case tag
     :s (ast->clj v1)
     :code (if v2
