@@ -36,7 +36,7 @@ getter-decl    = <dtype?> 'get'
                  identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = if | var-declare
+<statement>    = var-declare
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
@@ -71,7 +71,7 @@ or             = or-val <'||'> equality-val
 <equality-val> = compare-val | equality
 equality       = equality-val ( '==' | '!=' ) compare-val
 <compare-val>  = add-sub-val | compare 
-compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is') add-sub-val 
+compare        = compare-val !type-args ( '<' | '>' | '<=' | '>=' | 'is') add-sub-val 
 <add-sub-val>  = mul-div-val | add | sub
 add            = add-sub-val <'+'> mul-div-val
 sub            = add-sub-val <'-'> mul-div-val
@@ -85,7 +85,7 @@ dot            = dot-val (invoke | field)
 
 <value>        = (number | string | !get identifier
                | constructor | invoke | typecasting | const  
-               | list | map | get | _spread
+               | list | map | get | _spread | if
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not | await) <';'?> 
 
@@ -129,7 +129,7 @@ _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>='
 <modifier>     = 'final' | 'const'
 dtype          = qualified type-args? <'?'?> 
 qualified      = (identifier '.')* identifier
-type-args      = '<' type-list '>'
+type-args      = <'<'> type-list <'>'>
 type-list      = dtype (',' dtype)*
 
 string         = #'r?\'([^\']*)\''
