@@ -3,7 +3,7 @@ code           = (expr <end> | statement <end>)*
 
 file           = import-block? (method | var-declare <';'> | class | _typedef)*
 method         = <'static'?> 
-                 <dtype> identifier
+                 <dtype>? identifier
                  lambda-args (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 import-block   = (import <';'?>)+ 

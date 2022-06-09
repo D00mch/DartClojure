@@ -46,7 +46,9 @@
              "void main() => runApp(App());")
            '(defn main [] (runApp (App))))))
   (testing "method with dot in type"
-    (is (= (dart->clojure "A.B.C<A> a() => 1") '(defn a [] 1)))))
+    (is (= (dart->clojure "A.B.C<A> a() => 1") '(defn a [] 1))))
+  (testing "method without type"
+    (is (= (dart->clojure "a() => 1") '(defn a [] 1)))))
 
 (deftest get-set-test
   (testing "getter with => and with body {}"
