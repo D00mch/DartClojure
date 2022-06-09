@@ -44,12 +44,12 @@
          cur-expr (StringBuilder.)
          i 0]
     (if (>= i (count s))
-      (conj rslt (.toString (if (.isEmpty cur-expr) cur-str cur-expr)))
+      (conj rslt (.toString (if (empty? cur-expr) cur-str cur-expr)))
 
       (let [ch (.charAt s i)
-            building-str? (.isEmpty stack)
+            building-str? (empty? stack)
             allow-open-b? (and (> i 0) (= (.charAt s (dec i)) \$))
-            open-b? (and (or allow-open-b? (not (.isEmpty stack))) (= ch \{)) 
+            open-b? (and (or allow-open-b? (seq stack)) (= ch \{)) 
             close-b? (= ch \})
             expr-ends? (and close-b? (= (count stack) 1)) ]
 
