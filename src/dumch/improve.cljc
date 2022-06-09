@@ -1,7 +1,7 @@
 (ns dumch.improve 
   (:require
     [better-cond.core :as b]
-    [dumch.util :refer [lists*]]
+    [dumch.util :refer [lists* upper-case?]]
     [rewrite-clj.node :as n]
     [rewrite-clj.paredit :as p]
     [rewrite-clj.zip :as z]))
@@ -62,7 +62,7 @@
             :let [expr (z/sexpr zloc)] 
 
             ;; import
-            (and (symbol? expr) (Character/isUpperCase (first (str expr))))
+            (and (symbol? expr) (upper-case? (first (str expr))))
             (z/edit zloc #(symbol (str m "/" %)))
 
             :else zloc)))))
