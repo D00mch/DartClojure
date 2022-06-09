@@ -152,7 +152,7 @@
 
 (defn- flatten-commutative-node [[f :as node]]
   (list*
-   [:identifier (case f :and 'and, :or 'or, :add '+, :mul '*)]
+   [:identifier (case f :and "and", :or "or", :add "+", :mul "*")]
    (flatten-same-node node)))
 
 (defn- flatten-compare [[_ & params :as and-node]]
@@ -248,7 +248,7 @@
     :return (if v1 (ast->clj v1) (tnode 'nil))
     :typecasting (ast->clj v1)
     :const (n/meta-node (tnode :const) (ast->clj v1))
-    :identifier (symbol (str/replace (str v1) #"!" ""))
+    :identifier (symbol (str/replace v1 #"!" ""))
     :list (n/vector-node (maps ast->clj (rest node)))
     :map (mnode (maps ast->clj (rest node)))
     :get (lnode [(tnode 'get) ws (ast->clj v1) ws (ast->clj v2)])
