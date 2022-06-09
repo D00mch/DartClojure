@@ -54,7 +54,7 @@ Center(
 - constants;
 - variables in strings with$;
 - raw (interpreted) strings like `r'some string $dollar'`
-- class/methods declarations (not tested well, pre-alpha);
+- class/methods/fields declarations (not tested well, pre-alpha);
 
 ## Not supported
 
@@ -70,7 +70,6 @@ Center(
 - `...` operator (ignored);
 - typedefs (ignored);
 - annotations (ignored);
->>>>>>> main
 
 ## TODO:
 
@@ -85,7 +84,6 @@ Center(
 - [ ] convert files;
 - [ ] support for, while;
 - [ ] support switch;
-
 
 ## How to use
 

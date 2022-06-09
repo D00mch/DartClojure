@@ -36,12 +36,8 @@ getter-decl    = <dtype?> 'get'
                  identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = if | for | var-declare
+<statement>    = if | var-declare
 return         = <'return'> expr? <';'>
-
-for            = <'for'> <'('> for-parts <')'> (lambda-body | return | expr <end>)
-for-parts      = for-init expr? ';' expr-list?
-for-init       = 'init' | expr? ';'
 
 if             = <'if'> if-condition if-else-body
 <if-else-body> =  (lambda-body | return | expr <end>) 
@@ -97,7 +93,7 @@ typecasting    = value 'as' dtype
 
 invoke         = <'.'> typed-value params  <';'?>
 field          = <'.'> identifier <';'?>
-await          = <'await'> (value | for)
+await          = <'await'> (value)
 neg            = !number <'-'> value
 not            = <'!'> value
 dec            = <'--'> value
