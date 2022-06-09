@@ -85,8 +85,8 @@
            (if expr-ends? (conj rslt #?(:clj (.toString cur-expr)
                                         :cljs (.join cur-expr ""))) rslt)
            cur-str
-           #?(:clj (if expr-ends? (StringBuilder.) (.append cur-str ch))
-              :cljs (if expr-ends? (js/Array.) (doto cur-str (.push ch))))
+           #?(:clj (if expr-ends? (StringBuilder.) (.append cur-expr ch))
+              :cljs (if expr-ends? (js/Array.) (doto cur-expr (.push ch))))
            (inc i)))))))
 
 (defn- substitute-$
