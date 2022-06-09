@@ -1,9 +1,9 @@
 s              = file / code
-code           = (statement | expr <end>)*
+code           = (expr <end> | statement <end>)*
 
-file           = import-block? (method | global-assign | class | _typedef)*
+file           = import-block? (method | var-declare <';'> | class | _typedef)*
 method         = <'static'?> 
-                 <(typed-value '.')*> <typed-value> identifier
+                 <dtype>? identifier
                  lambda-args (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 import-block   = (import <';'?>)+ 
@@ -19,8 +19,8 @@ import-hide    = im-body im-hide-part
 <im-hide-part> = <'hide'> identifier+
 
 class          = <'abstract'? 'class' #'[^{}]*' '{'>
-                    (method | getter-decl | field-decl | <construct-decl> |
-                     _fileds-decl )*
+                    (method | getter-decl | 
+                     var-declare | <construct-decl> )*
                  <'}'>
 construct-decl = 'const'? identifier ('.' identifier)?  
                  '(' ( 
@@ -31,15 +31,12 @@ construct-decl = 'const'? identifier ('.' identifier)?
                   ')'
                  ( (':' 'super' params)? ';' | ':' (identifier '=' expr (','|';'))* )
 args-bloc      = '{' #'[^{}]*' '}' 
-global-assign  = field-type <'='> ternary-val <end>
-field-decl     = field-type (<'='> expr)? <';'>
-_fileds-decl   = field-type (',' identifier)* ';'
-_typedef       = 'typedef' typed-value <'='> (typed-value | method) 
-getter-decl    = <(typed-value '.')*> <typed-value?> 'get'
-                 identifier (lambda-body | <'=>'> assign-val | <';'>) <';'?>
+_typedef       = 'typedef' dtype <'='> (dtype | method) 
+getter-decl    = <dtype?> 'get'
+                 identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = if
+<statement>    = var-declare
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
@@ -47,18 +44,21 @@ if             = <'if'> if-condition if-else-body
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
-lambda-args    = <'('> (typed-arg '.')* typed-arg? 
-                       (<','> (typed-arg '.')* typed-arg)* <')'> <'async'?>  
-<typed-arg>    = <typed-value?> identifier  
-lambda-body    = <'{'> ( statement | expr <end> | method )* return? <'}'>
+var-declare    = <'static'>? field-type var-init (<','> var-init)* <';'>*
+var-init       = identifier (<'='> expr)?
 
+lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
+<typed-arg>    = <dtype?> identifier  
+lambda-body    = <'{'> ( statement <';'> | expr <end> | method )* return? <'}'>
+
+expr-list      = expr (',' expr)*
 <expr>         = lambda-val <'!'>?
 
 <lambda-val>   = cascade-val | lambda 
 lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
 <cascade-val>  = assign-val | cascade
 cascade        = cascade-val <'..'> assign-val
-<assign-val>   = ternary-val | global-assign | _set
+<assign-val>   = ternary-val | _set
 _set           = dot-val <_operator> ternary-val 
 <ternary-val>  = ifnull-val | ternary
 ternary        = ternary-val <'?'> expr <':'> expr
@@ -71,7 +71,7 @@ or             = or-val <'||'> equality-val
 <equality-val> = compare-val | equality
 equality       = equality-val ( '==' | '!=' ) compare-val
 <compare-val>  = add-sub-val | compare 
-compare        = compare-val ( '<' | '>' | '<=' | '>=' | 'is') add-sub-val 
+compare        = compare-val !type-args ( '<' | '>' | '<=' | '>=' | 'is') add-sub-val 
 <add-sub-val>  = mul-div-val | add | sub
 add            = add-sub-val <'+'> mul-div-val
 sub            = add-sub-val <'-'> mul-div-val
@@ -85,15 +85,15 @@ dot            = dot-val (invoke | field)
 
 <value>        = (number | string | !get identifier
                | constructor | invoke | typecasting | const  
-               | list | map | get | _spread
+               | list | map | get | _spread | if
                | inc | _inc | dec | _dec | identifier | number
                | _tilda | neg | not | await) <';'?> 
 
-typecasting    = value 'as' typed-value
+typecasting    = value 'as' dtype
 
 invoke         = <'.'> typed-value params  <';'?>
 field          = <'.'> identifier <';'?>
-await          = <'await'> value
+await          = <'await'> (value)
 neg            = !number <'-'> value
 not            = <'!'> value
 dec            = <'--'> value
@@ -104,16 +104,17 @@ _tilda         = <'~'> value
 
 const          = <'const'> (constructor | get | map | list | dot | dot-op)
 constructor    = typed-value params <';'?>
+<typed-value>  = identifier <type-args?> 
 params         = <'('>  <')'>
                | (<'('> argument (<','> argument)* <','?> <')'>)
 argument       = expr | (named-arg expr) 
 named-arg      = identifier <':'> 
 
-list           = <generic-type?> 
+list           = <type-args?> 
                  <'['> (list-el (<','> list-el)* <','?> | EPSILON ) <']'>
 <list-el>      = _spread | expr     
 _spread        = '...' value 
-map            = <generic-type?> 
+map            = <type-args?> 
                  <'{'> (expr <':'> expr
                         (<','> (identifier|string|number) <':'> expr)* 
                         | EPSILON ) <'}'>
@@ -123,14 +124,15 @@ get            = (get | identifier | map | dot | dot-op)
 _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>=' 
                | '>>>=' | '&=' | '^=' | '|=' | '??=' | '-='
 
-<field-type>   = <'static'>? modified-val | modified-val |
-                 !modifier <(typed-value '.')*> <typed-value> identifier
-modified-val   = modifier <(typed-value '.')*> <typed-value>? identifier 
-modifier       = 'const' | 'final' | 'late'
-<generic-type> = '<' typed-value ('.' identifier)*  <'?'?> 
-                     (',' typed-value ('.' identifier)* <'?'?>)* '>'
-<typed-value>  = identifier <generic-type?> <'?'?> 
-string         = #"r?'([^']*)'"
+(* type without name *)
+<field-type>   = !'await' (modifier <dtype> | !modifier <dtype> | modifier)
+<modifier>     = 'final' | 'const'
+dtype          = qualified type-args? <'?'?> 
+qualified      = (identifier '.')* identifier
+type-args      = <'<'> type-list <'>'>
+type-list      = dtype (',' dtype)*
+
+string         = #'r?\'([^\']*)\''
 identifier     = !return #'[a-zA-Z_]+[a-zA-Z0-9!_]*' 
 number         = #'-?[0-9]*\.?[0-9]+((e|E)(\+|\-)[0-9]+)?'
 

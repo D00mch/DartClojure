@@ -7,6 +7,9 @@
             [rewrite-clj.zip :as z]
             [rewrite-clj.node :as n]))
 
+(def ^:private dart->clj-simplified 
+  (comp z/sexpr simplify ast->clj dart->ast))
+
 (def ^:private dart->clj-string 
   (comp z/string simplify ast->clj dart->ast))
 
@@ -44,7 +47,9 @@
              "void main() => runApp(App());")
            '(defn main [] (runApp (App))))))
   (testing "method with dot in type"
-    (is (= (dart->clojure "A.B<A> a() => 1") '(defn a [] 1)))))
+    (is (= (dart->clojure "A.B.C<A> a() => 1") '(defn a [] 1))))
+  (testing "method without type"
+    (is (= (dart->clojure "a() => 1") '(defn a [] 1)))))
 
 (deftest get-set-test
   (testing "getter with => and with body {}"
@@ -320,14 +325,44 @@
 
 (deftest assignment-test
   (testing "typeless var assignment"
-    (is (= (dart->clojure  "var a = b") '(def a b))))
+    (is (= (dart->clojure  "var a = b;") '(def a b))))
   (testing "final assignment"
     (is (= (dart->clojure  "final String s = '1'; ") '(def s "1"))))
   (testing "const assignment"
-    (is (= (dart->clj-string "const bar = 100") 
+    (is (= (dart->clj-string "const bar = 100;") 
            "(def ^:const bar 100)")))
   (testing "assign value with type with dot"
     (is (= (dart->clojure  "A.C<D> bar = 1;") '(def bar 1)))))
+
+
+
+(deftest var-declaration-test 
+  (let [code "var bar = 0;
+              const bar = 1;
+              static bar = 2;
+              static final bar = 3;
+              static const int bar = 4;
+              static final int bar = 5;
+              static final int bar = 6, lar;"
+        result '((def bar 0)
+                 (def bar 1)
+                 (def bar 2)
+                 (def bar 3)
+                 (def bar 4)
+                 (def bar 5)
+                 (do (def bar 6) (def lar nil)))]
+    (testing "lambda vars"
+      (is (= (dart->clj-simplified (str "() { " code " }"))
+             (cons 'fn `( [] ~@result)))))
+    (testing "method vars"
+      (is (= (dart->clj-simplified (str "void main() { " code " }"))
+             (list* 'defn 'main `([] ~@result)))))
+    (testing "class vars"
+      (is (= (drop 2 (dart->clj-simplified (str "class A { " code " }")))
+             result)))
+    (testing "global vars"
+      (is (= (next (dart->clj-simplified code))
+             result)))))
 
 (deftest await-test
   (is (= (dart->clojure  "await a") '(await a))))

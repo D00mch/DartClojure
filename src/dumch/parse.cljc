@@ -1,17 +1,17 @@
 (ns dumch.parse
   (:require
-   #?(:cljs [dumch.base64 :as b64-cljs])
-   #?(:clj [clojure.java.io :as io])
-   #?(:cljs [clojure.edn :refer [read-string]])
-   [clojure.string :as str]
-   [dumch.util :refer [ws nl maps mapn mapcats]]
-   #?(:cljs [dumch.util :refer-macros [inline-resource]])
-   #?(:clj [instaparse.core :as insta :refer [defparser]]
-      :cljs [instaparse.core :as insta :refer-macros [defparser]])
-   [rewrite-clj.node :as n
-    :refer [list-node map-node token-node keyword-node vector-node]
-    :rename {list-node lnode, vector-node vnode,  map-node mnode,
-             token-node tnode, keyword-node knode}])
+    #?(:cljs [dumch.base64 :as b64-cljs])
+    #?(:clj [clojure.java.io :as io])
+    #?(:cljs [clojure.edn :refer [read-string]])
+    [clojure.string :as str]
+    [dumch.util :refer [ws nl maps mapn mapcats]]
+    #?(:cljs [dumch.util :refer-macros [inline-resource]])
+    #?(:clj [instaparse.core :as insta :refer [defparser]]
+       :cljs [instaparse.core :as insta :refer-macros [defparser]])
+    [rewrite-clj.node :as n
+     :refer [list-node map-node token-node keyword-node vector-node]
+     :rename {list-node lnode, vector-node vnode,  map-node mnode,
+              token-node tnode, keyword-node knode}])
   #?(:clj
      (:import java.util.ArrayDeque
               java.util.Base64
@@ -33,7 +33,7 @@
     (symbol o)))
 
 (defn- substitute-curly-quotes [s & {f :backward}]
-  ;; crutch for cases like ''' ' ''' and '\'' 
+  ;; crutch for cases like ''' ' ''' and '\''
   (if f
     (-> (str/replace s #"”" "\"")
         (str/replace #"’" "'"))
@@ -59,35 +59,35 @@
       (let [ch (.charAt s i)
             building-str? (empty? stack)
             allow-open-b? (and (> i 0) (= (.charAt s (dec i)) \$))
-            open-b? (and (or allow-open-b? (seq stack)) (= ch \{)) 
+            open-b? (and (or allow-open-b? (seq stack)) (= ch \{))
             close-b? (= ch \})
             expr-ends? (and close-b? (= (count stack) 1))]
 
         (if building-str?
           (recur
-           (if open-b? (doto stack (.push 1)) stack)
-           (if open-b?
-             (conj rslt (subs #?(:clj (.toString cur-str)
-                                 :cljs (.join cur-str "")) 
-                              0 
-                              #?(:clj (dec (.length cur-str))
-                                 :cljs (dec (.-length cur-str)))))
-             rslt)
-           #?(:clj (if open-b? (StringBuilder.) (.append cur-str ch))
-              :cljs (if open-b? (js/Array.) (doto cur-str (.push ch))))
-           cur-expr
-           (inc i))
+            (if open-b? (doto stack (.push 1)) stack)
+            (if open-b?
+              (conj rslt (subs #?(:clj (.toString cur-str)
+                                  :cljs (.join cur-str ""))
+                               0
+                               #?(:clj (dec (.length cur-str))
+                                  :cljs (dec (.-length cur-str)))))
+              rslt)
+            #?(:clj (if open-b? (StringBuilder.) (.append cur-str ch))
+               :cljs (if open-b? (js/Array.) (doto cur-str (.push ch))))
+            cur-expr
+            (inc i))
 
           (recur
-           (cond open-b? (doto stack (.push 1))
-                 close-b? (doto stack .pop)
-                 :else stack)
-           (if expr-ends? (conj rslt #?(:clj (.toString cur-expr)
-                                        :cljs (.join cur-expr ""))) rslt)
-           cur-str
-           #?(:clj (if expr-ends? (StringBuilder.) (.append cur-expr ch))
-              :cljs (if expr-ends? (js/Array.) (doto cur-expr (.push ch))))
-           (inc i)))))))
+            (cond open-b? (doto stack (.push 1))
+                  close-b? (doto stack .pop)
+                  :else stack)
+            (if expr-ends? (conj rslt #?(:clj (.toString cur-expr)
+                                         :cljs (.join cur-expr ""))) rslt)
+            cur-str
+            #?(:clj (if expr-ends? (StringBuilder.) (.append cur-expr ch))
+               :cljs (if expr-ends? (js/Array.) (doto cur-expr (.push ch))))
+            (inc i)))))))
 
 (defn- substitute-$
   "Returns ast of string with $ substitutions"
@@ -132,28 +132,28 @@
           (ast->clj [:invoke n (cons :params (cons [:argument a] (next params)))])
           :else (lnode (list* (tnode '->) ws (maps ast->clj rslt))))))
 
-(defn flatten-same-node [[f & params]] ;; [f [f 1 2] 3] -> [f 1 2 3]  
+(defn flatten-same-node [[f & params]] ;; [f [f 1 2] 3] -> [f 1 2 3]
   (mapcat
-   #(if (and (sequential? %) (= (first %) f))
-      (flatten-same-node %)
-      [%])
-   params))
+    #(if (and (sequential? %) (= (first %) f))
+       (flatten-same-node %)
+       [%])
+    params))
 
 (defn flatten-cascade [node ast->clj]
   (lnode
-   (list* (tnode 'doto) ws
-          (->> node
-               flatten-same-node
-               (map (fn [[tag & params :as node]]
-                      (if (= tag :constructor)
-                        (cons :invoke params)
-                        node)))
-               (maps ast->clj)))))
+    (list* (tnode 'doto) ws
+           (->> node
+                flatten-same-node
+                (map (fn [[tag & params :as node]]
+                       (if (= tag :constructor)
+                         (cons :invoke params)
+                         node)))
+                (maps ast->clj)))))
 
 (defn- flatten-commutative-node [[f :as node]]
   (list*
-   [:identifier (case f :and "and", :or "or", :add "+", :mul "*")]
-   (flatten-same-node node)))
+    [:identifier (case f :and "and", :or "or", :add "+", :mul "*")]
+    (flatten-same-node node)))
 
 (defn- flatten-compare [[_ & params :as and-node]]
   (let [compare-nodes (->> (filter (fn [[f]] (= f :compare)) params)
@@ -186,7 +186,7 @@
             (ast->clj v1))
 
     :file (if v2
-            (lnode (list* (tnode 'do) nl (mapn ast->clj (rest node))))
+            (n/list-node (list* (tnode 'do) nl (mapn ast->clj (rest node))))
             (ast->clj v1))
     :import-block (lnode (list* (tnode 'require) ws (mapn ast->clj (rest node))))
     :import-as (vnode [(ast->clj v1) ws (knode :as) ws (ast->clj v2)])
@@ -201,22 +201,35 @@
             (ast->clj v2) ws
             (knode :refer) ws
             (vnode (maps ast->clj (drop 3 node)))])
-    :global-assign (lnode [(tnode 'def) ws
-                           (ast->clj v1) ws
-                           (ast->clj v2)])
-    :modified-val (if (= "const" (second v1))
-                    (n/meta-node (tnode :const) (ast->clj v2))
-                    (ast->clj v2))
+    :var-declare
+    (let [inits (filter sequential? node)
+          const? (= v1 "const")
+          with-const (fn [[_ n v :as var-init-node]]
+                       (if const?
+                         [:var-init [:const n] v]
+                         var-init-node))]
+      (if (= (count inits) 1)
+        (ast->clj (with-const (first inits)))
+        (lnode
+          (list* (tnode 'do) ws
+                 (->> (map with-const inits)
+                      (maps ast->clj))))))
+
+    :var-init (lnode [(tnode 'def) ws
+                      (ast->clj v1) ws
+                      (or (some-> v2 ast->clj) (tnode 'nil))])
     :class
     (lnode
-     (list* (tnode 'comment) nl
-            "use flutter/widget macro instead of classes" nl
-            (mapn ast->clj (rest node))))
+      (list*
+        (tnode 'comment) nl
+        "use flutter/widget macro instead of classes" nl
+        (mapcat
+          #(if (sequential? %) % [%])
+          (mapn ast->clj (rest node)))))
     :method (lnode [(tnode 'defn) ws
                     (ast->clj v1) ws
-                    (ast->clj v2) ws
-                    (ast->clj v3) ws])
-    :field-decl (ast->clj [:global-assign v1 (or v2 [:identifier "nil"])])
+                    (ast->clj v2) nl
+                    (ast->clj v3)])
 
     :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))
     :params (mapcats ast->clj (rest node))
@@ -228,7 +241,7 @@
     :invoke (lnode (list* (ast->clj [:field v1]) ws (ast->clj v2)))
     :field (tnode (symbol (str "." (ast->clj v1))))
 
-    :lambda (lnode [(tnode 'fn) ws (ast->clj v1) ws (ast->clj v2)])
+    :lambda (lnode [(tnode 'fn) ws (ast->clj v1) nl (ast->clj v2)])
     :lambda-body (ast->clj (cons :code (rest node)))
     :lambda-args (vnode (->> node rest (maps ast->clj)))
 
@@ -237,11 +250,11 @@
           3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
           4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
           (lnode
-           (if (even? (count node))
-             (concat
-              (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
-              [ws (knode :else) ws (ast->clj (last node))])
-             (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
+            (if (even? (count node))
+              (concat
+                (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
+                [ws (knode :else) ws (ast->clj (last node))])
+              (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
     :cascade (flatten-cascade node ast->clj)
 
     :return (if v1 (ast->clj v1) (tnode 'nil))
@@ -305,20 +318,11 @@
         (str/replace #"(\s*@.*\n)" "\n")
 
         ;; cleaning code from comments
-        (str/replace #"/\*(\*(?!/)|[^*])*\*/" "")    ; /* ... */ 
-        (str/replace #"(//).*" "")                   ; // ... 
+        (str/replace #"/\*(\*(?!/)|[^*])*\*/" "")    ; /* ... */
+        (str/replace #"(//).*" "")                   ; // ...
         (str/replace str-pattern
                      (transform (comp substitute-curly-quotes
                                       decode))))))
-
-(comment
-  (str/replace "åäöfoo" str-pattern (transform encode))
-  (multiline->single "foo")
-  (str/replace "// foo" #"(//).*" "")
-  (clean "(context, index) style: [] kakl lfoo ''")
-  (clean "'a'")
-  (clean "\n    (context, index) {\n      if (index == 0) {\n        return const Padding(\n          padding: EdgeInsets.only(left: 15, top: 16, bottom: 8),\n          child: Text(\n            'You might also like:'")
-  )
 
 (defn save-read [code]
   (try
@@ -333,17 +337,26 @@
   (-> dart dart->ast (ast->clj) save-read))
 
 (comment
-  (set! *warn-on-reflection* true)
 
-  (def code "Text('Some $field and ${Factory.create()}')")
+  (def code "
+    class A {
+             static var i = 1;
+             }
+    ")
 
-  (defparser widget-parser
-    (io/resource "widget-parser.bnf")
-    :auto-whitespace :standard)
+  (def code2 "
+    var bar = 0;
+    const bar = 1;
+    static bar = 2;
+    static final bar = 3;
+    static const int bar = 4;
+    static final int bar = 5;
+    static final int bar = 6, lar;
+    ")
 
-  (insta/parses widget-parser code)
+  (insta/parses widget-parser code2 :total 1)
 
-  (dart->clojure code)
+  (dart->clojure code2)
 
   (-> "a && b && c"
       dart->ast

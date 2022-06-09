@@ -54,7 +54,7 @@ Center(
 - constants;
 - variables in strings with$;
 - raw (interpreted) strings like `r'some string $dollar'`
-- class/methods declarations (not tested well, pre-alpha);
+- class/methods/fields declarations (not tested well, pre-alpha);
 
 ## Not supported
 
@@ -73,7 +73,7 @@ Center(
 
 ## TODO:
 
-- [ ] support cljc to be able to work with Calva;
+- [X] support cljc to be able to work with Calva (thanks to [PEZ](https://github.com/PEZ)!);
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
 - [ ] handle early exit from lambdas with `return`;
@@ -148,13 +148,13 @@ Add Cli/deps:
 ```clojure
 {:deps 
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.9-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.10-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot: 
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.1.9-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.1.10-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -209,6 +209,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.9-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.10-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.9
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.10
