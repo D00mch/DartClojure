@@ -345,11 +345,12 @@
   (is (= (-> "if (a) return;" dart->clojure) '(when a nil))))
 
 (deftest flatten-same-operators
-  (testing "calculation results"
-    (is (-> "(2 + 1 + 1 == 4 && true) && (1 == 1 || false) && 3 == 3"
-            dart->clj-string 
-            read-string
-            eval)))
+  #?(:clj ; TODO: How to do this in ClojureScript?
+     (testing "calculation results"
+       (is (-> "(2 + 1 + 1 == 4 && true) && (1 == 1 || false) && 3 == 3"
+               dart->clj-string
+               read-string
+               eval))))
   (testing "+, *, and, or"
     (doseq [sym ["+" "*" "||" "&&"]]
       (is (= (-> (str 1 sym 2 sym 3 sym 4 sym 5) dart->clojure)
