@@ -31,9 +31,14 @@
              #(nest-flatten % :flutter fl)))
 
 (b/defnc- try-remove-redundant-do [zloc] 
-  :when-let [fn-node (-> zloc z/down)
-             _ (= (z/sexpr fn-node) 'fn)
+  :when-let [fn-node (-> zloc z/down)]
+  :let [fn? (= (z/sexpr fn-node) 'fn)
+        defn? (= (z/sexpr fn-node) 'defn)]
+
+  :when-let [_ (or fn? defn?)
+             fn-node (if defn? (z/right fn-node) fn-node)
              do-zloc (-> fn-node z/right z/right z/down)]
+             
   (= (z/sexpr do-zloc) 'do)
   (-> do-zloc z/remove z/splice z/up))
 

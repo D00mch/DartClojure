@@ -169,7 +169,7 @@
             (ast->clj v1))
 
     :file (if v2
-            (lnode (list* (tnode 'do) nl (mapn ast->clj (rest node))))
+            (n/list-node (list* (tnode 'do) nl (mapn ast->clj (rest node))))
             (ast->clj v1))
     :import-block (lnode (list* (tnode 'require) ws (mapn ast->clj (rest node))))
     :import-as (vnode [(ast->clj v1) ws (knode :as) ws (ast->clj v2)])
@@ -184,22 +184,36 @@
             (ast->clj v2) ws 
             (knode :refer) ws 
             (vnode (maps ast->clj (drop 3 node)))])
-    :global-assign (lnode [(tnode 'def) ws
-                           (ast->clj v1) ws
-                           (ast->clj v2)])
-    :modified-val (if (= "const" (second v1))
-                    (n/meta-node (tnode :const) (ast->clj v2))
-                    (ast->clj v2))
+
+    :var-declare 
+    (let [inits (filter sequential? node)
+          const? (= v1 "const")
+          with-const (fn [[_ n v :as var-init-node]]
+                       (if const?
+                         [:var-init [:const n] v]
+                         var-init-node))]
+      (if (= (count inits) 1)
+        (ast->clj (with-const (first inits)))
+        (lnode 
+          (list* (tnode 'do) ws
+                 (->> (map with-const inits)
+                      (maps ast->clj))))))
+
+    :var-init (lnode [(tnode 'def) ws 
+                      (ast->clj v1) ws 
+                      (or (some-> v2 ast->clj) (tnode 'nil))])
     :class 
     (lnode 
-      (list* (tnode 'comment) nl
-             "use flutter/widget macro instead of classes" nl
-             (mapn ast->clj (rest node))))
+      (list* 
+        (tnode 'comment) nl
+        "use flutter/widget macro instead of classes" nl
+        (mapcat 
+          #(if (sequential? %) % [%])
+          (mapn ast->clj (rest node)))))
     :method (lnode [(tnode 'defn) ws 
                     (ast->clj v1) ws
-                    (ast->clj v2) ws
-                    (ast->clj v3) ws])
-    :field-decl (ast->clj [:global-assign v1 (or v2 [:identifier "nil"])])
+                    (ast->clj v2) nl
+                    (ast->clj v3)])
 
     :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))
     :params (mapcats ast->clj (rest node))
@@ -211,7 +225,7 @@
     :invoke (lnode (list* (ast->clj [:field v1]) ws (ast->clj v2)))
     :field (tnode (symbol (str "." (ast->clj v1))))
 
-    :lambda (lnode [(tnode 'fn) ws (ast->clj v1) ws (ast->clj v2)])
+    :lambda (lnode [(tnode 'fn) ws (ast->clj v1) nl (ast->clj v2)])
     :lambda-body (ast->clj (cons :code (rest node)))
     :lambda-args (vnode (->> node rest (maps ast->clj)))
 
@@ -307,18 +321,33 @@
 (comment 
   (set! *warn-on-reflection* true)
 
-  (def code "Text('Some $field and ${Factory.create()}')")
+  (def code "
+class A {
+  static var i = 1;
+}
+")
+
+  (def code2 "
+    var bar = 0;
+    const bar = 1;
+    static bar = 2;
+    static final bar = 3;
+    static const int bar = 4;
+    static final int bar = 5;
+    static final int bar = 6, lar;
+    ")
 
   (defparser widget-parser 
     (io/resource "widget-parser.bnf")
     :auto-whitespace :standard)
 
-  (insta/parses widget-parser code)
+  (insta/parses widget-parser code2 :total 1)
 
-  (dart->clojure code)
+  (dart->clojure code2)
 
-  (-> "a && b && c" 
+  (-> code2 
     dart->ast 
     ast->clj 
-    n/string
-    ))
+    n/sexpr
+    )
+  )
