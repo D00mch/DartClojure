@@ -31,7 +31,7 @@
         return const Padding(
           padding: EdgeInsets.only(left: 15, top: 16, bottom: 8),
           child: Text(
-            'You might also like:',
+            'Some $field and ${Factory.create()}:',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,

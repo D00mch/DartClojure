@@ -68,7 +68,10 @@
            (if open-b? (doto stack (.push 1)) stack)
            (if open-b?
              (conj rslt (subs #?(:clj (.toString cur-str)
-                                 :cljs (.join cur-str "")) 0 (dec (.length cur-str))))
+                                 :cljs (.join cur-str "")) 
+                              0 
+                              #?(:clj (dec (.length cur-str))
+                                 :cljs (dec (.-length cur-str)))))
              rslt)
            #?(:clj (if open-b? (StringBuilder.) (.append cur-str ch))
               :cljs (if open-b? (js/Array.) (doto cur-str (.push ch))))
@@ -289,9 +292,6 @@
   (let [str-pattern #"([\"\'])(?:(?=(\\?))\2.)*?\1"
         transform #(fn [[m]]
                      (str "'" (% (.substring m 1 (dec (count m)))) "'"))]
-    (def code code)
-    (def str-pattern str-pattern)
-    (def transform transform)
     (-> code
 
         ;; to simplify modifications below

@@ -1,5 +1,5 @@
 (ns dumch.parse-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest testing is]]
             [dumch.improve :as improve :refer [simplify]]
             [dumch.parse :refer [clean widget-parser dart->clojure dart->ast ast->clj]]
             [instaparse.core :as insta]

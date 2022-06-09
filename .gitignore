@@ -35,3 +35,4 @@
 
 # CLJS
 .cljs_node_repl/
+cljs-test-runner-out/
