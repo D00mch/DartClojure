@@ -190,7 +190,7 @@ Build jar:
 
 Run tests:
 
-    $ clj -X:test
+    $ clj -X:test ; clj -M:test-cljs
 
 ## License
 
