@@ -93,9 +93,10 @@ Two things to note:
 declaration.
 2. Typographical quotes `“`, `’` are not supported. 
 
-There are two options now: 
+There are three options now: 
 1. jar; 
 2. jvm repl.
+3. Calva.
 
 ### API with Jar
 
@@ -181,6 +182,14 @@ If you just need to wrap clojure code with nest:
     z/sexpr)
 ; => (f/nest (Container) (Box) (Padding) (:Text "2"))
 ```
+
+### From Calva
+
+[Calva](https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva) (a VS Code Clojure extension) packs DartClojure conversion into a command. This makes it easy to paste some Dart code and convert it.
+
+<video src="https://user-images.githubusercontent.com/30010/173013020-b1a267b1-6839-4c0f-8ebb-c5826a4e5b80.mp4" data-canonical-src="https://user-images.githubusercontent.com/30010/173013020-b1a267b1-6839-4c0f-8ebb-c5826a4e5b80.mp4" controls="controls" muted="muted" class="" style="width: 100%;"></video>
+
+See https://calva.io/clojuredart/ for some (tiny) bit more on the subject.
 
 ## Contribution
 
