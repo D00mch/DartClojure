@@ -61,13 +61,14 @@ Center(
 
 - bitwise operators;
 - try-catch;
-- while, switch;
+- switch;
 - proper aliases for everything, it's not possible to get this info generally;
 - enums;
 - external keywork;
 - yield;
 - exports;
 - for with declare, conditions and increment (considered unidiomatic)
+- while (considered unidiomatic)
 - early exits from lambdas (ignored);
 - `...` operator (ignored);
 - typedefs (ignored);
@@ -84,7 +85,7 @@ Center(
 - [ ] do not insert material import on core classes, like `Duration`;
 - [ ] test classes and methods extensively;
 - [ ] convert files;
-- [ ] support for, while;
+- [X] support for, while;
 - [ ] support switch;
 
 ## How to use

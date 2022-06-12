@@ -229,6 +229,14 @@
              "for (int i = 0; i < 5; i++) {print('GeeksForGeeks');}")
            :unidiomatic))))
 
+(deftest while-test
+  (testing "while"
+    (is (= (dart->clojure "while(num >=1) { num--; }")
+           :unidiomatic)))
+  (testing "do-while"
+    (is (= (dart->clojure "do { number++; } while (number < 10);")
+           :unidiomatic))))
+
 (deftest const-test
   (testing "invocation const"
     (is (= (dart->clj-string 
