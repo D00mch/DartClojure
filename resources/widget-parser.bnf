@@ -1,10 +1,11 @@
 s              = file / code
-code           = (expr <end> | statement <end>)*
+code           = (expr <end>)*
 
-file           = import-block? (method | var-declare <';'> | class | _typedef)*
-method         = <'static'?> 
-                 <dtype>? identifier
-                 lambda-args (lambda-body | <'=>'> assign-val | <';'>) <';'*>
+file           = import-block? (method | var-declare <';'> | class | _typedef
+                               | for-in | _for )*
+<method-decl>  = <'static'?> <dtype>? identifier lambda-args 
+<method-body>  = (lambda-body | <'=>'> assign-val) <';'*>
+method         = method-decl method-body
 
 import-block   = (import <';'?>)+ 
 <import>       = (import-full | import-as | import-hide | import-show | import-naked)
@@ -19,8 +20,8 @@ import-hide    = im-body im-hide-part
 <im-hide-part> = <'hide'> identifier+
 
 class          = <'abstract'? 'class' #'[^{}]*' '{'>
-                    (method | getter-decl | 
-                     var-declare | <construct-decl> )*
+                    (method | method-decl <';'> | getter-decl | 
+                     var-declare <';'> | <construct-decl> )*
                  <'}'>
 construct-decl = 'const'? identifier ('.' identifier)?  
                  '(' ( 
@@ -36,7 +37,7 @@ getter-decl    = <dtype?> 'get'
                  identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = var-declare
+<statement>    = var-declare | _for | for-in
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
@@ -44,8 +45,13 @@ if             = <'if'> if-condition if-else-body
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
-var-declare    = <'static'>? field-type var-init (<','> var-init)* <';'>*
+var-declare    = <'static'>? field-type var-init (<','> var-init)*
 var-init       = identifier (<'='> expr)?
+
+for-in         = <'for'> <'('> <dtype?> identifier <'in'> expr <')'> for-body  
+_for           = <'for'> <'('> for-init expr? <';'> expr-list? <')'> for-body 
+for-init       = var-declare <';'> EPSILON | expr? <';'>
+<for-body>     = (lambda-body | return | expr <end> | statement)
 
 lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <dtype?> identifier  

@@ -257,6 +257,10 @@
               (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
     :cascade (flatten-cascade node ast->clj)
 
+    :for-in (n/list-node [(tnode 'for) ws
+                          (vnode [(ast->clj v1) ws (ast->clj v2)]) nl
+                          (ast->clj v3)])
+
     :return (if v1 (ast->clj v1) (tnode 'nil))
     :typecasting (ast->clj v1)
     :const (n/meta-node (tnode :const) (ast->clj v1))

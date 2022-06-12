@@ -55,17 +55,19 @@ Center(
 - variables in strings with$;
 - raw (interpreted) strings like `r'some string $dollar'`
 - class/methods/fields declarations (not tested well, pre-alpha);
+- for in;
 
 ## Not supported
 
 - bitwise operators;
 - try-catch;
-- for, while, switch;
+- while, switch;
 - proper aliases for everything, it's not possible to get this info generally;
 - enums;
 - external keywork;
 - yield;
 - exports;
+- for with declare, conditions and increment (considered unidiomatic)
 - early exits from lambdas (ignored);
 - `...` operator (ignored);
 - typedefs (ignored);

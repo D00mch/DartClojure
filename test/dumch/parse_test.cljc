@@ -215,6 +215,20 @@
             :unidiomatic
             (.zip 66666 :extended 6666)))))
 
+(deftest for-test
+  (testing "for-in, expressiong body"
+    (is (= (dart->clojure 
+             "for (int i in GeeksForGeeks) { print(i); } ")
+           '(for [i GeeksForGeeks] (print i)))))
+  (testing "for-in, curly-body"
+    (is (= (dart->clojure 
+             "for (int i in GeeksForGeeks) print(i); ")
+           '(for [i GeeksForGeeks] (print i)))))
+  (testing "for, curly body"
+    (is (= (dart->clojure 
+             "for (int i = 0; i < 5; i++) {print('GeeksForGeeks');}")
+           :unidiomatic))))
+
 (deftest const-test
   (testing "invocation const"
     (is (= (dart->clj-string 
