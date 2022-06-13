@@ -1,10 +1,11 @@
 (ns dumch.parse
   (:require
+    [better-cond.core :as b]
     #?(:cljs [dumch.base64 :as b64-cljs])
     #?(:clj [clojure.java.io :as io])
     #?(:cljs [clojure.edn :refer [read-string]])
     [clojure.string :as str]
-    [dumch.util :refer [ws nl maps mapn mapcats]]
+    [dumch.util :refer [ws nl maps mapn mapcats mapcatn]]
     #?(:cljs [dumch.util :refer-macros [inline-resource]])
     #?(:clj [instaparse.core :as insta :refer [defparser]]
        :cljs [instaparse.core :as insta :refer-macros [defparser]])
@@ -177,6 +178,41 @@
           (conj and-node compare-ast)))
       and-node)))
 
+(defn dfs [f sq]
+ (some f (tree-seq coll? seq sq)))
+
+(b/defnc- good-switch-case? [[tag v1 v2 v3]]
+  (= tag :default-case) true
+
+  :when (= tag :switch-case)
+  :when (= (first v1) :cases)
+  :when (or (some-> v3 second (= "break"))
+            (dfs #{:return} v2))
+  true)
+
+(defn- good-switch? [[_ _ & cases]]
+  (reduce #(and %1 %2) (map good-switch-case? cases)))
+
+(defn- switch-case->clj-nodes [[_ [_ & cases] body] ast->clj]
+  (let [body (ast->clj body)]
+    (mapcat
+      #(list (ast->clj %) body)
+      cases)))
+
+(defn- switch-branch->clj-nodes [[tag v1 :as node] ast->clj]
+  (if (= tag :switch-case)
+    (switch-case->clj-nodes node ast->clj)
+    [(ast->clj v1)]))
+
+(defn- switch->case-or-warn [[_ expr & cases :as node] ast->clj]
+  (if (good-switch? node)
+    (lnode
+      (list*
+        (tnode 'case) ws
+        (ast->clj expr) nl
+        (mapcatn #(switch-branch->clj-nodes % ast->clj) cases)))
+    :unidiomatic))
+
 (defn ast->clj [[tag v1 v2 v3 v4 :as node]]
   #_(println :node node)
   (case tag
@@ -255,6 +291,7 @@
                 (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
                 [ws (knode :else) ws (ast->clj (last node))])
               (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
+    :switch (switch->case-or-warn node ast->clj)
     :cascade (flatten-cascade node ast->clj)
 
     :for-in (n/list-node [(tnode 'for) ws

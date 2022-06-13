@@ -2,7 +2,7 @@ s              = file / code
 code           = (expr <end>)*
 
 file           = import-block? (method | var-declare <';'> | class | _typedef
-                               | for-in | _for | _while | _do-while)*
+                               | for-in | _for | _while | _do-while | switch)*
 <method-decl>  = <'static'?> <dtype>? identifier lambda-args 
 <method-body>  = (lambda-body | <'=>'> assign-val) <';'*>
 method         = method-decl method-body
@@ -37,7 +37,7 @@ getter-decl    = <dtype?> 'get'
                  identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = var-declare | _for | for-in | _while | _do-while
+<statement>    = var-declare | _for | for-in | _while | _do-while | switch
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
@@ -54,6 +54,12 @@ for-init       = var-declare <';'> EPSILON | expr? <';'>
 <for-body>     = (lambda-body | return | expr <end> | statement)
 _while         = <'while'> <'('> expr <')'> for-body 
 _do-while      = <'do'> for-body 'while' <'('> expr <')'> <';'> 
+
+switch         = <'switch'> <'('> expr <')'> <'{'> switch-case* default-case? <'}'>
+switch-case    = (identifier <':'>)* cases for-body switch-exit?
+cases          = (<'case'> expr <':'>)+
+default-case   = (identifier <':'>)* <'default'> <':'> for-body switch-exit? 
+switch-exit    = ('break' | 'continue' | 'continue' identifier) <';'>
 
 lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <dtype?> identifier  

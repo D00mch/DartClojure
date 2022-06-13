@@ -296,6 +296,47 @@
     (is (= (dart->clojure "if (b) b; else if (a) a; else c;")
            '(cond b b a a :else c)))))
 
+(deftest switch-test 
+  (testing "idiomatic switch with default"
+    (is (= (dart->clojure
+             "switch(grade) { 
+               case 'A': return 'Great!';
+
+               case 'B': {  print('Good'); } 
+               break; 
+
+               case 'C':  
+               case 'D': {  print('Bad'); }
+               break; 
+
+               default: print('Invalid choice'); 
+               break; 
+              }")
+           '(case grade
+              "A" "Great!"
+              "B" (print "Good")
+              "C" (print "Bad")
+              "D" (print "Bad")
+              (print "Invalid choice")))))
+  (testing "idiomatic switch"
+    (is (= (dart->clojure
+             "switch (x) {
+                case 1: return 1;
+                case 2: return 2;
+              }")
+           '(case x 1 1 2 2))))
+  (testing "unidiomatic cases"
+    (is (= (dart->clojure
+             "switch (x) {
+                case 42: print('hello');
+                         continue world;
+                case 37: print('goodbye');
+                         break;
+                world:  
+                case 87: print('world');
+              }")
+           :unidiomatic))))
+
 (deftest comments-test
   (testing "line comment"
     (is (= (dart->clojure "Text(

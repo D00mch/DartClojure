@@ -56,17 +56,18 @@ Center(
 - raw (interpreted) strings like `r'some string $dollar'`
 - class/methods/fields declarations (not tested well, pre-alpha);
 - for in;
+- switch with breaks and returns;
 
 ## Not supported
 
 - bitwise operators;
 - try-catch;
-- switch;
 - proper aliases for everything, it's not possible to get this info generally;
 - enums;
 - external keywork;
 - yield;
 - exports;
+- switch with continue, withouth breaks or returns (considered unidiomatic);
 - for with declare, conditions and increment (considered unidiomatic)
 - while (considered unidiomatic)
 - early exits from lambdas (ignored);
@@ -86,7 +87,7 @@ Center(
 - [ ] test classes and methods extensively;
 - [ ] convert files;
 - [X] support for, while;
-- [ ] support switch;
+- [X] support switch;
 
 ## How to use
 
