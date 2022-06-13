@@ -80,14 +80,14 @@ Center(
 - [X] support cljc to be able to work with Calva (thanks to [PEZ](https://github.com/PEZ)!);
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
-- [ ] handle early exit from lambdas with `return`;
 - [X] support variables in string `"${a}, $b"`;
 - [X] support cascade `..`.
 - [ ] do not insert material import on core classes, like `Duration`;
 - [ ] test classes and methods extensively;
-- [ ] convert files;
 - [X] support for, while;
 - [X] support switch;
+- [ ] convert files;
+- [ ] handle early exit from lambdas with `return`;
 
 ## How to use
 
@@ -99,7 +99,7 @@ declaration.
 
 There are two options now: 
 1. jar; 
-2. jvm repl.
+2. jvm/js repl.
 
 ### API with Jar
 
@@ -144,7 +144,7 @@ For all the arguments see:
 $ java -jar dartclj.jar -h
 ```
 
-### API from JVM-repl
+### API from jvm/js REPL
 
 [Clojars][2].
 

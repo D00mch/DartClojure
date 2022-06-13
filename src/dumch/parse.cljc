@@ -181,7 +181,7 @@
 (defn dfs [f sq]
  (some f (tree-seq coll? seq sq)))
 
-(b/defnc- good-switch-case? [[tag v1 v2 v3]]
+(b/defnc- switch-case-ok? [[tag v1 v2 v3]]
   (= tag :default-case) true
 
   :when (= tag :switch-case)
@@ -190,8 +190,8 @@
             (dfs #{:return} v2))
   true)
 
-(defn- good-switch? [[_ _ & cases]]
-  (reduce #(and %1 %2) (map good-switch-case? cases)))
+(defn- switch-ok? [[_ _ & cases]]
+  (reduce #(and %1 %2) (map switch-case-ok? cases)))
 
 (defn- switch-case->clj-nodes [[_ [_ & cases] body] ast->clj]
   (let [body (ast->clj body)]
@@ -205,7 +205,7 @@
     [(ast->clj v1)]))
 
 (defn- switch->case-or-warn [[_ expr & cases :as node] ast->clj]
-  (if (good-switch? node)
+  (if (switch-ok? node)
     (lnode
       (list*
         (tnode 'case) ws
