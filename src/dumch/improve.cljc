@@ -42,11 +42,6 @@
   (= (z/sexpr do-zloc) 'do)
   (-> do-zloc z/remove z/splice z/up))
 
-#_(-> "(fn [a b] (do (when a ^:return a) (print 1) (when c ^:return c) ^:return b))"
-      z/of-string
-      try-remove-redundant-do
-      z/sexpr)
-
 (defn simplify [node & {fl :flutter, m :material :or {fl "f", m "m"}}]
   (-> node 
       z/edn
@@ -60,12 +55,18 @@
             undo-node undo-node
 
             :let [expr (z/sexpr zloc)] 
+            (= expr 'print) (z/edit zloc #(symbol (str "dart:core/" %)))
 
             ;; import
             (and (symbol? expr) (upper-case? (first (str expr))))
             (z/edit zloc #(symbol (str m "/" %)))
 
             :else zloc)))))
+
+#_(-> "(fn [a b] (do (when a ^:return a) (print 1) (when c ^:return c) ^:return b))"
+      rewrite-clj.parser/parse-string
+      simplify
+      z/sexpr)
 
 (comment 
   (def nested "(Container 
