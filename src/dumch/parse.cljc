@@ -213,6 +213,24 @@
         (mapcatn #(switch-branch->clj-nodes % ast->clj) cases)))
     :unidiomatic))
 
+(defn- try-on->clj-node [[_ [_ q] [_ e] body :as on-part] ast->clj]
+  (lnode [(tnode 'catch) ws
+          (ast->clj (or q [:identifier "Exception"])) ws
+          (ast->clj (or e [:identifier "e"])) nl
+          (ast->clj body)]))
+
+(defn- try-branch->clj-node [node ast->clj]
+  (if (= (count node) 2)
+    (lnode [(tnode 'finally) ws (ast->clj (second node))])
+    (try-on->clj-node node ast->clj)))
+
+(defn- try->clj [[_ body & branches] ast->clj]
+  (lnode
+    (list*
+      (tnode 'try) nl
+      (ast->clj body)
+      (map #(try-branch->clj-node % ast->clj) branches))))
+
 (defn ast->clj [[tag v1 v2 v3 v4 :as node]]
   #_(println :node node)
   (case tag
@@ -292,6 +310,7 @@
                 [ws (knode :else) ws (ast->clj (last node))])
               (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
     :switch (switch->case-or-warn node ast->clj)
+    :try (try->clj node ast->clj)
     :cascade (flatten-cascade node ast->clj)
 
     :for-in (n/list-node [(tnode 'for) ws
@@ -302,6 +321,7 @@
     :typecasting (ast->clj v1)
     :const (n/meta-node (tnode :const) (ast->clj v1))
     :identifier (symbol (str/replace v1 #"!" ""))
+    :qualified (tnode (symbol (str/join "." (map ast->clj (next node)))))
     :list (n/vector-node (maps ast->clj (rest node)))
     :map (mnode (maps ast->clj (rest node)))
     :get (lnode [(tnode 'get) ws (ast->clj v1) ws (ast->clj v2)])

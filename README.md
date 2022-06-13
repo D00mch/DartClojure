@@ -55,13 +55,13 @@ Center(
 - variables in strings with$;
 - raw (interpreted) strings like `r'some string $dollar'`
 - class/methods/fields declarations (not tested well, pre-alpha);
+- try-catch;
 - for in;
 - switch with breaks and returns;
 
 ## Not supported
 
 - bitwise operators;
-- try-catch;
 - proper aliases for everything, it's not possible to get this info generally;
 - enums;
 - external keywork;

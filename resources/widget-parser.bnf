@@ -2,7 +2,8 @@ s              = file / code
 code           = (expr <end>)*
 
 file           = import-block? (method | var-declare <';'> | class | _typedef
-                               | for-in | _for | _while | _do-while | switch)*
+                               | for-in | _for | _while | _do-while | switch |
+                               try )*
 <method-decl>  = <'static'?> <dtype>? identifier lambda-args 
 <method-body>  = (lambda-body | <'=>'> assign-val) <';'*>
 method         = method-decl method-body
@@ -37,7 +38,7 @@ getter-decl    = <dtype?> 'get'
                  identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = var-declare | _for | for-in | _while | _do-while | switch
+<statement>    = var-declare | _for | for-in | _while | _do-while | switch | try
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
@@ -60,6 +61,12 @@ switch-case    = (identifier <':'>)* cases for-body switch-exit?
 cases          = (<'case'> expr <':'>)+
 default-case   = (identifier <':'>)* <'default'> <':'> for-body switch-exit? 
 switch-exit    = ('break' | 'continue' | 'continue' identifier) <';'>
+
+try            = <'try'> lambda-body (try-on+ finally? | finally)
+try-on         = on-part catch lambda-body  
+on-part        = <'on'> dtype | EPSILON
+catch          = <'catch'> <'('> identifier (<','> identifier)? <')'> | EPSILON
+finally        = <'finally'> lambda-body
 
 lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <dtype?> identifier  
@@ -141,8 +148,8 @@ _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>='
 (* type without name *)
 <field-type>   = !'await' (modifier <dtype> | !modifier <dtype> | modifier)
 <modifier>     = 'final' | 'const'
-dtype          = qualified type-args? <'?'?> 
-qualified      = (identifier '.')* identifier
+<dtype>        = qualified type-args? <'?'?> 
+qualified      = (identifier <'.'>)* identifier
 type-args      = <'<'> type-list <'>'>
 type-list      = dtype (',' dtype)*
 
