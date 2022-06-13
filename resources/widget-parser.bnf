@@ -5,7 +5,7 @@ file           = import-block? (method | var-declare <';'> | class | _typedef
                                | for-in | _for | _while | _do-while | switch |
                                try )*
 <method-decl>  = <'static'?> <dtype>? identifier lambda-args 
-<method-body>  = (lambda-body | <'=>'> assign-val) <';'*>
+<method-body>  = (block | <'=>'> assign-val) <';'*>
 method         = method-decl method-body
 
 import-block   = (import <';'?>)+ 
@@ -35,14 +35,14 @@ construct-decl = 'const'? identifier ('.' identifier)?
 args-bloc      = '{' #'[^{}]*' '}' 
 _typedef       = 'typedef' dtype <'='> (dtype | method) 
 getter-decl    = <dtype?> 'get'
-                 identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
+                 identifier (block | <'=>'> assign-val | <';'>) <';'*>
 
 <end>          = <(';'|#'\n'+|','|#'$')>
 <statement>    = var-declare | _for | for-in | _while | _do-while | switch | try
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
-<if-else-body> =  (lambda-body | return | expr <end>) 
+<if-else-body> =  (block | return | expr <end>) 
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
@@ -52,7 +52,7 @@ var-init       = identifier (<'='> expr)?
 for-in         = <'for'> <'('> <dtype?> identifier <'in'> expr <')'> for-body  
 _for           = <'for'> <'('> for-init expr? <';'> expr-list? <')'> for-body 
 for-init       = var-declare <';'> EPSILON | expr? <';'>
-<for-body>     = (lambda-body | return | expr <end> | statement)
+<for-body>     = (block | return | expr <end> | statement)
 _while         = <'while'> <'('> expr <')'> for-body 
 _do-while      = <'do'> for-body 'while' <'('> expr <')'> <';'> 
 
@@ -62,21 +62,21 @@ cases          = (<'case'> expr <':'>)+
 default-case   = (identifier <':'>)* <'default'> <':'> for-body switch-exit? 
 switch-exit    = ('break' | 'continue' | 'continue' identifier) <';'>
 
-try            = <'try'> lambda-body (try-on+ finally? | finally)
-try-on         = on-part catch lambda-body  
+try            = <'try'> block (try-on+ finally? | finally)
+try-on         = on-part catch block  
 on-part        = <'on'> dtype | EPSILON
 catch          = <'catch'> <'('> identifier (<','> identifier)? <')'> | EPSILON
-finally        = <'finally'> lambda-body
+finally        = <'finally'> block
 
 lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <dtype?> identifier  
-lambda-body    = <'{'> ( statement <';'> | expr <end> | method )* return? <'}'>
+block          = <'{'> ( statement <';'> | expr <end> | method )* return? <'}'>
 
 expr-list      = expr (',' expr)*
 <expr>         = lambda-val <'!'>?
 
 <lambda-val>   = cascade-val | lambda 
-lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
+lambda         = lambda-args block | lambda-args <'=>'> assign-val
 <cascade-val>  = assign-val | cascade
 cascade        = cascade-val <'..'> assign-val
 <assign-val>   = ternary-val | _set

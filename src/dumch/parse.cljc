@@ -296,8 +296,8 @@
     :field (tnode (symbol (str "." (ast->clj v1))))
 
     :lambda (lnode [(tnode 'fn) ws (ast->clj v1) nl (ast->clj v2)])
-    :lambda-body (ast->clj (cons :code (rest node)))
     :lambda-args (vnode (->> node rest (maps ast->clj)))
+    :block (ast->clj (cons :code (rest node)))
 
     :ternary (ast->clj [:if v1 v2 v3])
     :if (case (count node)
