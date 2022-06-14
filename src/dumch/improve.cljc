@@ -1,6 +1,7 @@
 (ns dumch.improve 
   (:require
     [better-cond.core :as b]
+    [clojure.string :as str]
     [dumch.util :refer [lists* upper-case?]]
     [rewrite-clj.node :as n]
     [rewrite-clj.paredit :as p]
@@ -48,6 +49,13 @@
     'Object 'Pattern 'RegExp 'Set 'Sink 'StackTrace 'Stopwatch
     'String 'StringBuffer 'StringSink 'Symbol 'Type 'Uri})
 
+(b/defnc- insert-import [symb m]
+  :let [s (str symb)]
+  (not (str/includes? s ".")) (symbol (str m "/" symb)) 
+
+  :let [parts (cons m (str/split s #"\."))]
+  (symbol (str (str/join "." (butlast parts)) "/" (last parts))))
+
 (defn simplify [node & {fl :flutter, m :material :or {fl "f", m "m"}}]
   (-> node 
       z/edn
@@ -67,7 +75,7 @@
             (and (symbol? expr) 
                  (upper-case? (first (str expr)))
                  (not (core-vars expr)))
-            (z/edit zloc #(symbol (str m "/" %)))
+            (z/edit zloc #(insert-import % m))
 
             :else zloc)))))
 

@@ -82,7 +82,7 @@ Center(
 `a.b().c.d()` wont work;
 - [X] support variables in string `"${a}, $b"`;
 - [X] support cascade `..`.
-- [ ] do not insert material import on core classes, like `Duration`;
+- [X] do not insert material import on core classes, like `Duration`;
 - [ ] test classes and methods extensively;
 - [X] support for, while;
 - [X] support switch;

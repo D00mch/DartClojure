@@ -40,6 +40,13 @@
            "(fn [a b] (do (when a a) (print 1) (when c c) b))")
          '(fn [a b] (when a a) (dart:core/print 1) (when c c) b))))
 
-(deftest core-no-import-test
-  (is (= (simplify-clj-str "(Duration. :milliseconds 250)")
-         '(m/Duration. :milliseconds 250))))
+(deftest material-alias-test
+  (testing "No alias on core"
+    (is (= (simplify-clj-str "(Duration :milliseconds 250)")
+           '(Duration :milliseconds 250))))
+  (testing "material alias with slash"
+    (is (= (simplify-clj-str "(MyDuration :milliseconds 250)")
+           '(m/MyDuration :milliseconds 250))))
+  (testing "material alias with dot"
+    (is (= (simplify-clj-str "(My.Duration :milliseconds 250)")
+           '(m.My/Duration :milliseconds 250)))))
