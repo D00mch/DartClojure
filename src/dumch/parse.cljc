@@ -190,6 +190,17 @@
             (dfs #{:return} v2))
   true)
 
+(defn- if->clj [node ast->clj]
+  (case (count node)
+    3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
+    4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
+    (lnode
+      (if (even? (count node))
+        (concat
+          (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
+          [ws (knode :else) ws (ast->clj (last node))])
+        (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))))
+
 (defn- switch-ok? [[_ _ & cases]]
   (reduce #(and %1 %2) (map switch-case-ok? cases)))
 
@@ -231,7 +242,21 @@
       (ast->clj body)
       (map #(try-branch->clj-node % ast->clj) branches))))
 
-(defn ast->clj [[tag v1 v2 v3 v4 :as node]]
+(defn- var-declare->clj [[_ v1 :as node] ast->clj]
+  (let [inits (filter sequential? node)
+        const? (= v1 "const")
+        with-const (fn [[_ n v :as var-init-node]]
+                     (if const?
+                       [:var-init [:const n] v]
+                       var-init-node))]
+    (if (= (count inits) 1)
+      (ast->clj (with-const (first inits)))
+      (lnode
+        (list* (tnode 'do) ws
+               (->> (map with-const inits)
+                    (maps ast->clj)))))))
+
+(defn ast->clj [[tag v1 v2 v3 :as node]]
   #_(println :node node)
   (case tag
     :s (ast->clj v1)
@@ -255,31 +280,16 @@
             (ast->clj v2) ws
             (knode :refer) ws
             (vnode (maps ast->clj (drop 3 node)))])
-    :var-declare
-    (let [inits (filter sequential? node)
-          const? (= v1 "const")
-          with-const (fn [[_ n v :as var-init-node]]
-                       (if const?
-                         [:var-init [:const n] v]
-                         var-init-node))]
-      (if (= (count inits) 1)
-        (ast->clj (with-const (first inits)))
-        (lnode
-          (list* (tnode 'do) ws
-                 (->> (map with-const inits)
-                      (maps ast->clj))))))
-
+    :var-declare (var-declare->clj node ast->clj)
     :var-init (lnode [(tnode 'def) ws
                       (ast->clj v1) ws
                       (or (some-> v2 ast->clj) (tnode 'nil))])
     :class
-    (lnode
-      (list*
-        (tnode 'comment) nl
-        "use flutter/widget macro instead of classes" nl
-        (mapcat
-          #(if (sequential? %) % [%])
-          (mapn ast->clj (rest node)))))
+    (lnode (list*
+             (tnode 'comment) nl
+             "use flutter/widget macro instead of classes" nl
+             (mapcat #(if (sequential? %) % [%])
+                     (mapn ast->clj (rest node)))))
     :method (lnode [(tnode 'defn) ws
                     (ast->clj v1) ws
                     (ast->clj v2) nl
@@ -300,15 +310,7 @@
     :block (ast->clj (cons :code (rest node)))
 
     :ternary (ast->clj [:if v1 v2 v3])
-    :if (case (count node)
-          3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
-          4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
-          (lnode
-            (if (even? (count node))
-              (concat
-                (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
-                [ws (knode :else) ws (ast->clj (last node))])
-              (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
+    :if (if->clj node ast->clj)
     :switch (switch->case-or-warn node ast->clj)
     :try (try->clj node ast->clj)
     :cascade (flatten-cascade node ast->clj)
