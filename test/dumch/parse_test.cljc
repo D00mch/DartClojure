@@ -218,12 +218,12 @@
 (deftest for-test
   (testing "for-in, expressiong body"
     (is (= (dart->clojure
-             "for (int i in GeeksForGeeks) { print(i); } ")
-           '(for [i GeeksForGeeks] (print i)))))
+             "for (int n in names) { print(n); } ")
+           '(for [n names] (print n)))))
   (testing "for-in, curly-body"
     (is (= (dart->clojure
-             "for (int i in GeeksForGeeks) print(i); ")
-           '(for [i GeeksForGeeks] (print i)))))
+             "for (int i in names) print(i); ")
+           '(for [i names] (print i)))))
   (testing "for, curly body"
     (is (= (dart->clojure
              "for (int i = 0; i < 5; i++) {print('GeeksForGeeks');}")
