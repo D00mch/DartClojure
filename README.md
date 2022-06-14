@@ -91,15 +91,10 @@ Center(
 
 ## How to use
 
-Two things to note:
-
-1. Copy-paste only widget's part, like `return Column(...),`, without method
-declaration.
-2. Typographical quotes `“`, `’` are not supported. 
-
-There are two options now: 
-1. jar; 
-2. jvm/js repl.
+There are 3 options now: 
+1. use if [directly from Calva][5] (VSCode).
+2. jar; 
+3. jvm/js repl.
 
 ### API with Jar
 
@@ -216,3 +211,4 @@ limitations under the License.
 [2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.10-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
 [4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.10
+[5]: https://calva.io/clojuredart/
