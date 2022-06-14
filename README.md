@@ -92,10 +92,18 @@ Center(
 ## How to use
 
 There are 4 options now: 
-1. use it [directly from Calva][5] (VSCode);
-2. jvm/js repl;
-3. clojure cli;
-4. jar. 
+1. Calva (VSCode);
+2. Jvm/Js REPL;
+3. Clojure Cli;
+4. Jar. 
+
+### API From Calva
+
+[Calva][6] (a VSCode Clojure extension) packs DartClojure conversion into a command. This makes it easy to paste some Dart code and convert it.
+
+<video src="https://user-images.githubusercontent.com/30010/173013020-b1a267b1-6839-4c0f-8ebb-c5826a4e5b80.mp4" data-canonical-src="https://user-images.githubusercontent.com/30010/173013020-b1a267b1-6839-4c0f-8ebb-c5826a4e5b80.mp4" controls="controls" muted="muted" class="" style="width: 100%;"></video>
+
+See [calva clojuredart docs][5] for some (tiny) bit more on the subject.
 
 ### API from jvm/js REPL
 
@@ -221,3 +229,4 @@ limitations under the License.
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
 [4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.0
 [5]: https://calva.io/clojuredart/
+[6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
