@@ -462,6 +462,35 @@
 (deftest return-test
   (is (= (-> "if (a) return;" dart->clojure) '(when a nil))))
 
+(deftest annotaions-test
+  (is (= (-> "@Foo(42)
+              class Foo {
+
+                @Deprecated('until further notice');
+                final int x;
+
+                @FOO
+                const Foo(this.x);
+
+                @override
+                void main() {
+                  print(a);
+                }
+              }
+              
+              @JsonKey(fromJson: _variableFromJson)
+              enum FieldType {
+                @JsonEnum('Text') text,
+                @JsonEnum('Number') number
+              }"
+              dart->clojure)
+         '(do
+            (comment
+              "use flutter/widget macro instead of classes"
+              (def x nil)
+              (defn main [] (print a)))
+            :unknown))))
+
 (deftest flatten-same-operators
   #?(:clj ; TODO: How to do this in ClojureScript?
      (testing "calculation results"

@@ -1,9 +1,11 @@
 s              = file / code
 code           = (expr <end>)*
 
-file           = import-block? (method | var-declare <';'> | class | _typedef
-                               | for-in | _for | _while | _do-while | switch |
-                               try )*
+metadata       = ('@' qualified params? <';'>?)+
+file           = import-block? 
+                 (<metadata?> 
+                   (method | var-declare <';'> | class | _typedef | for-in |
+                    _for | _while | _do-while | switch | try | enum))*
 <method-decl>  = <'static'?> <dtype>? identifier lambda-args 
 <method-body>  = (block | <'=>'> assign-val) <';'*>
 method         = method-decl method-body
@@ -21,10 +23,10 @@ import-hide    = im-body im-hide-part
 <im-hide-part> = <'hide'> identifier+
 
 class          = <'abstract'? 'class' #'[^{}]*' '{'>
-                    (method | method-decl <';'> | getter-decl | 
-                     var-declare <';'> | <construct-decl> )*
+                    (<metadata?>  (method | method-decl <';'> | getter-decl | 
+                     var-declare <';'> | <construct-decl> ))*
                  <'}'>
-construct-decl = 'const'? identifier ('.' identifier)?  
+construct-decl = <metadata?> 'const'? identifier ('.' identifier)?  
                  '(' ( 
                        (typed-arg '.')* typed-arg? 
                        (<','> (typed-arg '.')* typed-arg)*
@@ -36,6 +38,10 @@ args-bloc      = '{' #'[^{}]*' '}'
 _typedef       = 'typedef' dtype <'='> (dtype | method) 
 getter-decl    = <dtype?> 'get'
                  identifier (block | <'=>'> assign-val | <';'>) <';'*>
+
+enum           = <'enum'> identifier  
+                 <'{'> enum-entry (<','> enum-entry)* <','>? <'}'>
+enum-entry     = <metadata> identifier
 
 <end>          = <(';'|#'\n'+|','|#'$')>
 <statement>    = var-declare | _for | for-in | _while | _do-while | switch | try

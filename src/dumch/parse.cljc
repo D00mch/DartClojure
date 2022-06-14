@@ -377,9 +377,6 @@
         ;; the problem is that comments could appear inside strings
         (str/replace str-pattern (transform encode))    ; encode strings to Base64
 
-        ;; clean from annotations
-        (str/replace #"(\s*@.*\n)" "\n")
-
         ;; cleaning code from comments
         (str/replace #"/\*(\*(?!/)|[^*])*\*/" "")    ; /* ... */
         (str/replace #"(//).*" "")                   ; // ...
@@ -408,13 +405,9 @@
     ")
 
   (def code2 "
-    var bar = 0;
-    const bar = 1;
-    static bar = 2;
-    static final bar = 3;
-    static const int bar = 4;
-    static final int bar = 5;
-    static final int bar = 6, lar;
+final tween = MultiTween<AniProps>()
+        ..add(AniProps.opacity, Tween(begin: 0.0, end: 1.0))
+        ..add(AniProps.translateY, Tween(begin: -30.0, end: 0.0), Duration(milliseconds: 500), Curves.easeOut);
     ")
 
   (insta/parses widget-parser code2 :total 1)
