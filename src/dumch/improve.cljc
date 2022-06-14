@@ -42,6 +42,12 @@
   (= (z/sexpr do-zloc) 'do)
   (-> do-zloc z/remove z/splice z/up))
 
+(def ^:private core-vars
+  #{'Comparator 'DateTime 'Duration 'Error 'Exception 'Expando 
+    'Function 'Invocation 'Iterable 'Iterator 'List 'Map 'Null
+    'Object 'Pattern 'RegExp 'Set 'Sink 'StackTrace 'Stopwatch
+    'String 'StringBuffer 'StringSink 'Symbol 'Type 'Uri})
+
 (defn simplify [node & {fl :flutter, m :material :or {fl "f", m "m"}}]
   (-> node 
       z/edn
@@ -58,12 +64,14 @@
             (= expr 'print) (z/edit zloc #(symbol (str "dart:core/" %)))
 
             ;; import
-            (and (symbol? expr) (upper-case? (first (str expr))))
+            (and (symbol? expr) 
+                 (upper-case? (first (str expr)))
+                 (not (core-vars expr)))
             (z/edit zloc #(symbol (str m "/" %)))
 
             :else zloc)))))
 
-#_(-> "(fn [a b] (do (when a ^:return a) (print 1) (when c ^:return c) ^:return b))"
+#_(-> "(Duration 39)"
       rewrite-clj.parser/parse-string
       simplify
       z/sexpr)

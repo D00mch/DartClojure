@@ -39,3 +39,7 @@
   (is (= (simplify-clj-str 
            "(fn [a b] (do (when a a) (print 1) (when c c) b))")
          '(fn [a b] (when a a) (dart:core/print 1) (when c c) b))))
+
+(deftest core-no-import-test
+  (is (= (simplify-clj-str "(Duration. :milliseconds 250)")
+         '(m/Duration. :milliseconds 250))))
