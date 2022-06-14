@@ -55,17 +55,21 @@ Center(
 - variables in strings with$;
 - raw (interpreted) strings like `r'some string $dollar'`
 - class/methods/fields declarations (not tested well, pre-alpha);
+- try-catch;
+- for in;
+- switch with breaks and returns;
 
 ## Not supported
 
 - bitwise operators;
-- try-catch;
-- for, while, switch;
 - proper aliases for everything, it's not possible to get this info generally;
 - enums;
 - external keywork;
 - yield;
 - exports;
+- switch with continue, withouth breaks or returns (considered unidiomatic);
+- for with declare, conditions and increment (considered unidiomatic)
+- while (considered unidiomatic)
 - early exits from lambdas (ignored);
 - `...` operator (ignored);
 - typedefs (ignored);
@@ -76,26 +80,72 @@ Center(
 - [X] support cljc to be able to work with Calva (thanks to [PEZ](https://github.com/PEZ)!);
 - [X] proper invocation (it's a dirty immoral crutch now, some chaing of dots like
 `a.b().c.d()` wont work;
-- [ ] handle early exit from lambdas with `return`;
 - [X] support variables in string `"${a}, $b"`;
 - [X] support cascade `..`.
-- [ ] do not insert material import on core classes, like `Duration`;
+- [X] do not insert material import on core classes, like `Duration`;
+- [X] support for, while;
+- [X] support switch;
 - [ ] test classes and methods extensively;
 - [ ] convert files;
-- [ ] support for, while;
-- [ ] support switch;
+- [ ] handle early exit from lambdas with `return`;
 
 ## How to use
 
-Two things to note:
+There are 4 options now: 
+1. use it [directly from Calva][5] (VSCode);
+2. jvm/js repl;
+3. clojure cli;
+4. jar. 
 
-1. Copy-paste only widget's part, like `return Column(...),`, without method
-declaration.
-2. Typographical quotes `“`, `’` are not supported. 
+### API from jvm/js REPL
 
-There are two options now: 
-1. jar; 
-2. jvm repl.
+[Clojars][2].
+
+Add Cli/deps:
+```clojure
+{:deps 
+    {
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.0-SNAPSHOT"}
+     }}
+```
+
+Or Leiningen/Boot: 
+```clojure
+[org.clojars.liverm0r/dartclojure "0.2.0-SNAPSHOT"]
+```
+
+Convert dart code (simplify and wrap-nest under the hood):
+```clojure
+(require '[dumch.convert :refer [convert]])
+
+(convert "1 + 1 + 2 * 1;" :format :sexpr) ; => (+ 1 1 (* 2 1))
+```
+
+You may pass aliases for material and flutter-macro:
+```clojure
+(convert "Text('1')" :material "m" :flutter "f") ; => "(m/Text "1")" 
+```
+
+If you just need to wrap clojure code with nest:
+```clojure
+(require
+  '[dumch.improve :as impr]
+  '[rewrite-clj.zip :as z])
+
+(-> "(Container :child (Box :child (Padding :child (:Text \"2\"))))"
+    z/of-string
+    impr/wrap-nest
+    z/sexpr)
+; => (f/nest (Container) (Box) (Padding) (:Text "2"))
+```
+
+### API from cli
+
+```bash
+clojure -Sdeps \
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.0-SNAPSHOT"}}}' \
+-e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" :material \"m\" :flutter \"f\")"
+```
 
 ### API with Jar
 
@@ -140,48 +190,6 @@ For all the arguments see:
 $ java -jar dartclj.jar -h
 ```
 
-### API from JVM-repl
-
-[Clojars][2].
-
-Add Cli/deps:
-```clojure
-{:deps 
-    {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.1.10-SNAPSHOT"}
-     }}
-```
-
-Or Leiningen/Boot: 
-```clojure
-[org.clojars.liverm0r/dartclojure "0.1.10-SNAPSHOT"]
-```
-
-Convert dart code (simplify and wrap-nest under the hood):
-```clojure
-(require '[dumch.dartclojure :refer [convert]])
-
-(convert "1 + 1 + 2 * 1;" :format :sexpr) ; => (+ 1 1 (* 2 1))
-```
-
-You may pass aliases for material and flutter-macro:
-```clojure
-(convert "Text('1')" :material "m" :flutter "f") ; => "(m/Text "1")" 
-```
-
-If you just need to wrap clojure code with nest:
-```clojure
-(require
-  '[dumch.improve :as impr]
-  '[rewrite-clj.zip :as z])
-
-(-> "(Container :child (Box :child (Padding :child (:Text \"2\"))))"
-    z/of-string
-    impr/wrap-nest
-    z/sexpr)
-; => (f/nest (Container) (Box) (Padding) (:Text "2"))
-```
-
 ## Contribution
 
 Build jar:
@@ -209,6 +217,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.1.10-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.0-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.1.10
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.0
+[5]: https://calva.io/clojuredart/

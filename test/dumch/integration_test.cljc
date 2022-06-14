@@ -44,12 +44,12 @@ AnimatedContainer(
                           (if _isOpened 0.7 1.0)
                           (if _isOpened 0.7 1.0)
                           1.0)
-             :duration (m/Duration :milliseconds 250)
+             :duration (Duration :milliseconds 250)
              :curve (m/Interval 0.0 0.5 :curve (.easeOut m/Curves)))
            (m/AnimatedRotation
              :turns (if _isOpened -0.1 0)
              :curve (m/Interval 0.25 1.0 :curve (.easeInOut m/Curves))
-             :duration (m/Duration :milliseconds 250))
+             :duration (Duration :milliseconds 250))
            (m/FloatingActionButton
              :onPressed
              (fn [] :unidiomatic)

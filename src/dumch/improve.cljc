@@ -1,6 +1,7 @@
 (ns dumch.improve 
   (:require
     [better-cond.core :as b]
+    [clojure.string :as str]
     [dumch.util :refer [lists* upper-case?]]
     [rewrite-clj.node :as n]
     [rewrite-clj.paredit :as p]
@@ -42,10 +43,18 @@
   (= (z/sexpr do-zloc) 'do)
   (-> do-zloc z/remove z/splice z/up))
 
-#_(-> "(fn [a b] (do (when a ^:return a) (print 1) (when c ^:return c) ^:return b))"
-      z/of-string
-      try-remove-redundant-do
-      z/sexpr)
+(def ^:private core-vars
+  #{'Comparator 'DateTime 'Duration 'Error 'Exception 'Expando 
+    'Function 'Invocation 'Iterable 'Iterator 'List 'Map 'Null
+    'Object 'Pattern 'RegExp 'Set 'Sink 'StackTrace 'Stopwatch
+    'String 'StringBuffer 'StringSink 'Symbol 'Type 'Uri})
+
+(b/defnc- insert-import [symb m]
+  :let [s (str symb)]
+  (not (str/includes? s ".")) (symbol (str m "/" symb)) 
+
+  :let [parts (cons m (str/split s #"\."))]
+  (symbol (str (str/join "." (butlast parts)) "/" (last parts))))
 
 (defn simplify [node & {fl :flutter, m :material :or {fl "f", m "m"}}]
   (-> node 
@@ -60,12 +69,20 @@
             undo-node undo-node
 
             :let [expr (z/sexpr zloc)] 
+            (= expr 'print) (z/edit zloc #(symbol (str "dart:core/" %)))
 
             ;; import
-            (and (symbol? expr) (upper-case? (first (str expr))))
-            (z/edit zloc #(symbol (str m "/" %)))
+            (and (symbol? expr) 
+                 (upper-case? (first (str expr)))
+                 (not (core-vars expr)))
+            (z/edit zloc #(insert-import % m))
 
             :else zloc)))))
+
+#_(-> "(Duration 39)"
+      rewrite-clj.parser/parse-string
+      simplify
+      z/sexpr)
 
 (comment 
   (def nested "(Container 

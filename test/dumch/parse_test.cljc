@@ -7,13 +7,13 @@
             [rewrite-clj.zip :as z]
             [rewrite-clj.node :as n]))
 
-(def ^:private dart->clj-simplified 
+(def ^:private dart->clj-simplified
   (comp z/sexpr simplify ast->clj dart->ast))
 
-(def ^:private dart->clj-string 
+(def ^:private dart->clj-string
   (comp z/string simplify ast->clj dart->ast))
 
-(deftest import-test 
+(deftest import-test
   (testing "import with 'hide'"
     (is (= (dart->clojure "import 'pkg:goog/maps.dart' hide LatLng")
            '(require ["pkg:goog/maps.dart" :as be-aware-of-hide-here]))))
@@ -27,23 +27,23 @@
     (is (= (dart->clojure "import 'pkg:goog/maps.dart' as GMap show LatLng;")
            '(require ["pkg:goog/maps.dart" :as GMap :refer [LatLng]])))))
 
-(deftest methods-test 
+(deftest methods-test
   (testing "method with body"
-    (is (= (dart->clojure 
+    (is (= (dart->clojure
              "@override
               Widget build(BuildContext context) {
                 return Text('name');
               }")
            '(defn build [context] (Text "name")))))
   (testing "static method"
-    (is (= (dart->clojure 
+    (is (= (dart->clojure
              "static void staticVoid() { print(1); }")
            '(defn staticVoid [] (print 1)))))
   (testing "void method with expression"
-    (is (= (dart->clojure 
+    (is (= (dart->clojure
              "void _toggleFavorite() => setState(() { print(1); });")
            '(defn _toggleFavorite [] (setState (fn [] (print 1))))))
-    (is (= (dart->clojure 
+    (is (= (dart->clojure
              "void main() => runApp(App());")
            '(defn main [] (runApp (App))))))
   (testing "method with dot in type"
@@ -53,15 +53,15 @@
 
 (deftest get-set-test
   (testing "getter with => and with body {}"
-    (is (= (dart->clojure "class A { 
+    (is (= (dart->clojure "class A {
                             Key get dividerKey => Key('$this');
                             Key get dividerKey2 { return 1; };
                           }")
-           '(comment "use flutter/widget macro instead of classes" 
-                     :unknown 
+           '(comment "use flutter/widget macro instead of classes"
+                     :unknown
                      :unknown))))
   (testing "setter with => and with body {}"
-    (is (= (dart->clojure "class A { 
+    (is (= (dart->clojure "class A {
                             set right(double value) => left = value - width;
                             set right(double value) { a = b; }
                           }")
@@ -116,7 +116,7 @@
     (is (= (-> "a.b?.c.d().e" dart->clojure)
            '(some-> a .b .c (.d) .e)))))
 
-(deftest optional-invocation-test 
+(deftest optional-invocation-test
   (testing "optional field somewhere in the invocation chain"
     (is (= (dart->clojure "SClass?.field.copyWith(border: 1)")
            '(some-> SClass .field (.copyWith :border 1))))
@@ -129,16 +129,16 @@
 (deftest ^:current  list-test
   (testing "empty list" (is (=  (dart->clojure "[]") '[])))
   (testing "ignore spread operator"
-    (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]" 
+    (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]"
                dart->clojure)
            '[(-> :unidiomatic .a (.map (fn [acc] (_t ctx acc))))])))
   (testing "typed list"
     (is (= (-> "<Int>[1, 2]" dart->clojure)
            [1 2])))
   (testing "column children typeless list"
-    (is 
+    (is
       (= (-> "Column(children: [const Text('name'),
-                                Icon(Icons.widgets)])" 
+                                Icon(Icons.widgets)])"
              dart->clojure)
          '(Column :children [(Text "name") (Icon (.widgets Icons))]))))
   (testing "ifnull and ternary list elements"
@@ -148,15 +148,15 @@
 (deftest map-test
   (testing "empty map" (is (=  (dart->clojure "{}") '{})))
   (testing "typeless map as named parameter"
-    (is 
+    (is
       (= (dart->clojure "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})")
          '(.icon ListCell :m {1 2, "a" b, c "d"}))))
-  (testing "typed map" 
-    (is 
+  (testing "typed map"
+    (is
       (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure)
          {1 [1 2]})))
-  (testing "ifnull and ternary map elements" 
-    (is 
+  (testing "ifnull and ternary map elements"
+    (is
       (= (-> "<int, List<int>>{ a ? 1 : 2 : a ?? b}" dart->clojure)
          '{(if a 1 2) (or a b)}))))
 
@@ -170,7 +170,7 @@
   (testing "single get"
    (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
   (testing "serveral get in a row"
-    (is (= (dart->clojure "questions[1]['two']") 
+    (is (= (dart->clojure "questions[1]['two']")
            '(get (get questions 1) "two")))))
 
 (deftest logic-test
@@ -190,19 +190,19 @@
       (is (= (dart->clojure "b != a") '(not= b a)))))
 
 (deftest ternary-test
-  (testing "simple ternary" 
+  (testing "simple ternary"
     (is (= (dart->clojure "a ? b : c") '(if a b c))))
   (testing "lambda as ternary parameter"
-    (is (= (dart->clojure 
+    (is (= (dart->clojure
              "TextButton(onPressed: _searchEnabled ? () { pop(); } : null)")
            '(TextButton
               :onPressed
-              (if _searchEnabled 
+              (if _searchEnabled
                 (fn [] (pop))
                 null))))))
 
-(deftest cascade-test 
-  (is (= (dart->clojure 
+(deftest cascade-test
+  (is (= (dart->clojure
            "getAddress()
            ..setStreet('Elm', '13a')
            ..city = 'Carthage'
@@ -215,17 +215,39 @@
             :unidiomatic
             (.zip 66666 :extended 6666)))))
 
+(deftest for-test
+  (testing "for-in, expressiong body"
+    (is (= (dart->clojure
+             "for (int n in names) { print(n); } ")
+           '(for [n names] (print n)))))
+  (testing "for-in, curly-body"
+    (is (= (dart->clojure
+             "for (int i in names) print(i); ")
+           '(for [i names] (print i)))))
+  (testing "for, curly body"
+    (is (= (dart->clojure
+             "for (int i = 0; i < 5; i++) {print('GeeksForGeeks');}")
+           :unidiomatic))))
+
+(deftest while-test
+  (testing "while"
+    (is (= (dart->clojure "while(num >=1) { num--; }")
+           :unidiomatic)))
+  (testing "do-while"
+    (is (= (dart->clojure "do { number++; } while (number < 10);")
+           :unidiomatic))))
+
 (deftest const-test
   (testing "invocation const"
-    (is (= (dart->clj-string 
+    (is (= (dart->clj-string
              "IconButton(padding: const EdgeInsets.all(0),);")
            "(m/IconButton :padding ^:const (.all m/EdgeInsets 0))")))
   (testing "invocation constructor"
-    (is (= (dart->clj-string 
+    (is (= (dart->clj-string
              "const Icon(Icons.star)")
            "^:const (m/Icon (.star m/Icons))")))
   (testing "invocation constructor"
-    (is (= (dart->clj-string 
+    (is (= (dart->clj-string
              "const Icon(Icons.star)")
            "^:const (m/Icon (.star m/Icons))"))))
 
@@ -274,6 +296,67 @@
     (is (= (dart->clojure "if (b) b; else if (a) a; else c;")
            '(cond b b a a :else c)))))
 
+(deftest switch-test
+  (testing "idiomatic switch with default"
+    (is (= (dart->clojure
+             "switch(grade) {
+               case 'A': return 'Great!';
+
+               case 'B': {  print('Good'); }
+               break;
+
+               case 'C': 
+               case 'D': {  print('Bad'); }
+               break;
+
+               default: print('Invalid choice');
+               break;
+              }")
+           '(case grade
+              "A" "Great!"
+              "B" (print "Good")
+              "C" (print "Bad")
+              "D" (print "Bad")
+              (print "Invalid choice")))))
+  (testing "idiomatic switch"
+    (is (= (dart->clojure
+             "switch (x) {
+                case 1: return 1;
+                case 2: return 2;
+              }")
+           '(case x 1 1 2 2))))
+  (testing "unidiomatic cases"
+    (is (= (dart->clojure
+             "switch (x) {
+                case 42: print('hello');
+                         continue world;
+                case 37: print('goodbye');
+                         break;
+                world: 
+                case 87: print('world');
+              }")
+           :unidiomatic))))
+
+(deftest try-test
+  (is (= (dart->clojure
+           "try {
+              breedMoreLlamas();
+            } on Lib.OutOfLlamasException {
+              buyMoreLlamas();
+            } on Exception catch (e) {
+              print('Unknown exception: $e');
+            } catch (e) {
+              print('Something really unknown: $e');
+            } finally {
+              cleanLlamaStalls();
+            }")
+         '(try
+           (breedMoreLlamas)
+           (catch Lib.OutOfLlamasException e (buyMoreLlamas))
+           (catch Exception e (print (str "Unknown exception: " e)))
+           (catch Exception e (print (str "Something really unknown: " e)))
+           (finally (cleanLlamaStalls))))))
+
 (deftest comments-test
   (testing "line comment"
     (is (= (dart->clojure "Text(
@@ -285,36 +368,36 @@
            '(Text (-> widget .photo .user .name)))))
   (testing "comment-like structure inside string"
     (is (= (dart->clojure "Text(
-                                'http://looks-like-comment', 
+                                'http://looks-like-comment',
                                 '/* one more */'
                                 )")
            '(Text "http://looks-like-comment" "/* one more */")))))
 
 (deftest strings-test
   (testing "special symbols inside string test"
-    (is 
+    (is
       (= (->> "''' cat's name \"bob\" '''"
               clean
               dart->clojure
               )
          " cat's name \"bob\" ")))
   (testing "special symbols inside string test"
-    (is 
-      (= 1 
+    (is
+      (= 1
          (->> "'\n\t\\s\"'"
               clean
-              (insta/parses widget-parser) 
+              (insta/parses widget-parser)
               count))))
-  (testing "multiline string with inner comments" 
-    (is 
-      (= 1 
+  (testing "multiline string with inner comments"
+    (is
+      (= 1
          (->>
            "\"\"\"
-           multiline // comment like 
+           multiline // comment like
            \" some string inside multiline string \"
            /* another comment */ \"\"\""
            clean
-           (insta/parses widget-parser) 
+           (insta/parses widget-parser)
            count))))
   (testing "$ substitution"
     (is (= (dart->clojure "Text('Some $field and ${Factory.create()}')")
@@ -329,14 +412,14 @@
   (testing "final assignment"
     (is (= (dart->clojure  "final String s = '1'; ") '(def s "1"))))
   (testing "const assignment"
-    (is (= (dart->clj-string "const bar = 100;") 
+    (is (= (dart->clj-string "const bar = 100;")
            "(def ^:const bar 100)")))
   (testing "assign value with type with dot"
     (is (= (dart->clojure  "A.C<D> bar = 1;") '(def bar 1)))))
 
 
 
-(deftest var-declaration-test 
+(deftest var-declaration-test
   (let [code "var bar = 0;
               const bar = 1;
               static bar = 2;
@@ -373,11 +456,40 @@
                             if (item.isLoading) {
                                print(1)
                             }
-                            a") 
+                            a")
            '(do :unidiomatic (when (.isLoading item) (print 1)) a)))))
 
-(deftest return-test 
+(deftest return-test
   (is (= (-> "if (a) return;" dart->clojure) '(when a nil))))
+
+(deftest annotaions-test
+  (is (= (-> "@Foo(42)
+              class Foo {
+
+                @Deprecated('until further notice');
+                final int x;
+
+                @FOO
+                const Foo(this.x);
+
+                @override
+                void main() {
+                  print(a);
+                }
+              }
+              
+              @JsonKey(fromJson: _variableFromJson)
+              enum FieldType {
+                @JsonEnum('Text') text,
+                @JsonEnum('Number') number
+              }"
+              dart->clojure)
+         '(do
+            (comment
+              "use flutter/widget macro instead of classes"
+              (def x nil)
+              (defn main [] (print a)))
+            :unknown))))
 
 (deftest flatten-same-operators
   #?(:clj ; TODO: How to do this in ClojureScript?

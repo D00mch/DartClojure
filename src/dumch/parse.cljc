@@ -1,10 +1,11 @@
 (ns dumch.parse
   (:require
+    [better-cond.core :as b]
     #?(:cljs [dumch.base64 :as b64-cljs])
     #?(:clj [clojure.java.io :as io])
     #?(:cljs [clojure.edn :refer [read-string]])
     [clojure.string :as str]
-    [dumch.util :refer [ws nl maps mapn mapcats]]
+    [dumch.util :refer [ws nl maps mapn mapcats mapcatn]]
     #?(:cljs [dumch.util :refer-macros [inline-resource]])
     #?(:clj [instaparse.core :as insta :refer [defparser]]
        :cljs [instaparse.core :as insta :refer-macros [defparser]])
@@ -177,7 +178,85 @@
           (conj and-node compare-ast)))
       and-node)))
 
-(defn ast->clj [[tag v1 v2 v3 v4 :as node]]
+(defn dfs [f sq]
+ (some f (tree-seq coll? seq sq)))
+
+(b/defnc- switch-case-ok? [[tag v1 v2 v3]]
+  (= tag :default-case) true
+
+  :when (= tag :switch-case)
+  :when (= (first v1) :cases)
+  :when (or (some-> v3 second (= "break"))
+            (dfs #{:return} v2))
+  true)
+
+(defn- if->clj [node ast->clj]
+  (case (count node)
+    3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
+    4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
+    (lnode
+      (if (even? (count node))
+        (concat
+          (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
+          [ws (knode :else) ws (ast->clj (last node))])
+        (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))))
+
+(defn- switch-ok? [[_ _ & cases]]
+  (reduce #(and %1 %2) (map switch-case-ok? cases)))
+
+(defn- switch-case->clj-nodes [[_ [_ & cases] body] ast->clj]
+  (let [body (ast->clj body)]
+    (mapcat
+      #(list (ast->clj %) body)
+      cases)))
+
+(defn- switch-branch->clj-nodes [[tag v1 :as node] ast->clj]
+  (if (= tag :switch-case)
+    (switch-case->clj-nodes node ast->clj)
+    [(ast->clj v1)]))
+
+(defn- switch->case-or-warn [[_ expr & cases :as node] ast->clj]
+  (if (switch-ok? node)
+    (lnode
+      (list*
+        (tnode 'case) ws
+        (ast->clj expr) nl
+        (mapcatn #(switch-branch->clj-nodes % ast->clj) cases)))
+    :unidiomatic))
+
+(defn- try-on->clj-node [[_ [_ q] [_ e] body :as on-part] ast->clj]
+  (lnode [(tnode 'catch) ws
+          (ast->clj (or q [:identifier "Exception"])) ws
+          (ast->clj (or e [:identifier "e"])) nl
+          (ast->clj body)]))
+
+(defn- try-branch->clj-node [node ast->clj]
+  (if (= (count node) 2)
+    (lnode [(tnode 'finally) ws (ast->clj (second node))])
+    (try-on->clj-node node ast->clj)))
+
+(defn- try->clj [[_ body & branches] ast->clj]
+  (lnode
+    (list*
+      (tnode 'try) nl
+      (ast->clj body)
+      (map #(try-branch->clj-node % ast->clj) branches))))
+
+(defn- var-declare->clj [[_ v1 :as node] ast->clj]
+  (let [inits (filter sequential? node)
+        const? (= v1 "const")
+        with-const (fn [[_ n v :as var-init-node]]
+                     (if const?
+                       [:var-init [:const n] v]
+                       var-init-node))]
+    (if (= (count inits) 1)
+      (ast->clj (with-const (first inits)))
+      (lnode
+        (list* (tnode 'do) ws
+               (->> (map with-const inits)
+                    (maps ast->clj)))))))
+
+(defn ast->clj [[tag v1 v2 v3 :as node]]
   #_(println :node node)
   (case tag
     :s (ast->clj v1)
@@ -201,31 +280,16 @@
             (ast->clj v2) ws
             (knode :refer) ws
             (vnode (maps ast->clj (drop 3 node)))])
-    :var-declare
-    (let [inits (filter sequential? node)
-          const? (= v1 "const")
-          with-const (fn [[_ n v :as var-init-node]]
-                       (if const?
-                         [:var-init [:const n] v]
-                         var-init-node))]
-      (if (= (count inits) 1)
-        (ast->clj (with-const (first inits)))
-        (lnode
-          (list* (tnode 'do) ws
-                 (->> (map with-const inits)
-                      (maps ast->clj))))))
-
+    :var-declare (var-declare->clj node ast->clj)
     :var-init (lnode [(tnode 'def) ws
                       (ast->clj v1) ws
                       (or (some-> v2 ast->clj) (tnode 'nil))])
     :class
-    (lnode
-      (list*
-        (tnode 'comment) nl
-        "use flutter/widget macro instead of classes" nl
-        (mapcat
-          #(if (sequential? %) % [%])
-          (mapn ast->clj (rest node)))))
+    (lnode (list*
+             (tnode 'comment) nl
+             "use flutter/widget macro instead of classes" nl
+             (mapcat #(if (sequential? %) % [%])
+                     (mapn ast->clj (rest node)))))
     :method (lnode [(tnode 'defn) ws
                     (ast->clj v1) ws
                     (ast->clj v2) nl
@@ -242,25 +306,24 @@
     :field (tnode (symbol (str "." (ast->clj v1))))
 
     :lambda (lnode [(tnode 'fn) ws (ast->clj v1) nl (ast->clj v2)])
-    :lambda-body (ast->clj (cons :code (rest node)))
     :lambda-args (vnode (->> node rest (maps ast->clj)))
+    :block (ast->clj (cons :code (rest node)))
 
     :ternary (ast->clj [:if v1 v2 v3])
-    :if (case (count node)
-          3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
-          4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
-          (lnode
-            (if (even? (count node))
-              (concat
-                (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
-                [ws (knode :else) ws (ast->clj (last node))])
-              (list* (tnode 'cond) ws (->> node rest (maps ast->clj))))))
+    :if (if->clj node ast->clj)
+    :switch (switch->case-or-warn node ast->clj)
+    :try (try->clj node ast->clj)
     :cascade (flatten-cascade node ast->clj)
+
+    :for-in (n/list-node [(tnode 'for) ws
+                          (vnode [(ast->clj v1) ws (ast->clj v2)]) nl
+                          (ast->clj v3)])
 
     :return (if v1 (ast->clj v1) (tnode 'nil))
     :typecasting (ast->clj v1)
     :const (n/meta-node (tnode :const) (ast->clj v1))
     :identifier (symbol (str/replace v1 #"!" ""))
+    :qualified (tnode (symbol (str/join "." (map ast->clj (next node)))))
     :list (n/vector-node (maps ast->clj (rest node)))
     :map (mnode (maps ast->clj (rest node)))
     :get (lnode [(tnode 'get) ws (ast->clj v1) ws (ast->clj v2)])
@@ -314,9 +377,6 @@
         ;; the problem is that comments could appear inside strings
         (str/replace str-pattern (transform encode))    ; encode strings to Base64
 
-        ;; clean from annotations
-        (str/replace #"(\s*@.*\n)" "\n")
-
         ;; cleaning code from comments
         (str/replace #"/\*(\*(?!/)|[^*])*\*/" "")    ; /* ... */
         (str/replace #"(//).*" "")                   ; // ...
@@ -345,13 +405,9 @@
     ")
 
   (def code2 "
-    var bar = 0;
-    const bar = 1;
-    static bar = 2;
-    static final bar = 3;
-    static const int bar = 4;
-    static final int bar = 5;
-    static final int bar = 6, lar;
+final tween = MultiTween<AniProps>()
+        ..add(AniProps.opacity, Tween(begin: 0.0, end: 1.0))
+        ..add(AniProps.translateY, Tween(begin: -30.0, end: 0.0), Duration(milliseconds: 500), Curves.easeOut);
     ")
 
   (insta/parses widget-parser code2 :total 1)

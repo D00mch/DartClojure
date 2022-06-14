@@ -1,10 +1,14 @@
 s              = file / code
-code           = (expr <end> | statement <end>)*
+code           = (expr <end>)*
 
-file           = import-block? (method | var-declare <';'> | class | _typedef)*
-method         = <'static'?> 
-                 <dtype>? identifier
-                 lambda-args (lambda-body | <'=>'> assign-val | <';'>) <';'*>
+metadata       = ('@' qualified params? <';'>?)+
+file           = import-block? 
+                 (<metadata?> 
+                   (method | var-declare <';'> | class | _typedef | for-in |
+                    _for | _while | _do-while | switch | try | enum))*
+<method-decl>  = <'static'?> <dtype>? identifier lambda-args 
+<method-body>  = (block | <'=>'> assign-val) <';'*>
+method         = method-decl method-body
 
 import-block   = (import <';'?>)+ 
 <import>       = (import-full | import-as | import-hide | import-show | import-naked)
@@ -19,10 +23,10 @@ import-hide    = im-body im-hide-part
 <im-hide-part> = <'hide'> identifier+
 
 class          = <'abstract'? 'class' #'[^{}]*' '{'>
-                    (method | getter-decl | 
-                     var-declare | <construct-decl> )*
+                    (<metadata?>  (method | method-decl <';'> | getter-decl | 
+                     var-declare <';'> | <construct-decl> ))*
                  <'}'>
-construct-decl = 'const'? identifier ('.' identifier)?  
+construct-decl = <metadata?> 'const'? identifier ('.' identifier)?  
                  '(' ( 
                        (typed-arg '.')* typed-arg? 
                        (<','> (typed-arg '.')* typed-arg)*
@@ -33,29 +37,52 @@ construct-decl = 'const'? identifier ('.' identifier)?
 args-bloc      = '{' #'[^{}]*' '}' 
 _typedef       = 'typedef' dtype <'='> (dtype | method) 
 getter-decl    = <dtype?> 'get'
-                 identifier (lambda-body | <'=>'> assign-val | <';'>) <';'*>
+                 identifier (block | <'=>'> assign-val | <';'>) <';'*>
+
+enum           = <'enum'> identifier  
+                 <'{'> enum-entry (<','> enum-entry)* <','>? <'}'>
+enum-entry     = <metadata> identifier
 
 <end>          = <(';'|#'\n'+|','|#'$')>
-<statement>    = var-declare
+<statement>    = var-declare | _for | for-in | _while | _do-while | switch | try
 return         = <'return'> expr? <';'>
 
 if             = <'if'> if-condition if-else-body
-<if-else-body> =  (lambda-body | return | expr <end>) 
+<if-else-body> =  (block | return | expr <end>) 
                   ( (<'else'> | <'else if'> if-condition) if-else-body)*   
 <if-condition> = <'('> expr <')'> 
 
-var-declare    = <'static'>? field-type var-init (<','> var-init)* <';'>*
+var-declare    = <'static'>? field-type var-init (<','> var-init)*
 var-init       = identifier (<'='> expr)?
+
+for-in         = <'for'> <'('> <dtype?> identifier <'in'> expr <')'> for-body  
+_for           = <'for'> <'('> for-init expr? <';'> expr-list? <')'> for-body 
+for-init       = var-declare <';'> EPSILON | expr? <';'>
+<for-body>     = (block | return | expr <end> | statement)
+_while         = <'while'> <'('> expr <')'> for-body 
+_do-while      = <'do'> for-body 'while' <'('> expr <')'> <';'> 
+
+switch         = <'switch'> <'('> expr <')'> <'{'> switch-case* default-case? <'}'>
+switch-case    = (identifier <':'>)* cases for-body switch-exit?
+cases          = (<'case'> expr <':'>)+
+default-case   = (identifier <':'>)* <'default'> <':'> for-body switch-exit? 
+switch-exit    = ('break' | 'continue' | 'continue' identifier) <';'>
+
+try            = <'try'> block (try-on+ finally? | finally)
+try-on         = on-part catch block  
+on-part        = <'on'> dtype | EPSILON
+catch          = <'catch'> <'('> identifier (<','> identifier)? <')'> | EPSILON
+finally        = <'finally'> block
 
 lambda-args    = <'('> typed-arg? (<','>  typed-arg)* <')'> <'async'?>  
 <typed-arg>    = <dtype?> identifier  
-lambda-body    = <'{'> ( statement <';'> | expr <end> | method )* return? <'}'>
+block          = <'{'> ( statement <';'> | expr <end> | method )* return? <'}'>
 
 expr-list      = expr (',' expr)*
 <expr>         = lambda-val <'!'>?
 
 <lambda-val>   = cascade-val | lambda 
-lambda         = lambda-args lambda-body | lambda-args <'=>'> assign-val
+lambda         = lambda-args block | lambda-args <'=>'> assign-val
 <cascade-val>  = assign-val | cascade
 cascade        = cascade-val <'..'> assign-val
 <assign-val>   = ternary-val | _set
@@ -127,8 +154,8 @@ _operator      = '=' | '*=' | '/=' | '~/=' | '%=' | '+=' | '<<=' | '>>='
 (* type without name *)
 <field-type>   = !'await' (modifier <dtype> | !modifier <dtype> | modifier)
 <modifier>     = 'final' | 'const'
-dtype          = qualified type-args? <'?'?> 
-qualified      = (identifier '.')* identifier
+<dtype>        = qualified type-args? <'?'?> 
+qualified      = (identifier <'.'>)* identifier
 type-args      = <'<'> type-list <'>'>
 type-list      = dtype (',' dtype)*
 

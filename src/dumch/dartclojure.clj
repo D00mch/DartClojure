@@ -11,7 +11,7 @@
     :default false
     :parse-fn #(Boolean/parseBoolean %)
     :validate [boolean? "Must be either true or false"]]
-   ["-e" "--end REPL" "Mode: text or symbol to show the end of code"
+   ["-e" "--end TEXT" "Mode: text or symbol to show the end of code"
     :default ""
     :parse-fn str]
    ["-m" "--material MATERIAL" "material require alias, any string"
