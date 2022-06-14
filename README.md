@@ -85,9 +85,10 @@ Center(
 - [X] do not insert material import on core classes, like `Duration`;
 - [X] support for, while;
 - [X] support switch;
+- [ ] support native artifacts
 - [ ] test classes and methods extensively;
 - [ ] convert files;
-- [ ] handle early exit from lambdas with `return`;
+- [ ] handle early exit from lambdas/if/for/methods with `return`;
 
 ## How to use
 
