@@ -141,15 +141,17 @@
     params))
 
 (defn flatten-cascade [node ast->clj]
-  (lnode
-    (list* (tnode 'doto) ws
-           (->> node
-                flatten-same-node
-                (map (fn [[tag & params :as node]]
-                       (if (= tag :constructor)
-                         (cons :invoke params)
-                         node)))
-                (maps ast->clj)))))
+  (let [flt (flatten-same-node node)]
+    (lnode
+      (list* (tnode 'doto) ws
+             (ast->clj (first flt))
+             (->> flt
+                  (drop 1)
+                  (map (fn [[tag & params :as node]]
+                         (if (= tag :constructor)
+                           (cons :invoke params)
+                           node)))
+                  (maps ast->clj))))))
 
 (defn- flatten-commutative-node [[f :as node]]
   (list*
