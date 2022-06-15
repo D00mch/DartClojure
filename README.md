@@ -4,7 +4,7 @@ Opinionated dart to clojure converter for flutter widgets.
 It doesn't (and probably will not) convert classes, setters, annotations —
 only the part that could be reused after translation.
 
-<img src="https://github.com/Liverm0r/DartClojure/blob/main/resources/Screenshot%202022-05-28%20at%2020.11.09.png" alt="alt text" width="632" height="302">
+<img src="https://github.com/Liverm0r/DartClojure/blob/main/resources/Screenshot%2020.2.15-28%20at%2020.11.09.png" alt="alt text" width="632" height="302">
 
 ## Why is it  not a full dart->clojure converter?
 
@@ -37,7 +37,7 @@ Center(
 
 3 more examples:
 
-![Screen Recording 2022-05-29 at 19 38 44](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
+![Screen Recording 20.2.15-29 at 19 38 44](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
 
 
 ## Supported
@@ -114,13 +114,13 @@ Add Cli/deps:
 ```clojure
 {:deps 
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.0-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.1-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot: 
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.2.0-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.2.1-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -152,7 +152,7 @@ If you just need to wrap clojure code with nest:
 
 ```bash
 clojure -Sdeps \
-'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.0-SNAPSHOT"}}}' \
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.1-SNAPSHOT"}}}' \
 -e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" :material \"m\" :flutter \"f\")"
 ```
 
@@ -209,6 +209,11 @@ Run tests:
 
     $ clj -X:test ; clj -M:test-cljs
 
+Run docker and get native image:
+
+    $ docker build --tag dartclojure .
+    $ docker run -it dartclojure ./dartclj "Text('should work')"
+
 ## License
 
 Copyright © 2022 Artur Dumchev
@@ -226,8 +231,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.0-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.1-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.0
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.1
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
