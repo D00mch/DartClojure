@@ -85,7 +85,7 @@ Center(
 - [X] do not insert material import on core classes, like `Duration`;
 - [X] support for, while;
 - [X] support switch;
-- [ ] support native artifacts
+- [X] support native artifacts
 - [ ] test classes and methods extensively;
 - [ ] convert files;
 - [ ] handle early exit from lambdas/if/for/methods with `return`;
@@ -97,6 +97,7 @@ There are 4 options now:
 2. Jvm/Js REPL;
 3. Clojure Cli;
 4. Jar. 
+5. Native image
 
 ### API From Calva
 
@@ -199,6 +200,17 @@ For all the arguments see:
 $ java -jar dartclj.jar -h
 ```
 
+### API with native image:
+
+Same api as with jar:
+
+    ./dartclj -h
+
+    ./dartclj "Text('a')" -m "m"
+
+If there is no build for your architecture on [release page][4], 
+see how to build it with graalvm below.
+
 ## Contribution
 
 Build jar:
@@ -209,10 +221,18 @@ Run tests:
 
     $ clj -X:test ; clj -M:test-cljs
 
-Run docker and get native image:
+Run docker, build graalvm image:
 
     $ docker build --tag dartclojure .
     $ docker run -it dartclojure ./dartclj "Text('should work')"
+    $ docker cp dc:/usr/src/app/dartclj . 
+
+Compile native image with graalvm locally:
+
+    $ ./compile.sh
+
+Remember to comment out line with `-H:+StaticExecutableWithDynamicLibC` for osx m1
+builds.
 
 ## License
 

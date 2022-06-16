@@ -18,6 +18,8 @@
               java.util.Base64
               java.lang.StringBuilder)))
 
+#?(:clj (set! *warn-on-reflection* true))
+
 (defparser widget-parser
   #?(:clj (io/resource "widget-parser.bnf")
      :cljs (inline-resource "widget-parser.bnf"))
@@ -41,7 +43,7 @@
     (-> (str/replace s #"\"" "”")
         (str/replace #"'" "’"))))
 
-(defn- split-by-$-expr [^:String s]
+(defn- split-by-$-expr [s]
   ;; two reasons for it to be that complex:
   ;; - can't make regex for nested {{}} work in jvm: (?=\{((?:[^{}]++|\{(?1)\})++)\})
   ;; - regex is slow anyway;
@@ -57,9 +59,9 @@
       (conj rslt #?(:clj (.toString (if (empty? cur-expr) cur-str cur-expr))
                     :cljs (.join (if (empty? cur-expr) cur-str cur-expr) "")))
 
-      (let [ch (.charAt s i)
+      (let [ch (.charAt ^String s i)
             building-str? (empty? stack)
-            allow-open-b? (and (> i 0) (= (.charAt s (dec i)) \$))
+            allow-open-b? (and (> i 0) (= (.charAt ^String s (dec i)) \$))
             open-b? (and (or allow-open-b? (seq stack)) (= ch \{))
             close-b? (= ch \})
             expr-ends? (and close-b? (= (count stack) 1))]
@@ -348,11 +350,11 @@
       (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
       :else :unknown)))
 
-(defn- encode [to-encode]
+(defn- encode [^String to-encode]
   #?(:clj (.encodeToString (Base64/getEncoder) (.getBytes to-encode))
      :cljs (b64-cljs/utf8_to_b64 to-encode)))
 
-(defn- decode [to-decode]
+(defn- decode [^String to-decode]
   #?(:clj (String. (.decode (Base64/getDecoder) to-decode))
      :cljs (b64-cljs/b64_to_utf8 to-decode)))
 
@@ -369,7 +371,7 @@
   [code]
   (let [str-pattern #"([\"\'])(?:(?=(\\?))\2.)*?\1"
         transform #(fn [[m]]
-                     (str "'" (% (.substring m 1 (dec (count m)))) "'"))]
+                     (str "'" (% (subs m 1 (dec (count m)))) "'"))]
     (-> code
 
         ;; to simplify modifications below
