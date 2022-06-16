@@ -20,16 +20,18 @@
     :default "m"
     :parse-fn str
     :validate [#(re-matches #"^[A-Za-z][A-Za-z0-9]*$" %)
-               "invalid require alias for material"]]
+               "invalid require-alias for material"]]
    ["-f" "--flutter FLUTTER_MACRO_PACKAGE" "flutter-macro require alias, any string"
     :default "f"
     :parse-fn str
     :validate [#(re-matches #"^[A-Za-z][A-Za-z0-9]*$" %) 
-               "invalid require alias for flutter-materail"]]
+               "invalid require-alias for flutter-macro"]]
    ["-c" "--colors BOOLEAN" "colorize output"
     :default false
     :parse-fn #(Boolean/parseBoolean %)
     :validate [boolean? "Must be either true or false"]]
+   ["-p" "--path PATH TO FILE, OR URL" "url or path to dart file to translate"
+    :parse-fn str]
    ["-h" "--help"]])
 
 (defn show! [data & {:keys [colors] :or {colors false}}]
@@ -56,7 +58,7 @@
       (recur (read-line) (conj acc input)))))
 
 (defn -main [& args] 
-  (let [{{:keys [repl help] :as params} :options, 
+  (let [{{:keys [repl help path] :as params} :options, 
          errors :errors, 
          args :arguments :as m} 
         (parse-opts args cli-options)
@@ -65,9 +67,12 @@
       help (println "here is the arguments\n" m)
       errors (println errors)
       repl (apply stdin-loop! params)
+      path (if-let [code (slurp path)]
+             (apply show! 
+                    (apply convert code params)
+                    params))
       :else (if args
               (apply show! 
                      (apply convert (first args) params)
                      params)
               (println "no arguments passed")))))
-
