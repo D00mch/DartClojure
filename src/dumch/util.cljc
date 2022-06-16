@@ -3,6 +3,8 @@
             #?(:clj [clojure.java.io :as io]))
   #?(:cljs (:require-macros [dumch.util])))
 
+#?(:clj (set! *warn-on-reflection* true))
+
 (def ws (n/spaces 1))
 (defn spaces [sq] (interpose ws sq))
 (defn lists* [& args] (spaces (apply list* args)))
@@ -22,6 +24,6 @@
      (slurp (clojure.java.io/resource resource-path))))
 
 (defn upper-case? [s]
-  #?(:clj (Character/isUpperCase s)
+  #?(:clj (Character/isUpperCase ^Character s)
      :cljs (and (= s (.toUpperCase s))
                 (not= s (.toLowerCase s)))))

@@ -5,6 +5,8 @@
             [rewrite-clj.zip :as z]
             [zprint.core :as zpr]))
 
+#?(:clj (set! *warn-on-reflection* true))
+
 (defn convert
   "get dart code, return clojure code
    pass keyword arguments, like: (convert code :format :sexpr, :material \"m\")

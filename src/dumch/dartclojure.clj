@@ -6,6 +6,8 @@
             [zprint.core :as zpr])
   (:gen-class))
 
+(set! *warn-on-reflection* true)
+
 (def cli-options 
   [["-r" "--repl REPL" "Mode: repl or single command, single by default"
     :default false
