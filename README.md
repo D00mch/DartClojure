@@ -211,6 +211,25 @@ Same api as with jar:
 If there is no build for your architecture on [release page][4], 
 see how to build it with graalvm below.
 
+
+### API with npm CLI
+
+Same apu as with jar and native image:
+
+```sh
+npx dartclojure -h
+
+npx dartclojure "Text('a')" -m "m"
+```
+
+### API with npm library
+
+```js
+const converter = require('dartclojure');
+
+const clojureCode = converter.convert("Text('a')");
+```
+
 ## Contribution
 
 Build jar:
@@ -235,6 +254,20 @@ Compile native image with graalvm locally:
 
 Remember to comment out line with `-H:+StaticExecutableWithDynamicLibC` for osx m1
 builds.
+
+Start shadow-cljs watcher and REPL:
+
+```
+npx shadow-cljs -d cider/cider-nrepl:0.28.3 watch :app :lib :test
+```
+
+(You can use this for developing both the Clojure and ClojureScript library, but the test watcher will only be watching and running the ClojureScript tests.)
+
+Install the local npm package:
+
+```
+npm link dartclojure
+```
 
 ## License
 

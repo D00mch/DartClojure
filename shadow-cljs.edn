@@ -1,0 +1,11 @@
+{:deps {:aliases [:test-shadow-cljs]}
+ :builds
+ {:lib {:target :node-library
+        :exports {:convert dumch.convert/convert}
+        :output-to "target/npm-lib/index.js"}
+  :app {:target :node-script
+        :main dumch.dartclojure/node-main
+        :output-to "target/npm-app/index.js"
+        :devtools {:after-load dumch.dartclojure/shadow-cljs-reload}}
+  :test {:target  :node-test, :output-to "target/node-test/test.js"
+         :autorun true}}}

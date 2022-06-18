@@ -36,3 +36,11 @@
 # CLJS
 .cljs_node_repl/
 cljs-test-runner-out/
+.shadow-cljs/
+
+# Node
+node_modules/
+
+# NPM Example App
+npm-test-app/target
+

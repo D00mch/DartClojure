@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+  <style>
+    body {
+      padding: 40px;
+      margin: auto;
+      max-width: 38em;
+      font-family: "Open Sans", sans-serif;
+    }
+
+    code {
+      color: #4165a2;
+      font-size: 17px;
+    }
+
+    pre {
+      color: #4165a2;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+
+    #dart {
+      width: 100%;
+      height: 150px;
+      padding: 12px;
+    }
+
+    button {
+      display: inline-block;
+      padding: 0.3em 1.2em;
+      margin: 0 0.1em 0.1em 0;
+      border-color: #4165a2bf;
+      background-color: #4165a2;
+      border-radius: 2em;
+      box-sizing: border-box;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 300;
+      color: #fafafa;
+      text-align: center;
+    }
+  </style>
+
+  <div id="app">
+    <h3>DartClojure NPM test app</h3>
+
+    <p>Dart code here:</p>
+    <textarea id="dart"></textarea>
+    <button id="convert" onclick="converter.core.convert()">Convert</button>
+    <p>Clojure code:</p>
+    <pre id="clojure"></p>
+  </div>
+
+  <script src="main.js" type="text/javascript"></script>
+
+</body>
+
+</html>

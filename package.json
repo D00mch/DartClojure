@@ -1,0 +1,26 @@
+{
+  "name": "dartclojure",
+  "description": "Opinionated Dart to Clojure converter for Flutter widgets.",
+  "version": "0.2.2",
+  "publisher": "liverm0r",
+  "author": {
+    "name": "Artur Dumchev",
+    "email": "arturdumchev@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Liverm0r/DartClojure"
+  },
+  "license": "Apache License, Version 2.0",
+  "main": "target/npm-lib/index.js",
+  "bin": "target/npm-app/index.js",
+  "scripts": {
+    "watch": "shadow-cljs watch :app :lib :test",
+    "compile": "shadow-cljs compile :app :lib",
+    "release": "shadow-cljs release :app :lib",
+    "build": "npm run release"
+  },
+  "devDependencies": {
+    "shadow-cljs": "^2.19.3"
+  }
+}

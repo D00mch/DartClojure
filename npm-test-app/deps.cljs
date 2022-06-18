@@ -1,0 +1,1 @@
+{:npm-deps {"dartclojure" "0.2.1"}}
