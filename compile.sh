@@ -12,7 +12,7 @@ echo '[
 
 native-image -jar dartclj.jar --initialize-at-build-time --no-fallback \
     -J-Dclojure.spec.skip.macros=true -J-Dclojure.compiler.direct-linking=true \
-    --initialize-at-build-time --verbose --no-fallback --no-server -J-Xmx3G \
+    --verbose --no-server -J-Xmx3G \
     --report-unsupported-elements-at-runtime --native-image-info \
     -H:+StaticExecutableWithDynamicLibC \
     -H:CCompilerOption=-pipe \
