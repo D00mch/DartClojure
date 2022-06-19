@@ -1,6 +1,7 @@
 (ns dumch.dartclojure
   (:require #?(:cljs ["readline" :as node-rl])
             #?(:cljs [clojure.edn :refer [read-string]])
+            #?(:cljs ["fs" :as node-fs])
             [clojure.pprint :refer [pprint]]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as str]
@@ -23,7 +24,7 @@
     :default "m"
     :parse-fn str
     :validate [#(re-matches #"^[A-Za-z][A-Za-z0-9]*$" %)
-               "invalid require alias for material"]]
+               "invalid require-alias for material"]]
    ["-f" "--flutter FLUTTER_MACRO_PACKAGE" "flutter-macro require alias, any string"
     :default "f"
     :parse-fn str
@@ -34,6 +35,8 @@
     :parse-fn #?(:clj #(Boolean/parseBoolean %)
                  :cljs read-string)
     :validate [boolean? "Must be either true or false"]]
+   ["-p" "--path PATH TO FILE, OR URL" "url or path to dart file to translate"
+    :parse-fn str]
    ["-h" "--help"]])
 
 (defn show! [data & {:keys [colors] :or {colors false}}]
@@ -89,7 +92,7 @@
                          (process-node-repl-input! input !code params)))))))
 
 (defn -main [& args]
-  (let [{{:keys [repl help] :as params} :options,
+  (let [{{:keys [repl help path] :as params} :options,
          errors :errors,
          args :arguments :as m}
         (parse-opts args cli-options)
@@ -99,6 +102,11 @@
       errors (println errors)
       repl #?(:clj (apply stdin-loop! params)
               :cljs (apply node-repl! params))
+      path (when-let [code (#?(:clj slurp
+                               :cljs #(node-fs/readFileSync % #js {:encoding "utf-8" :flag "r"})) path)]
+             (apply show!
+                    (apply convert code params)
+                    params))
       :else (if args
               (apply show!
                      (apply convert (first args) params)
