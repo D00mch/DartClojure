@@ -224,6 +224,16 @@ npx dartclojure -h
 npx dartclojure "Text('a')" -m "m"
 ```
 
+You can of course also install globally:
+
+```sh
+npm i -g dartclojure
+
+dartclojure -h
+
+dartclojure "Text('a')" -m "m"
+```
+
 ### API with npm library
 
 ```js
