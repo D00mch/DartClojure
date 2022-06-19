@@ -98,6 +98,8 @@ There are 5 options now:
 3. Clojure Cli;
 4. Jar. 
 5. Native image
+6. NPM CLI
+7. NPM library
 
 ### API From Calva
 
@@ -214,7 +216,7 @@ see how to build it with graalvm below.
 
 ### API with npm CLI
 
-Same apu as with jar and native image:
+Same api as with jar and native image:
 
 ```sh
 npx dartclojure -h
