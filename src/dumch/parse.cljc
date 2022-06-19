@@ -296,7 +296,7 @@
                      (mapn ast->clj (rest node)))))
     :method (lnode [(tnode 'defn) ws
                     (ast->clj v1) ws
-                    (ast->clj v2) nl
+                    (ast->clj v2) ws
                     (ast->clj v3)])
 
     :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))

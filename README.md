@@ -37,7 +37,7 @@ Center(
 
 3 more examples:
 
-![Screen Recording 20.2.15-29 at 19 38 44](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
+![Screen Recording 20.2.25-29 at 19 38 44](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
 
 
 ## Supported
@@ -86,8 +86,8 @@ Center(
 - [X] support for, while;
 - [X] support switch;
 - [X] support native artifacts
+- [X] convert files;
 - [ ] test classes and methods extensively;
-- [ ] convert files;
 - [ ] handle early exit from lambdas/if/for/methods with `return`;
 
 ## How to use
@@ -117,13 +117,13 @@ Add Cli/deps:
 ```clojure
 {:deps 
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.1-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.2-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot: 
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.2.1-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.2.2-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -155,7 +155,7 @@ If you just need to wrap clojure code with nest:
 
 ```bash
 clojure -Sdeps \
-'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.1-SNAPSHOT"}}}' \
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.2-SNAPSHOT"}}}' \
 -e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" :material \"m\" :flutter \"f\")"
 ```
 
@@ -209,6 +209,8 @@ Same api as with jar:
     ./dartclj -h
 
     ./dartclj "Text('a')" -m "m"
+
+    ./dartclj --path main.dart
 
 If there is no build for your architecture on [release page][4], 
 see how to build it with graalvm below.
@@ -298,8 +300,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.1-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.2-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.1
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.2
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
