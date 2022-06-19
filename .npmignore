@@ -1,0 +1,13 @@
+# Put everything on the blacklist by default
+*
+*/**
+**/.DS_Store
+*/**/.DS_Store
+
+# Whitelist
+!target/npm-app
+!target/npm-lib
+!package.json
+!README.md
+!CHANGELOG.md
+!LICENSE
