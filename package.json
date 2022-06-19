@@ -15,12 +15,14 @@
   "main": "target/npm-lib/index.js",
   "bin": "target/npm-app/index.js",
   "scripts": {
+    "clean": "rimraf target/npm-*",
     "watch": "shadow-cljs watch :app :lib :test",
     "compile": "shadow-cljs compile :app :lib",
     "release": "shadow-cljs release :app :lib",
-    "build": "npm run release"
+    "prepublish": "npm run clean && npm run release"
   },
   "devDependencies": {
+    "rimraf": "3.0.2",
     "shadow-cljs": "^2.19.3"
   }
 }
