@@ -92,14 +92,14 @@ Center(
 
 ## How to use
 
-There are 5 options now:
+There are 7 options now:
 1. Calva (VSCode);
 2. Jvm/Js REPL;
 3. Clojure Cli;
-4. Jar.
-5. Native image
-6. NPM CLI
-7. NPM library
+4. Jar;
+5. Native image;
+6. NPM CLI;
+7. NPM library;
 
 ### API From Calva
 
