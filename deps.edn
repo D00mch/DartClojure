@@ -4,7 +4,6 @@
         better-cond/better-cond {:mvn/version "2.1.4"}
         instaparse/instaparse {:mvn/version "1.4.12"}
         rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}
-        thheller/shadow-cljs {:mvn/version "2.19.3"}
         zprint/zprint {:mvn/version "1.2.3"}}
  :aliases
  {:depstar {:replace-deps
@@ -27,6 +26,9 @@
          :exec-fn cognitect.test-runner.api/test}
   :test-shadow-cljs {:extra-paths ["test"]}
   :cljs {:extra-deps {org.clojure/clojurescript {:mvn/version "1.11.54"}}}
+  :shadow-cljs
+  {:extra-deps {thheller/shadow-cljs {:mvn/version "2.19.3"}}
+   :main-opts ["-m" "shadow.cljs.devtools.cli" "-d" "cider/cider-nrepl:0.28.3"]}
   :test-cljs
   {:extra-deps
    {olical/cljs-test-runner {:mvn/version "3.8.0"}}

@@ -1,6 +1,6 @@
 # DartClojure
 
-Opinionated dart to clojure converter for flutter widgets. 
+Opinionated dart to clojure converter for flutter widgets.
 It doesn't (and probably will not) convert classes, setters, annotations —
 only the part that could be reused after translation.
 
@@ -8,18 +8,18 @@ only the part that could be reused after translation.
 
 ## Why is it  not a full dart->clojure converter?
 
-All the converted code would not be idiomatic. Instead of using 
-classes there is a [widget][1] macro. 
+All the converted code would not be idiomatic. Instead of using
+classes there is a [widget][1] macro.
 
 Setters are also useless, there would be a `:state` atom
 and `swap!` or `reset!` functions for changing the state.
 
 So I see little value in converting everything.
 
-But rewriting widgets is a routine part and most of the time 
+But rewriting widgets is a routine part and most of the time
 translates literally:
 
-```dart 
+```dart
 Center(
   child: Text(
     _active ? 'Active' : 'Inactive',
@@ -37,7 +37,7 @@ Center(
 
 3 more examples:
 
-![Screen Recording 20.2.25-29 at 19 38 44](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
+![Screen Recording](https://user-images.githubusercontent.com/14236531/170881526-82983262-fd41-45e4-a90d-270859431890.gif)
 
 
 ## Supported
@@ -92,11 +92,11 @@ Center(
 
 ## How to use
 
-There are 5 options now: 
+There are 5 options now:
 1. Calva (VSCode);
 2. Jvm/Js REPL;
 3. Clojure Cli;
-4. Jar. 
+4. Jar.
 5. Native image
 6. NPM CLI
 7. NPM library
@@ -115,15 +115,15 @@ See [calva clojuredart docs][5] for some (tiny) bit more on the subject.
 
 Add Cli/deps:
 ```clojure
-{:deps 
+{:deps
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.2-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.6-SNAPSHOT"}
      }}
 ```
 
-Or Leiningen/Boot: 
+Or Leiningen/Boot:
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.2.2-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.2.6-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -135,7 +135,7 @@ Convert dart code (simplify and wrap-nest under the hood):
 
 You may pass aliases for material and flutter-macro:
 ```clojure
-(convert "Text('1')" :material "m" :flutter "f") ; => "(m/Text "1")" 
+(convert "Text('1')" :material "m" :flutter "f") ; => "(m/Text "1")"
 ```
 
 If you just need to wrap clojure code with nest:
@@ -155,7 +155,7 @@ If you just need to wrap clojure code with nest:
 
 ```bash
 clojure -Sdeps \
-'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.2-SNAPSHOT"}}}' \
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.6-SNAPSHOT"}}}' \
 -e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" :material \"m\" :flutter \"f\")"
 ```
 
@@ -164,10 +164,10 @@ clojure -Sdeps \
 There are two ways to interact with the [jar][4]. First one is to run it each time:
 
 ```
-$ java -jar dartclj.jar "Divider(        
+$ java -jar dartclj.jar "Divider(
     height: 0,
     color: Colors.grey,
-)"       
+)"
 
 (m/Divider :height 0 :color m.Colors/grey)
 ```
@@ -177,7 +177,7 @@ Second one is to run repl-like console (and send code into it with your editor/i
 $ java -jar dartclj.jar -r true -m "material"
 Paste dart code below, press enter and see the result:
 
-Divider(        
+Divider(
     height: 0,
     color: Colors.grey,
 )
@@ -189,11 +189,11 @@ Colors are also supported:
 
 ![image](https://user-images.githubusercontent.com/14236531/172026319-0f770f8c-5a33-4703-91d0-37cbd3772700.png)
 
-For example, you may start the repl-like console app with -e key: 
+For example, you may start the repl-like console app with -e key:
 ```
 $ java -jar dartclj.jar -r true -e :end
 ```
-And then send code directly from Idea with hotkeys with 
+And then send code directly from Idea with hotkeys with
 [Send To Terminal][3] plugin. [Example video](https://youtu.be/b5M-d_CYH6w)
 
 
@@ -212,7 +212,7 @@ Same api as with jar:
 
     ./dartclj --path main.dart
 
-If there is no build for your architecture on [release page][4], 
+If there is no build for your architecture on [release page][4],
 see how to build it with graalvm below.
 
 
@@ -247,7 +247,7 @@ const clojureCode = converter.convert("Text('a')");
 ## Contribution
 
 Build jar:
-  
+
     $ clj -X:depstar
 
 Run tests:
@@ -258,12 +258,12 @@ Run docker, build graalvm image:
 
     $ docker build --tag dartclojure .
     $ docker run -it dartclojure ./dartclj "Text('should work')"
-    $ docker cp dc:/usr/src/app/dartclj . 
+    $ docker cp dc:/usr/src/app/dartclj .
 
 Compile native image with graalvm locally:
 
     # install graalvm
-    $ chmod +x compile.sh 
+    $ chmod +x compile.sh
     $ ./compile.sh
 
 Remember to comment out line with `-H:+StaticExecutableWithDynamicLibC` for osx m1
@@ -272,7 +272,7 @@ builds.
 Start shadow-cljs watcher and REPL:
 
 ```
-npx shadow-cljs -d cider/cider-nrepl:0.28.3 watch :app :lib :test
+clj -M:shadow-cljs watch :app :lib :test
 ```
 
 (You can use this for developing both the Clojure and ClojureScript library, but the test watcher will only be watching and running the ClojureScript tests.)
@@ -300,8 +300,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.2-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.6-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.2
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.6
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
