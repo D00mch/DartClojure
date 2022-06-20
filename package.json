@@ -1,7 +1,7 @@
 {
   "name": "dartclojure",
   "description": "Opinionated Dart to Clojure converter for Flutter widgets.",
-  "version": "0.2.2",
+  "version": "0.2.6",
   "publisher": "liverm0r",
   "author": {
     "name": "Artur Dumchev",
