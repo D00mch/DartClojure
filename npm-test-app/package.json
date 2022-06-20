@@ -1,0 +1,24 @@
+{
+  "name": "npm-test-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "watch": "shadow-cljs watch app",
+    "compile": "shadow-cljs compile app",
+    "release": "shadow-cljs release app",
+    "html": "mkdir -p target && cp assets/index.html target/",
+    "serve": "npm run html && http-server target/",
+    "del": "rm -r target/*",
+    "build": "npm run release && npm rum html && npm run serve"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "shadow-cljs": "^2.19.3"
+  },
+  "dependencies": {
+    "dartclojure": "file:.."
+  }
+}

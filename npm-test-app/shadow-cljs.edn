@@ -1,0 +1,7 @@
+{:source-paths ["src"]
+ :dependencies []
+ :dev-http {8080 "target/"}
+ :builds {:app {:output-dir "target/"
+                :asset-path "."
+                :target :browser
+                :modules {:main {:init-fn converter.core/main!}}}}}
