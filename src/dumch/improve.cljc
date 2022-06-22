@@ -44,10 +44,14 @@
   (-> do-zloc z/remove z/splice z/up))
 
 (def ^:private core-vars
-  #{'Comparator 'DateTime 'Duration 'Error 'Exception 'Expando 
-    'Function 'Invocation 'Iterable 'Iterator 'List 'Map 'Null
-    'Object 'Pattern 'RegExp 'Set 'Sink 'StackTrace 'Stopwatch
-    'String 'StringBuffer 'StringSink 'Symbol 'Type 'Uri})
+  #{'AbstractClassInstantiationError 'ArgumentError 'AssertionError 'BidirectionalIterator 
+    'BigIntbool 'CastError 'Comparable 'Comparator 'ConcurrentModificationError 
+    'CyclicInitializationError 'DateTime 'double 'Duration 'Error 'Exception 'Expando  
+    'FallThroughError 'Finalizer 'FormatException 'Function 'IndexError 'IntegerDivisionByZeroException
+    'Invocation 'Iterable 'Iterator 'List 'Map 'MapEntry 'Match 'NoSuchMethodError 'Null 'NullThrownError
+    'Object 'OutOfMemoryError 'Pattern 'pragma 'RangeError 'RegExp 'RegExpMatch 'Runes 'RuneIterator 'Set 
+    'Sink 'StackOverflowError 'StackTrace 'StateError 'Stopwatch 'String 'StringBuffer 'StringSink
+    'Symbol 'Type 'TypeError 'UnimplementedError 'UnsupportedError 'Uri 'WeakReference})
 
 (b/defnc- insert-import [symb m]
   :let [s (str symb)]
