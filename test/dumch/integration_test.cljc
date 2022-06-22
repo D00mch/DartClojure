@@ -38,26 +38,26 @@ AnimatedContainer(
         (read-string (convert code))
         '(f/nest
            (m/AnimatedContainer
-             :transformAlignment (.center m/Alignment) 
+             :transformAlignment (.-center m/Alignment) 
              :transform (.diagonal3Values
                           m/Matrix4
                           (if _isOpened 0.7 1.0)
                           (if _isOpened 0.7 1.0)
                           1.0)
              :duration (Duration :milliseconds 250)
-             :curve (m/Interval 0.0 0.5 :curve (.easeOut m/Curves)))
+             :curve (m/Interval 0.0 0.5 :curve (.-easeOut m/Curves)))
            (m/AnimatedRotation
              :turns (if _isOpened -0.1 0)
-             :curve (m/Interval 0.25 1.0 :curve (.easeInOut m/Curves))
+             :curve (m/Interval 0.25 1.0 :curve (.-easeInOut m/Curves))
              :duration (Duration :milliseconds 250))
            (m/FloatingActionButton
              :onPressed
              (fn [] :unidiomatic)
              :backgroundColor 
-             (if _isOpened (.white m/Colors) (.primaryColor theme)))
+             (if _isOpened (.-white m/Colors) (.-primaryColor theme)))
            (m/Icon
-             (.add m/Icons)
-             :color (if _isOpened (.primaryColor theme) (.white m/Colors))))))))
+             (.-add m/Icons)
+             :color (if _isOpened (.-primaryColor theme) (.-white m/Colors))))))))
 
 (def code2 "
 Column(
@@ -87,5 +87,5 @@ Column(
             (->
               (get (get questions _questionIndex) "answers")
               (.map (fn [answer] (m/Answer _answerQuestion answer)))
-              (.toList))
+              .toList)
             (m/Numb :sorted (and (= a b) (< 1 2 3 a)))])))))

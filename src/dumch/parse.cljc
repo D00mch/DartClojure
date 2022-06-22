@@ -123,17 +123,22 @@
 (defn- flatten-dot [node ast->clj]
   (loop [[tag v1 v2 :as node] node ;; having structure like [dot [dot a b] c]
          stack [] ;; put here 'c', then 'b', while trying to find 'a' ^
-         [a [_ n params :as b] :as rslt] []  ;; result will look like [a b c]
+         [a [tag2 n params :as b] :as rslt] []  ;; result will look like [a b c]
          op? false]
     (cond (= :dot tag) (recur v1 (conj stack v2) rslt op?)
           (= :dot-op tag) (recur v1 (conj stack v2) rslt true)
           node (recur nil (conj stack node) rslt op?)
           (seq stack) (recur node (pop stack) (conj rslt (peek stack)) op?)
-
           op? (lnode (list* (tnode 'some->) ws (maps ast->clj rslt)))
           (= (count rslt) 2)
-          (ast->clj [:invoke n (cons :params (cons [:argument a] (next params)))])
+          (ast->clj [tag2 n (cons :params (cons [:argument a] (next params)))])
           :else (lnode (list* (tnode '->) ws (maps ast->clj rslt))))))
+
+(defn- dot->clj [[tag v1 v2] ast->clj]
+  (let [dt (if (= tag :invoke) "." ".-")]
+    (if (and v2 (> (count v2) 1))
+      (lnode (list* (ast->clj [tag v1]) ws (ast->clj v2)))
+      (tnode (symbol (str dt (ast->clj v1)))))))
 
 (defn flatten-same-node [[f & params]] ;; [f [f 1 2] 3] -> [f 1 2 3]
   (mapcat
@@ -306,8 +311,8 @@
 
     :dot  (flatten-dot node ast->clj)
     :dot-op (flatten-dot node ast->clj)
-    :invoke (lnode (list* (ast->clj [:field v1]) ws (ast->clj v2)))
-    :field (tnode (symbol (str "." (ast->clj v1))))
+    :invoke (dot->clj node ast->clj)
+    :field (dot->clj node ast->clj)
 
     :lambda (lnode [(tnode 'fn) ws (ast->clj v1) nl (ast->clj v2)])
     :lambda-args (vnode (->> node rest (maps ast->clj)))

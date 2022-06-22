@@ -79,49 +79,49 @@
            (-> '(Text "text")))))
   (testing "line invocations"
     (is (= (dart->clojure "One(1).two().three(2, 3)")
-           '(-> (One 1) (.two) (.three 2 3)))))
+           '(-> (One 1) .two (.three 2 3)))))
   (testing "instance method invocation"
     (is (= (dart->clojure "_pinPut.copyWith(border: 1)")
            '(.copyWith _pinPut :border 1))))
   (testing "field's field.method invocation"
     (is (= (dart->clojure "field!.pinPut.copyWith(border: 1)")
-           '(-> field .pinPut (.copyWith :border 1)))))
+           '(-> field .-pinPut (.copyWith :border 1)))))
   (testing "static field method invocation"
     (is (= (dart->clojure "SClass.field.copyWith(border: 1)")
-           '(-> SClass .field (.copyWith :border 1)))))
+           '(-> SClass .-field (.copyWith :border 1)))))
   (testing "invocation on list"
     (is (= (-> "[1].cast()" dart->clojure)
            '(.cast [1])))
     (is (= (-> "[1].length" dart->clojure)
-           '(.length [1]))))
+           '(.-length [1]))))
   (testing "invocation on map"
     (is (= (-> "{1:1}.cast()" dart->clojure)
            '(.cast {1 1})))
     (is (= (-> "{1:1}.length" dart->clojure)
-           '(.length {1 1}))))
+           '(.-length {1 1}))))
   (testing "long chaing of dots"
     (is (= (-> "a.b().c.d().e()" dart->clojure)
-           '(-> a (.b) .c (.d) (.e))))))
+           '(-> a .b .-c .d .e)))))
 
 (deftest optional-name-test
   (testing "optional field somewhere in the chain"
     (is (= (-> "obj?.field.name?.first" dart->clojure)
-           '(some-> obj .field .name .first)))
+           '(some-> obj .-field .-name .-first)))
     (is (= (-> "obj.field?.name" dart->clojure)
-           '(some-> obj .field .name))))
+           '(some-> obj .-field .-name))))
   (testing "field in optional object"
     (is (= (-> "obj?.name" dart->clojure)
-           '(some-> obj .name))))
+           '(some-> obj .-name))))
   (testing "only one optional in the chain"
     (is (= (-> "a.b?.c.d().e" dart->clojure)
-           '(some-> a .b .c (.d) .e)))))
+           '(some-> a .-b .-c .d .-e)))))
 
 (deftest optional-invocation-test
   (testing "optional field somewhere in the invocation chain"
     (is (= (dart->clojure "SClass?.field.copyWith(border: 1)")
-           '(some-> SClass .field (.copyWith :border 1))))
+           '(some-> SClass .-field (.copyWith :border 1))))
     (is (= (dart->clojure "SClass.field?.copyWith()")
-           '(some-> SClass .field (.copyWith)))))
+           '(some-> SClass .-field .copyWith))))
   (testing "invocation on optional field"
     (is (= (dart->clojure "instance?.copyWith(border: 1)")
            '(some-> instance (.copyWith :border 1))))))
@@ -131,7 +131,7 @@
   (testing "ignore spread operator"
     (is (= (-> "[...state.a.map((acc) => _t(ctx, acc))]"
                dart->clojure)
-           '[(-> :unidiomatic .a (.map (fn [acc] (_t ctx acc))))])))
+           '[(-> :unidiomatic .-a (.map (fn [acc] (_t ctx acc))))])))
   (testing "typed list"
     (is (= (-> "<Int>[1, 2]" dart->clojure)
            [1 2])))
@@ -140,7 +140,7 @@
       (= (-> "Column(children: [const Text('name'),
                                 Icon(Icons.widgets)])"
              dart->clojure)
-         '(Column :children [(Text "name") (Icon (.widgets Icons))]))))
+         '(Column :children [(Text "name") (Icon (.-widgets Icons))]))))
   (testing "ifnull and ternary list elements"
     (is (= (-> "[ a? 1 : b, c ?? d ]" dart->clojure)
            '[(if a 1 b) (or c d)]))))
@@ -166,7 +166,7 @@
 (deftest get-test
   (testing "get for field"
     (is (= (dart->clojure "Colors.red[500]!")
-           '(get (.red Colors) 500))))
+           '(get (.-red Colors) 500))))
   (testing "single get"
    (is (= (dart->clojure "tabs[2]") '(get tabs 2))))
   (testing "serveral get in a row"
@@ -245,11 +245,11 @@
   (testing "invocation constructor"
     (is (= (dart->clj-string
              "const Icon(Icons.star)")
-           "^:const (m/Icon (.star m/Icons))")))
+           "^:const (m/Icon (.-star m/Icons))")))
   (testing "invocation constructor"
     (is (= (dart->clj-string
              "const Icon(Icons.star)")
-           "^:const (m/Icon (.star m/Icons))"))))
+           "^:const (m/Icon (.-star m/Icons))"))))
 
 (deftest unary-prefix-test
   (testing "not" (is (= (dart->clojure "!a") '(not a))))
@@ -365,7 +365,7 @@
            '(Text "name"))))
   (testing "block comment"
     (is (= (dart->clojure "Text(widget.photo.user!.name /* comment */ )")
-           '(Text (-> widget .photo .user .name)))))
+           '(Text (-> widget .-photo .-user .-name)))))
   (testing "comment-like structure inside string"
     (is (= (dart->clojure "Text(
                                 'http://looks-like-comment',
@@ -457,7 +457,7 @@
                                print(1)
                             }
                             a")
-           '(do :unidiomatic (when (.isLoading item) (print 1)) a)))))
+           '(do :unidiomatic (when (.-isLoading item) (print 1)) a)))))
 
 (deftest return-test
   (is (= (-> "if (a) return;" dart->clojure) '(when a nil))))
