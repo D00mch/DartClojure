@@ -93,15 +93,16 @@ Center(
 ## How to use
 
 There are 7 options now:
-1. Calva (VSCode);
-2. Jvm/Js REPL;
-3. Clojure Cli;
-4. Jar;
-5. Native image;
-6. NPM CLI;
-7. NPM library;
+1. [Calva (VSCode);](https://github.com/Liverm0r/DartClojure/#api-from-calva)
+2. [Intellij Idea;](https://github.com/Liverm0r/DartClojure/#api-from-intellij-idea)
+3. [Jvm/Js REPL;](https://github.com/Liverm0r/DartClojure/#api-from-jvmjs-repl)
+4. [Clojure Cli;](https://github.com/Liverm0r/DartClojure/#api-from-cli)
+5. [Jar;](https://github.com/Liverm0r/DartClojure/#api-with-jar)
+6. [Native image;](https://github.com/Liverm0r/DartClojure/#api-with-native-image)
+7. [NPM CLI;](https://github.com/Liverm0r/DartClojure/#api-with-npm-cli)
+8. [NPM library;](https://github.com/Liverm0r/DartClojure/#api-with-npm-library)
 
-### API From Calva
+### API from Calva
 
 [Calva][6] (a VSCode Clojure extension) packs DartClojure conversion into a command. This makes it easy to paste some Dart code and convert it.
 
@@ -109,6 +110,25 @@ There are 7 options now:
 
 See [calva clojuredart docs][5] for some (tiny) bit more on the subject.
 
+### API from Intellij Idea 
+
+You could use available api (4, 5, 6, 7) directly from Idea with [External Tools][3].
+
+Preferences —> Tools —> External Tools —> +  
+
+`Program`: any terminal command. For example, if you have npm, install
+dartclojure globally and put `dartclojure` in the `Program` field. If you
+downloaded native image, put path to native image here:
+`/Users/PcName/Downloads/dartclj-aarch64-darwin`
+
+`Arguments`: `"$SelectedText$"` 
+
+![image](https://user-images.githubusercontent.com/14236531/175103257-cd2894ab-e20d-4990-9469-c4280ac228ed.png)
+
+Thats it. Select code, press `shift + shift` (or `cmd + shift + a`), type
+`DartClojure` and press enter (or setup hotkey on it). Little [video][7] how it
+looks.
+ 
 ### API from jvm/js REPL
 
 [Clojars][2].
@@ -193,9 +213,6 @@ For example, you may start the repl-like console app with -e key:
 ```
 $ java -jar dartclj.jar -r true -e :end
 ```
-And then send code directly from Idea with hotkeys with
-[Send To Terminal][3] plugin. [Example video](https://youtu.be/b5M-d_CYH6w)
-
 
 For all the arguments see:
 ```bash
@@ -301,7 +318,8 @@ limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
 [2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.7-SNAPSHOT
-[3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
+[3]: https://www.jetbrains.com/help/idea/configuring-third-party-tools.html
 [4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.7
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
+[7]: https://www.reddit.com/r/Clojure/comments/vib5ie/how_to_translate_dart_to_clojuredart_inside/
