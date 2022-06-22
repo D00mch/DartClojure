@@ -5,7 +5,7 @@ metadata       = ('@' qualified params? <';'>?)+
 file           = import-block? 
                  (<metadata?> 
                    (method | var-declare <';'> | class | _typedef | for-in |
-                    _for | _while | _do-while | switch | try | enum))*
+                    _for | _while | _do-while | switch | try | enum | return))*
 <method-decl>  = <'static'?> <dtype>? identifier lambda-args 
 <method-body>  = (block | <'=>'> assign-val) <';'*>
 method         = method-decl method-body
