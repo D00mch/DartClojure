@@ -15,10 +15,6 @@
 (defn mapn [f sq] (interpose nl (map f sq)))
 (defn mapcatn [f sq] (interpose nl (mapcat f sq)))
 
-(defn with-print [arg]
-  (println :with-print arg)
-  arg)
-
 #?(:clj
    (defmacro inline-resource [resource-path]
      (slurp (clojure.java.io/resource resource-path))))
