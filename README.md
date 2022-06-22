@@ -117,13 +117,13 @@ Add Cli/deps:
 ```clojure
 {:deps
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.6-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.7-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot:
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.2.6-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.2.7-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -155,7 +155,7 @@ If you just need to wrap clojure code with nest:
 
 ```bash
 clojure -Sdeps \
-'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.6-SNAPSHOT"}}}' \
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.7-SNAPSHOT"}}}' \
 -e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" :material \"m\" :flutter \"f\")"
 ```
 
@@ -257,7 +257,7 @@ Run tests:
 Run docker, build graalvm image:
 
     $ docker build --tag dartclojure .
-    $ docker run -it dartclojure ./dartclj "Text('should work')"
+    $ docker run --name dc -it dartclojure ./dartclj "Text('should work')"
     $ docker cp dc:/usr/src/app/dartclj .
 
 Compile native image with graalvm locally:
@@ -300,8 +300,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.6-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.7-SNAPSHOT
 [3]: https://plugins.jetbrains.com/plugin/9409-send-to-terminal
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.6
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.7
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva

@@ -14,7 +14,7 @@ native-image -jar dartclj.jar --initialize-at-build-time --no-fallback \
     -J-Dclojure.spec.skip.macros=true -J-Dclojure.compiler.direct-linking=true \
     --verbose --no-server -J-Xmx3G \
     --report-unsupported-elements-at-runtime --native-image-info \
-    -H:+StaticExecutableWithDynamicLibC \
+    # -H:+StaticExecutableWithDynamicLibC \
     -H:CCompilerOption=-pipe \
     -H:ReflectionConfigurationFiles=META-INF/native-image/logging.json
 

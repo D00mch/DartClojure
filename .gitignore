@@ -27,6 +27,11 @@
 /classes
 /target
 
+# Native
+/META-INF
+/reports
+dartclj-aarch64-darwin
+dartclj-aarch64-linux
 
 # Lint
 .clj-kondo/*
