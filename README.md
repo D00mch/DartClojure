@@ -112,7 +112,7 @@ See [calva clojuredart docs][5] for some (tiny) bit more on the subject.
 
 ### API from Intellij Idea 
 
-You could use available api (4, 5, 6, 7) directly from Idea with [External Tools][3].
+You could use available [api](https://github.com/Liverm0r/DartClojure/#how-to-use) (4, 5, 6, 7) directly from Idea with [External Tools][3].
 
 Preferences —> Tools —> External Tools —> +  
 
