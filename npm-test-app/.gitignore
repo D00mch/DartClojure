@@ -1,0 +1,9 @@
+# Lint
+.clj-kondo/*
+!.clj-kondo/config.edn
+.lsp/
+
+# CLJS
+.cljs_node_repl/
+cljs-test-runner-out/
+.shadow-cljs/

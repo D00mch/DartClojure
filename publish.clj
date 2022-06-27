@@ -37,6 +37,7 @@
 
 (defn rebuild-and-publish-npm- []
   (println "about to clean")
+  (cmd! "rm -rf target; rm -rf .shadow-cljs")
   (cmd-prn! "npm run clean")
   (println "clean finished; about to build release")
   (cmd-prn! "clj -M:shadow-cljs release :app :lib")
