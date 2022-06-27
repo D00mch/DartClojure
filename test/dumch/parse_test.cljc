@@ -147,6 +147,7 @@
 
 (deftest map-test
   (testing "empty map" (is (=  (dart->clojure "{}") '{})))
+  (testing "map with end comma" (is (=  (dart->clojure "{1: 1,}") '{1 1})))
   (testing "typeless map as named parameter"
     (is
       (= (dart->clojure "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})")

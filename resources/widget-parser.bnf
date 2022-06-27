@@ -143,7 +143,7 @@ list           = <type-args?>
 _spread        = '...' value 
 map            = <type-args?> 
                  <'{'> (expr <':'> expr
-                        (<','> (identifier|string|number) <':'> expr)* 
+                        (<','> (identifier|string|number) <':'> expr)* <','>? 
                         | EPSILON ) <'}'>
 get            = (get | identifier | map | dot | dot-op)
                  <'['> (identifier | string | number | dot | dot-op) <']'>     
