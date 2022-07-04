@@ -347,11 +347,12 @@
 
     :and (->> node flatten-commutative-node flatten-compare (maps ast->clj) lnode)
     :compare+ (lnode (list* (ast->clj v1) ws (->> node (drop 2) (maps ast->clj))))
+    (:or :add :mul) (lnode (maps ast->clj (flatten-commutative-node node)))
+    (:not :dec :inc) (lnode [(tnode (symbol tag)) ws (ast->clj v1)])
+    (:compare :div :ifnull :equality) 
+    (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])
+
     (cond
-      (#{:or :add :mul} tag) (lnode (maps ast->clj (flatten-commutative-node node)))
-      (#{:not :dec :inc} tag) (lnode [(tnode (symbol tag)) ws (ast->clj v1)])
-      (#{:compare :div :ifnull :equality} tag)
-      (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])
       (and (keyword? tag) (-> tag str second (= \_))) :unidiomatic
       :else :unknown)))
 
