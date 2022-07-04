@@ -1,6 +1,6 @@
 # DartClojure
 
-Opinionated dart to clojure converter for flutter widgets.
+Opinionated Dart to Clojure converter for Flutter widgets.
 It doesn't (and probably will not) convert classes, setters, annotations —
 only the part that could be reused after translation.
 
