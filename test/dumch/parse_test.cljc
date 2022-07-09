@@ -449,7 +449,9 @@
              result)))))
 
 (deftest await-test
-  (is (= (dart->clojure  "await a") '(await a))))
+  (is (= (dart->clojure  "await a") '(await a)))
+  (is (= (dart->clojure  "await db.collection('todos').get();")
+         '(await (-> db (.collection "todos") .get)))))
 
 (deftest statement-test
   (testing "several expressions | statements in a row with | without ';'"

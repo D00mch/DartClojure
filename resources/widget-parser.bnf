@@ -81,8 +81,10 @@ block          = <'{'> ( statement <';'> | expr <end> | method )* return? <'}'>
 expr-list      = expr (',' expr)*
 <expr>         = lambda-val <'!'>?
 
-<lambda-val>   = cascade-val | lambda 
-lambda         = lambda-args block | lambda-args <'=>'> assign-val
+<lambda-val>   = await-val | lambda 
+lambda         = lambda-args block | lambda-args <'=>'> await-val
+<await-val>    = cascade-val | await
+await          = <'await'> await-val        
 <cascade-val>  = assign-val | cascade
 cascade        = cascade-val <'..'> assign-val
 <assign-val>   = ternary-val | _set
@@ -114,13 +116,12 @@ dot            = dot-val (invoke | field)
                | constructor | invoke | typecasting | const  
                | list | map | get | _spread | if
                | inc | _inc | dec | _dec | identifier | number
-               | _tilda | neg | not | await) <';'?> 
+               | _tilda | neg | not) <';'?> 
 
 typecasting    = value 'as' dtype
 
 invoke         = <'.'> typed-value params  <';'?>
 field          = <'.'> identifier <';'?>
-await          = <'await'> (value)
 neg            = !number <'-'> value
 not            = <'!'> value
 dec            = <'--'> value
