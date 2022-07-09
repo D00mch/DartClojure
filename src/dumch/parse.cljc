@@ -415,12 +415,13 @@
     ")
 
   (def code2 "
-final tween = MultiTween<AniProps>()
-        ..add(AniProps.opacity, Tween(begin: 0.0, end: 1.0))
-        ..add(AniProps.translateY, Tween(begin: -30.0, end: 0.0), Duration(milliseconds: 500), Curves.easeOut);
+Future<String> createOrderMessage() async {
+  var order = await fetchUserOrder();
+  return 'Your order is: $order';
+}
     ")
 
-  (insta/parses widget-parser code2 :total 1)
+  (insta/parses widget-parser code2)
 
   (dart->clojure code2)
 
