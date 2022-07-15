@@ -82,13 +82,13 @@
            '(-> (One 1) .two (.three 2 3)))))
   (testing "instance method invocation"
     (is (= (dart->clojure "_pinPut.copyWith(border: 1)")
-           '(.copyWith _pinPut :border 1))))
+           '(.copyWith _pinPut .border 1))))
   (testing "field's field.method invocation"
     (is (= (dart->clojure "field!.pinPut.copyWith(border: 1)")
-           '(-> field .-pinPut (.copyWith :border 1)))))
+           '(-> field .-pinPut (.copyWith .border 1)))))
   (testing "static field method invocation"
     (is (= (dart->clojure "SClass.field.copyWith(border: 1)")
-           '(-> SClass .-field (.copyWith :border 1)))))
+           '(-> SClass .-field (.copyWith .border 1)))))
   (testing "invocation on list"
     (is (= (-> "[1].cast()" dart->clojure)
            '(.cast [1])))
@@ -119,12 +119,12 @@
 (deftest optional-invocation-test
   (testing "optional field somewhere in the invocation chain"
     (is (= (dart->clojure "SClass?.field.copyWith(border: 1)")
-           '(some-> SClass .-field (.copyWith :border 1))))
+           '(some-> SClass .-field (.copyWith .border 1))))
     (is (= (dart->clojure "SClass.field?.copyWith()")
            '(some-> SClass .-field .copyWith))))
   (testing "invocation on optional field"
     (is (= (dart->clojure "instance?.copyWith(border: 1)")
-           '(some-> instance (.copyWith :border 1))))))
+           '(some-> instance (.copyWith .border 1))))))
 
 (deftest ^:current  list-test
   (testing "empty list" (is (=  (dart->clojure "[]") '[])))
@@ -140,7 +140,7 @@
       (= (-> "Column(children: [const Text('name'),
                                 Icon(Icons.widgets)])"
              dart->clojure)
-         '(Column :children [(Text "name") (Icon (.-widgets Icons))]))))
+         '(Column .children [(Text "name") (Icon (.-widgets Icons))]))))
   (testing "ifnull and ternary list elements"
     (is (= (-> "[ a? 1 : b, c ?? d ]" dart->clojure)
            '[(if a 1 b) (or c d)]))))
@@ -151,7 +151,7 @@
   (testing "typeless map as named parameter"
     (is
       (= (dart->clojure "ListCell.icon(m: {1 : 2, 'a' : b, c : 'd'})")
-         '(.icon ListCell :m {1 2, "a" b, c "d"}))))
+         '(.icon ListCell .m {1 2, "a" b, c "d"}))))
   (testing "typed map"
     (is
       (= (-> "<int, List<int>>{1: [1, 2]}" dart->clojure)
@@ -197,7 +197,7 @@
     (is (= (dart->clojure
              "TextButton(onPressed: _searchEnabled ? () { pop(); } : null)")
            '(TextButton
-              :onPressed
+              .onPressed
               (if _searchEnabled
                 (fn [] (pop))
                 null))))))
@@ -214,7 +214,7 @@
             (.setStreet "Elm" "13a")
             :unidiomatic
             :unidiomatic
-            (.zip 66666 :extended 6666)))))
+            (.zip 66666 .extended 6666)))))
 
 (deftest for-test
   (testing "for-in, expressiong body"
@@ -242,7 +242,7 @@
   (testing "invocation const"
     (is (= (dart->clj-string
              "IconButton(padding: const EdgeInsets.all(0),);")
-           "(m/IconButton :padding ^:const (.all m/EdgeInsets 0))")))
+           "(m/IconButton .padding ^:const (.all m/EdgeInsets 0))")))
   (testing "invocation constructor"
     (is (= (dart->clj-string
              "const Icon(Icons.star)")
@@ -275,13 +275,13 @@
 (deftest lambda-test
   (testing "lambda with =>"
     (is (= (dart->clojure "Button(onPressed: (ctx) => 1 + 1;)")
-           '(Button :onPressed (fn [ctx] (+ 1 1))))))
+           '(Button .onPressed (fn [ctx] (+ 1 1))))))
   (testing "lambda with body"
     (is (= (dart->clojure "Button(onPressed: (ctx) { println(a == a); setState(a); })")
-           '(Button :onPressed (fn [ctx] (do (println (= a a)) (setState a)))))))
+           '(Button .onPressed (fn [ctx] (do (println (= a a)) (setState a)))))))
   (testing "lambda with typed argument"
     (is (= (dart->clojure "Button(onPressed: (Context ctx) => 1 + 1;)")
-           '(Button :onPressed (fn [ctx] (+ 1 1)))))))
+           '(Button .onPressed (fn [ctx] (+ 1 1)))))))
 
 (deftest if-test
   (testing "one branch if with curly body"

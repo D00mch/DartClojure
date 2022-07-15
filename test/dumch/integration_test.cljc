@@ -38,26 +38,26 @@ AnimatedContainer(
         (read-string (convert code))
         '(f/nest
            (m/AnimatedContainer
-             :transformAlignment (.-center m/Alignment) 
-             :transform (.diagonal3Values
+             .transformAlignment (.-center m/Alignment) 
+             .transform (.diagonal3Values
                           m/Matrix4
                           (if _isOpened 0.7 1.0)
                           (if _isOpened 0.7 1.0)
                           1.0)
-             :duration (Duration :milliseconds 250)
-             :curve (m/Interval 0.0 0.5 :curve (.-easeOut m/Curves)))
+             .duration (Duration .milliseconds 250)
+             .curve (m/Interval 0.0 0.5 .curve (.-easeOut m/Curves)))
            (m/AnimatedRotation
-             :turns (if _isOpened -0.1 0)
-             :curve (m/Interval 0.25 1.0 :curve (.-easeInOut m/Curves))
-             :duration (Duration :milliseconds 250))
+             .turns (if _isOpened -0.1 0)
+             .curve (m/Interval 0.25 1.0 .curve (.-easeInOut m/Curves))
+             .duration (Duration .milliseconds 250))
            (m/FloatingActionButton
-             :onPressed
+             .onPressed
              (fn [] :unidiomatic)
-             :backgroundColor 
+             .backgroundColor 
              (if _isOpened (.-white m/Colors) (.-primaryColor theme)))
            (m/Icon
              (.-add m/Icons)
-             :color (if _isOpened (.-primaryColor theme) (.-white m/Colors))))))))
+             .color (if _isOpened (.-primaryColor theme) (.-white m/Colors))))))))
 
 (def code2 "
 Column(
@@ -82,10 +82,10 @@ Column(
       (= 
         (-> code2 convert read-string)
         '(m/Column
-           :children
+           .children
            [(m/Question (get (get questions _questionIndex) "questionText"))
             (->
               (get (get questions _questionIndex) "answers")
               (.map (fn [answer] (m/Answer _answerQuestion answer)))
               .toList)
-            (m/Numb :sorted (and (= a b) (< 1 2 3 a)))])))))
+            (m/Numb .sorted (and (= a b) (< 1 2 3 a)))])))))

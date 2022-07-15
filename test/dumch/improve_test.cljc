@@ -8,24 +8,24 @@
 (def ^:private simplify-clj-str (comp z/sexpr simplify p/parse-string))
 
 (deftest nesting-test
-  (testing "3 nested :child should be replaced with f/nest macro"
+  (testing "3 nested .child should be replaced with f/nest macro"
     (is 
       (= (-> 
            "(Container 
-              :child 
-              (Box :child (Padding :child (Text \"2\"))))"
+              .child 
+              (Box .child (Padding .child (Text \"2\"))))"
            z/of-string
            wrap-nest
            z/sexpr) 
          '(f/nest (Container) (Box) (Padding) (Text "2")))))
 
-  (testing "2- nested :child should be unchanged"
+  (testing "2- nested .child should be unchanged"
     (is 
-      (= (-> "(Box :child (Padding :child (Text \"2\")))"
+      (= (-> "(Box .child (Padding .child (Text \"2\")))"
              z/of-string
              wrap-nest
              z/sexpr) 
-         '(Box :child (Padding :child (Text "2")))))))
+         '(Box .child (Padding .child (Text "2")))))))
 
 (deftest redundant-do 
   (testing "fn with do body"
@@ -42,11 +42,11 @@
 
 (deftest material-alias-test
   (testing "No alias on core"
-    (is (= (simplify-clj-str "(Duration :milliseconds 250)")
-           '(Duration :milliseconds 250))))
+    (is (= (simplify-clj-str "(Duration .milliseconds 250)")
+           '(Duration .milliseconds 250))))
   (testing "material alias with slash"
-    (is (= (simplify-clj-str "(MyDuration :milliseconds 250)")
-           '(m/MyDuration :milliseconds 250))))
+    (is (= (simplify-clj-str "(MyDuration .milliseconds 250)")
+           '(m/MyDuration .milliseconds 250))))
   (testing "material alias with dot"
-    (is (= (simplify-clj-str "(My.Duration :milliseconds 250)")
-           '(m.My/Duration :milliseconds 250)))))
+    (is (= (simplify-clj-str "(My.Duration .milliseconds 250)")
+           '(m.My/Duration .milliseconds 250)))))

@@ -8,19 +8,19 @@
     [rewrite-clj.zip :as z]))
 
 (defn- remove-child-named-arg [zloc]
-  (-> zloc z/down (z/find-value z/right :child) z/right  z/remove z/remove* z/up))
+  (-> zloc z/down (z/find-value z/right '.child) z/right  z/remove z/remove* z/up))
 
 (defn- nested-children? [zloc times]
-  (let [zloc (-> zloc z/down (z/find-value z/right :child))] 
+  (let [zloc (-> zloc z/down (z/find-value z/right '.child))] 
     (cond 
-      (not= :child (z/sexpr zloc)) false
+      (not= '.child (z/sexpr zloc)) false
       (= 1 times) true
       :else (recur (-> zloc z/next) (dec times)))))
 
 (defn- nest-flatten [zloc & {fl :flutter :or {fl "f"}}]
   (loop [zloc zloc
          rslt []]
-    (if-let [child (-> zloc z/down (z/find-value z/right :child))]
+    (if-let [child (-> zloc z/down (z/find-value z/right '.child))]
       (recur (-> child z/right) (conj rslt (remove-child-named-arg zloc)))
       (z/edn
         (n/list-node (lists* (n/token-node (symbol (str (when fl (str fl "/")) "nest"))) 
@@ -90,14 +90,14 @@
 
 (comment 
   (def nested "(Container 
-                 :child 
-                 (Box :child (Padding :child (Text 1)) :a 1))") 
+                 .child 
+                 (Box .child (Padding .child (Text 1)) .a 1))") 
 
   (-> nested z/of-string (nested-children? 3))
 
   (-> nested z/of-string
       z/down
-      (z/find-value :child)
+      (z/find-value '.child)
       z/right
       p/raise
       z/up
@@ -105,29 +105,29 @@
       )
 
   (def animation "(Column 
-      :children 
+      .children 
       [(Text \"name\") 
        (Icon m.Icons/widgets)
        (IgnorePointer.
-         :ignoring (boolean @open)
-         :child
+         .ignoring (boolean @open)
+         .child
          (AnimatedContainer.
-           :transformAlignment m.Alignment/center
-           :transform (m.Matrix4/diagonal3Values
+           .transformAlignment m.Alignment/center
+           .transform (m.Matrix4/diagonal3Values
                         (if @open 0.7 1.0)
                         (if @open 0.7 1.0)
                         1.0)
-           :duration ^:const (Duration. :milliseconds 250)
-           :curve ^:const (Interval. 0.0 0.5 :curve m.Curves/easeOut)
-           :child
+           .duration ^:const (Duration. .milliseconds 250)
+           .curve ^:const (Interval. 0.0 0.5 .curve m.Curves/easeOut)
+           .child
            (AnimatedOpacity.
-             :opacity (if @open 0.0 (+ (+ 2.0 1.0) (+ -3.0) 1.0))
-             :curve ^:const (Interval. 0.25 1.0 :curve m.Curves/easeInOut)
-             :duration ^:const (Duration. :milliseconds 250)
-             :child
+             .opacity (if @open 0.0 (+ (+ 2.0 1.0) (+ -3.0) 1.0))
+             .curve ^:const (Interval. 0.25 1.0 .curve m.Curves/easeInOut)
+             .duration ^:const (Duration. .milliseconds 250)
+             .child
              (FloatingActionButton.
-               :onPressed toggle
-               :child
+               .onPressed toggle
+               .child
                (Icon. m.Icons/create)))))])
     ")
 

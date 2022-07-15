@@ -307,7 +307,7 @@
     :constructor (lnode (list* (ast->clj v1) ws (ast->clj v2)))
     :params (mapcats ast->clj (rest node))
     :argument (if v2 (map ast->clj (rest node)) [(ast->clj v1)])
-    :named-arg (knode (keyword (ast->clj v1)))
+    :named-arg (tnode (symbol (str "." (ast->clj v1))))
 
     :dot  (flatten-dot node ast->clj)
     :dot-op (flatten-dot node ast->clj)

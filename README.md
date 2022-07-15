@@ -30,9 +30,9 @@ Center(
 
 ```clojure
 (m/Center
- :child (m/Text
+ .child (m/Text
      (if _active "Active" "Inactive")
-     :style (m/TextStyle :fontSize 32.0 :color m.Colors/white)))
+     .style (m/TextStyle .fontSize 32.0 .color m.Colors/white)))
 ```
 
 3 more examples:
@@ -137,13 +137,13 @@ Add Cli/deps:
 ```clojure
 {:deps
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.10-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.11-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot:
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.2.10-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.2.11-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -164,7 +164,7 @@ If you just need to wrap clojure code with nest:
   '[dumch.improve :as impr]
   '[rewrite-clj.zip :as z])
 
-(-> "(Container :child (Box :child (Padding :child (:Text \"2\"))))"
+(-> "(Container .child (Box .child (Padding .child (:Text \"2\"))))"
     z/of-string
     impr/wrap-nest
     z/sexpr)
@@ -175,8 +175,8 @@ If you just need to wrap clojure code with nest:
 
 ```bash
 clojure -Sdeps \
-'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.10-SNAPSHOT"}}}' \
--e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" :material \"m\" :flutter \"f\")"
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.11-SNAPSHOT"}}}' \
+-e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" .material \"m\" .flutter \"f\")"
 ```
 
 ### API with Jar
@@ -189,7 +189,7 @@ $ java -jar dartclj.jar "Divider(
     color: Colors.grey,
 )"
 
-(m/Divider :height 0 :color m.Colors/grey)
+(m/Divider .height 0 .color m.Colors/grey)
 ```
 
 Second one is to run repl-like console (and send code into it with your editor/idea):
@@ -202,7 +202,7 @@ Divider(
     color: Colors.grey,
 )
 
-(material/Divider :height 0 :color material.Colors/grey)
+(material/Divider .height 0 .color material.Colors/grey)
 ```
 
 Colors are also supported:
@@ -317,9 +317,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.10-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.11-SNAPSHOT
 [3]: https://www.jetbrains.com/help/idea/configuring-third-party-tools.html
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.10
+[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.11
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
 [7]: https://www.reddit.com/r/Clojure/comments/vib5ie/how_to_translate_dart_to_clojuredart_inside/
