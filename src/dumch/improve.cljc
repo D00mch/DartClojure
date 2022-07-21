@@ -53,7 +53,7 @@
     'Sink 'StackOverflowError 'StackTrace 'StateError 'Stopwatch 'String 'StringBuffer 'StringSink
     'Symbol 'Type 'TypeError 'UnimplementedError 'UnsupportedError 'Uri 'WeakReference})
 
-(b/defnc- insert-import [symb m]
+(b/defnc- insert-alias [symb m]
   :let [s (str symb)]
   (not (str/includes? s ".")) (symbol (str m "/" symb)) 
 
@@ -75,11 +75,11 @@
             :let [expr (z/sexpr zloc)] 
             (= expr 'print) (z/edit zloc #(symbol (str "dart:core/" %)))
 
-            ;; import
+            ;; require alias
             (and (symbol? expr) 
                  (upper-case? (first (str expr)))
                  (not (core-vars expr)))
-            (z/edit zloc #(insert-import % m))
+            (z/edit zloc #(insert-alias % m))
 
             :else zloc)))))
 

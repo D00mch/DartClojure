@@ -1,10 +1,9 @@
 (ns dumch.parse
   (:require
-    [better-cond.core :as b]
-    #?(:cljs [dumch.base64 :as b64-cljs])
-    #?(:clj [clojure.java.io :as io])
+    #?(:clj  [clojure.java.io :as io])
     #?(:cljs [clojure.edn :refer [read-string]])
     [clojure.string :as str]
+    #?(:cljs [dumch.base64 :as b64-cljs])
     [dumch.util :refer [ws nl maps mapn mapcats mapcatn]]
     #?(:cljs [dumch.util :refer-macros [inline-resource]])
     #?(:clj [instaparse.core :as insta :refer [defparser]]
@@ -12,11 +11,11 @@
     [rewrite-clj.node :as n
      :refer [list-node map-node token-node keyword-node vector-node]
      :rename {list-node lnode, vector-node vnode,  map-node mnode,
-              token-node tnode, keyword-node knode}])
+              token-node tnode, keyword-node knode}]
+    #_[clj-java-decompiler.core :refer [decompile]]
+    #_[criterium.core :refer [quick-bench]])
   #?(:clj
-     (:import java.util.ArrayDeque
-              java.util.Base64
-              java.lang.StringBuilder)))
+     (:import java.util.Base64)))
 
 #?(:clj (set! *warn-on-reflection* true))
 
@@ -47,17 +46,13 @@
   ;; two reasons for it to be that complex:
   ;; - can't make regex for nested {{}} work in jvm: (?=\{((?:[^{}]++|\{(?1)\})++)\})
   ;; - regex is slow anyway;
-  (loop [stack #?(:clj (ArrayDeque.) ;; to count balanced curly: '{', '}'
-                  :cljs (js/Array.))
+  (loop [stack [] ;; to count balanced curly: '{', '}'
          rslt []
-         cur-str #?(:clj (StringBuilder.)
-                    :cljs (js/Array.))
-         cur-expr #?(:clj (StringBuilder.)
-                     :cljs (js/Array.))
+         cur-str []
+         cur-expr []
          i 0]
     (if (>= i (count s))
-      (conj rslt #?(:clj (.toString (if (empty? cur-expr) cur-str cur-expr))
-                    :cljs (.join (if (empty? cur-expr) cur-str cur-expr) "")))
+      (conj rslt (apply str (if (empty? cur-expr) cur-str cur-expr)))
 
       (let [ch (.charAt ^String s i)
             building-str? (empty? stack)
@@ -68,32 +63,25 @@
 
         (if building-str?
           (recur
-            (if open-b? (doto stack (.push 1)) stack)
+            (if open-b? (conj stack 1) stack)
             (if open-b?
-              (conj rslt (subs #?(:clj (.toString cur-str)
-                                  :cljs (.join cur-str ""))
-                               0
-                               #?(:clj (dec (.length cur-str))
-                                  :cljs (dec (.-length cur-str)))))
+              (conj rslt (subs (apply str cur-str) 0 (dec (count cur-str))))
               rslt)
-            #?(:clj (if open-b? (StringBuilder.) (.append cur-str ch))
-               :cljs (if open-b? (js/Array.) (doto cur-str (.push ch))))
+            (if open-b? [] (conj cur-str ch))
             cur-expr
             (inc i))
 
           (recur
-            (cond open-b? (doto stack (.push 1))
-                  close-b? (doto stack .pop)
+            (cond open-b? (conj stack 1)
+                  close-b? (pop stack)
                   :else stack)
-            (if expr-ends? (conj rslt #?(:clj (.toString cur-expr)
-                                         :cljs (.join cur-expr ""))) rslt)
+            (if expr-ends? (conj rslt (apply str cur-expr)) rslt)
             cur-str
-            #?(:clj (if expr-ends? (StringBuilder.) (.append cur-expr ch))
-               :cljs (if expr-ends? (js/Array.) (doto cur-expr (.push ch))))
+            (if expr-ends? [] (conj cur-expr ch))
             (inc i)))))))
 
 (defn- substitute-$
-  "Returns ast of string with $ substitutions"
+  "Returns string AST with $ substitutions"
   [^:String s]
   (let [p #"\$[a-zA-Z_]+[a-zA-Z0-9!_]*"
         s (str/replace s p (fn [m] (str "${" (subs m 1) "}")))
@@ -120,7 +108,9 @@
     (-> value (str/replace #"^\." "0.") read-string)
     (throw (ex-info "node with wrong tag passed" {:tag tag}))))
 
-(defn- flatten-dot [node ast->clj]
+(declare ast->clj)
+
+(defn- flatten-dot [node]
   (loop [[tag v1 v2 :as node] node ;; having structure like [dot [dot a b] c]
          stack [] ;; put here 'c', then 'b', while trying to find 'a' ^
          [a [tag2 n params :as b] :as rslt] []  ;; result will look like [a b c]
@@ -134,7 +124,7 @@
           (ast->clj [tag2 n (cons :params (cons [:argument a] (next params)))])
           :else (lnode (list* (tnode '->) ws (maps ast->clj rslt))))))
 
-(defn- dot->clj [[tag v1 v2] ast->clj]
+(defn- dot->clj [[tag v1 v2]]
   (let [dt (if (= tag :invoke) "." ".-")]
     (if (and v2 (> (count v2) 1))
       (lnode (list* (ast->clj [tag v1]) ws (ast->clj v2)))
@@ -147,7 +137,7 @@
        [%])
     params))
 
-(defn flatten-cascade [node ast->clj]
+(defn flatten-cascade [node]
   (let [flt (flatten-same-node node)]
     (lnode
       (list* (tnode 'doto) ws
@@ -171,7 +161,7 @@
         get-adjacent (fn [mapfn]
                        (->> compare-nodes
                             mapfn
-                            (partition 2 1)
+                            (partition 2 1)         ; < 1 _2 &&   < _2 3 && ...
                             (take-while (fn [[p1 p2]] (= (last p1) (second p2))))
                             (mapcat identity)
                             seq))
@@ -190,16 +180,14 @@
 (defn dfs [f sq]
  (some f (tree-seq coll? seq sq)))
 
-(b/defnc- switch-case-ok? [[tag v1 v2 v3]]
-  (= tag :default-case) true
+(defn- switch-case-ok? [[tag v1 v2 v3]]
+  (or (= tag :default-case) 
+      (and (= tag :switch-case)
+           (= (first v1) :cases)
+           (or (some-> v3 second (= "break"))
+               (dfs #{:return} v2)))))
 
-  :when (= tag :switch-case)
-  :when (= (first v1) :cases)
-  :when (or (some-> v3 second (= "break"))
-            (dfs #{:return} v2))
-  true)
-
-(defn- if->clj [node ast->clj]
+(defn- if->clj [node]
   (case (count node)
     3 (lnode (list* (tnode 'when) ws (->> node rest (maps ast->clj))))
     4 (lnode (list* (tnode 'if) ws (->> node rest (maps ast->clj))))
@@ -207,51 +195,51 @@
       (if (even? (count node))
         (concat
           (list* (tnode 'cond) ws (->> node butlast rest (maps ast->clj)))
-          [ws (knode :else) ws (ast->clj (last node))])
+          [ws (knode :else) ws (ast->clj (peek node))])
         (list* (tnode 'cond) ws (->> node rest (maps ast->clj)))))))
 
 (defn- switch-ok? [[_ _ & cases]]
   (reduce #(and %1 %2) (map switch-case-ok? cases)))
 
-(defn- switch-case->clj-nodes [[_ [_ & cases] body] ast->clj]
+(defn- switch-case->clj-nodes [[_ [_ & cases] body]]
   (let [body (ast->clj body)]
     (mapcat
       #(list (ast->clj %) body)
       cases)))
 
-(defn- switch-branch->clj-nodes [[tag v1 :as node] ast->clj]
+(defn- switch-branch->clj-nodes [[tag v1 :as node]]
   (if (= tag :switch-case)
-    (switch-case->clj-nodes node ast->clj)
+    (switch-case->clj-nodes node)
     [(ast->clj v1)]))
 
-(defn- switch->case-or-warn [[_ expr & cases :as node] ast->clj]
+(defn- switch->case-or-warn [[_ expr & cases :as node]]
   (if (switch-ok? node)
     (lnode
       (list*
         (tnode 'case) ws
         (ast->clj expr) nl
-        (mapcatn #(switch-branch->clj-nodes % ast->clj) cases)))
+        (mapcatn #(switch-branch->clj-nodes %) cases)))
     :unidiomatic))
 
-(defn- try-on->clj-node [[_ [_ q] [_ e] body :as on-part] ast->clj]
+(defn- try-on->clj-node [[_ [_ q] [_ e] body :as on-part]]
   (lnode [(tnode 'catch) ws
           (ast->clj (or q [:identifier "Exception"])) ws
           (ast->clj (or e [:identifier "e"])) nl
           (ast->clj body)]))
 
-(defn- try-branch->clj-node [node ast->clj]
+(defn- try-branch->clj-node [node]
   (if (= (count node) 2)
     (lnode [(tnode 'finally) ws (ast->clj (second node))])
-    (try-on->clj-node node ast->clj)))
+    (try-on->clj-node node)))
 
-(defn- try->clj [[_ body & branches] ast->clj]
+(defn- try->clj [[_ body & branches]]
   (lnode
     (list*
       (tnode 'try) nl
       (ast->clj body)
-      (map #(try-branch->clj-node % ast->clj) branches))))
+      (map #(try-branch->clj-node %) branches))))
 
-(defn- var-declare->clj [[_ v1 :as node] ast->clj]
+(defn- var-declare->clj [[_ v1 :as node]]
   (let [inits (filter sequential? node)
         const? (= v1 "const")
         with-const (fn [[_ n v :as var-init-node]]
@@ -289,7 +277,7 @@
             (ast->clj v2) ws
             (knode :refer) ws
             (vnode (maps ast->clj (drop 3 node)))])
-    :var-declare (var-declare->clj node ast->clj)
+    :var-declare (var-declare->clj node)
     :var-init (lnode [(tnode 'def) ws
                       (ast->clj v1) ws
                       (or (some-> v2 ast->clj) (tnode 'nil))])
@@ -309,20 +297,20 @@
     :argument (if v2 (map ast->clj (rest node)) [(ast->clj v1)])
     :named-arg (tnode (symbol (str "." (ast->clj v1))))
 
-    :dot  (flatten-dot node ast->clj)
-    :dot-op (flatten-dot node ast->clj)
-    :invoke (dot->clj node ast->clj)
-    :field (dot->clj node ast->clj)
+    :dot  (flatten-dot node)
+    :dot-op (flatten-dot node)
+    :invoke (dot->clj node)
+    :field (dot->clj node)
 
     :lambda (lnode [(tnode 'fn) ws (ast->clj v1) nl (ast->clj v2)])
     :lambda-args (vnode (->> node rest (maps ast->clj)))
     :block (ast->clj (cons :code (rest node)))
 
     :ternary (ast->clj [:if v1 v2 v3])
-    :if (if->clj node ast->clj)
-    :switch (switch->case-or-warn node ast->clj)
-    :try (try->clj node ast->clj)
-    :cascade (flatten-cascade node ast->clj)
+    :if (if->clj node)
+    :switch (switch->case-or-warn node)
+    :try (try->clj node)
+    :cascade (flatten-cascade node)
 
     :for-in (n/list-node [(tnode 'for) ws
                           (vnode [(ast->clj v1) ws (ast->clj v2)]) nl
@@ -383,7 +371,7 @@
         ;; to simplify modifications below
         multiline->single
 
-        ;; TODO: find another wat to deal with comments
+        ;; TODO: find another way to deal with comments
         ;; the problem is that comments could appear inside strings
         (str/replace str-pattern (transform encode))    ; encode strings to Base64
 
@@ -391,8 +379,7 @@
         (str/replace #"/\*(\*(?!/)|[^*])*\*/" "")    ; /* ... */
         (str/replace #"(//).*" "")                   ; // ...
         (str/replace str-pattern
-                     (transform (comp substitute-curly-quotes
-                                      decode))))))
+                     (transform (comp substitute-curly-quotes decode))))))
 
 (defn save-read [code]
   (try

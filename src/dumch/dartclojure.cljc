@@ -119,4 +119,3 @@
 #?(:cljs
    (defn shadow-cljs-reload []
      (println "shadow-cljs reloaded the code")))
-
