@@ -6,14 +6,12 @@
         rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}
         zprint/zprint {:mvn/version "1.2.3"}}
  :aliases
- {:depstar {:replace-deps
-            {com.github.seancorfield/depstar {:mvn/version "2.1.303"}}
-            :ns-default hf.depstar
-            :exec-fn hf.depstar/uberjar
-            :exec-args {:jar dartclj.jar
-                        :aot true
-                        :compile-ns [dumch.dartclojure]
-                        :main-class "dumch.dartclojure"}}
+ {:build 
+  ;; clj -T:build uber :version "1.2.3"
+  {:deps {io.github.clojure/tools.build 
+          {:git/tag "v0.8.3"
+           :git/sha "0d20256"}}
+   :ns-default build}
   :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.0"}}
            :exec-fn deps-deploy.deps-deploy/deploy
            :exec-args {:installer :remote

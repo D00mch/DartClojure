@@ -30,8 +30,8 @@
 # Native
 /META-INF
 /reports
-dartclj-aarch64-darwin
-dartclj-aarch64-linux
+dartclj-*-aarch64-darwin
+dartclj-*-aarch64-linux
 
 # Lint
 .clj-kondo/*
@@ -49,3 +49,6 @@ node_modules/
 # NPM Example App
 npm-test-app/target
 
+# Idea
+DartClojure.iml
+.idea/
