@@ -10,7 +10,7 @@ echo '[
 
 # remove -H:+StaticExecutableWithDynamicLibC for m1 builds
 
-native-image -jar dartclj.jar --initialize-at-build-time --no-fallback \
+native-image -jar dartclj.jar --no-fallback \
     -J-Dclojure.spec.skip.macros=true -J-Dclojure.compiler.direct-linking=true \
     --verbose --no-server -J-Xmx3G \
     --report-unsupported-elements-at-runtime --native-image-info \
