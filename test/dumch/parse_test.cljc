@@ -510,7 +510,18 @@
            '(< 1 2 3)))
     (is (= (-> "3 > 2 && 2 > 1 && 4 > 3 && true" dart->clj-string)
            "(and true (> 4 3 2 1))"))
-    (is (= (-> "4 >= 3 && 3 >= 2 || 2 >= 1" dart->clojure)
-           '(and (>= 4 3) (or (>= 3 2) (>= 2 1)))))
+    (is (#{'(and (>= 4 3) (or (>= 3 2) (>= 2 1)))
+           '(and (or (>= 3 2) (>= 2 1)) (>= 4 3))}
+          (-> "4 >= 3 && 3 >= 2 || 2 >= 1" dart->clojure)))
     (is (= (-> "5 >= 4 && 4 >= 3 && 3 >= 2 || 2 >= 1" dart->clojure)
-           '(and (or (>= 3 2) (>= 2 1)) (>= 5 4 3))))))
+           '(and (or (>= 3 2) (>= 2 1)) (>= 5 4 3))))
+    
+    
+    (is (= (-> "a > b || (c > d && d > e && e < f)" dart->clojure)
+           '(or (> a b) (and (> f e) (> c d e)))))
+    (is (= (-> "a > b || (c > d && d > e && f < e)" dart->clojure)
+           '(or (> a b) (> c d e f))))
+    (is (= (-> "(c <= b && a >= b) || (c > d && d > e && f < e)" dart->clojure)
+           '(or (>= a b c) (> c d e f))))))
+
+#_(dart->clojure "4 >= 3 && 3 >= 2 || 2 >= 1")

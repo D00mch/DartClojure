@@ -3,6 +3,7 @@
     #?(:clj  [clojure.java.io :as io])
     #?(:cljs [clojure.edn :refer [read-string]])
     [clojure.string :as str]
+    [clojure.set :as set]
     #?(:cljs [dumch.base64 :as b64-cljs])
     [dumch.util :refer [ws nl maps mapn mapcats mapcatn]]
     #?(:cljs [dumch.util :refer-macros [inline-resource]])
@@ -155,33 +156,74 @@
     [:identifier (case f :and "and", :or "or", :add "+", :mul "*")]
     (flatten-same-node node)))
 
-(defn- flatten-compare [[_ & params :as and-node]]
-  (let [compare-nodes (->> (filter (fn [[f]] (= f :compare)) params)
-                           (sort-by (fn [[_ [_ value]]] value)))
-        get-adjacent (fn [mapfn]
-                       (->> compare-nodes
-                            mapfn
-                            (partition 2 1)         ; < 1 _2 &&   < _2 3 && ...
-                            (take-while (fn [[p1 p2]] (= (last p1) (second p2))))
-                            (mapcat identity)
-                            seq))
-        build-ast #(list* :compare+
-                          [:identifier (nth (first %) 2)]
-                          (distinct (mapcat (fn [[_ a _ b]] [a b]) %)))
-        compare-vals (or (get-adjacent identity) (get-adjacent reverse))]
-    (if compare-vals
-      (let [and-node (filterv (fn [v] (not (some #(= v %) compare-vals))) and-node)
-            compare-ast (build-ast compare-vals)]
-        (if (= (count and-node) 1)
-          (next compare-ast)
-          (conj and-node compare-ast)))
+(defn compare-longest-path
+  "Getting a seq of nodes like:
+  `([:compare [:identifier \"a\"] \">\" [:identifier \"b\"]]
+   [:compare [:identifier \"b\"] \">\" [:identifier \"c\"]] ...)`.
+  In other words, we have a graph here. Example:
+  `a -> b, b -> c, b -> d, c -> e`.
+  This function returns the seq of nodes which is the longest path.
+  In terms of 'Example' above, it is going to be: `a -> b -> c -> e`"
+  ([nodes]
+   (compare-longest-path nodes (group-by #(-> % second second) nodes)))
+  ([nodes dictionary]
+   (apply max-key
+          count
+          ; node exmaple
+          (for [[_ [_ _] _ [_ end] :as node] nodes
+                :let [continues (get dictionary end)]]
+            (cons
+              node
+              (when continues
+                (compare-longest-path continues (dissoc dictionary end))))))))
+
+(defn- build-compare-ast [compare-vals]
+  (list* :compare+
+         [:identifier (nth (first compare-vals) 2)]
+         (second (first compare-vals))
+         (map #(nth % 3) compare-vals)))
+
+(defn- unify-compare
+  "If we have different compare functions in the node, like `<` and `>`,
+  replace all `<` with `>` and `<=` with `>=`.
+  Returns grouped by function sequences"
+  [compare-nodes]
+  (let [compare-fns (set (map #(nth % 2) compare-nodes))]
+    (if (<= (count compare-fns) 1)
+      [compare-nodes]
+      (->> compare-nodes
+           (mapv
+             (fn [[tag e1 f e2 :as node]]
+               (cond (= f "<") [tag e2 ">" e1]
+                     (= f "<=") [tag e2 ">=" e1]
+                     :else node)))
+           (group-by #(nth % 2))
+           vals))))
+
+(defn- flatten-compare [[tag & params :as and-node]]
+  (let [{compare-nodes true,
+         other-nodes false} (group-by (fn [[f]] (= f :compare)) params)]
+    (if compare-nodes
+      ;; `seq` below means `seq of nodes`
+      (let [compare-seqs (unify-compare compare-nodes)
+            longest-seqs (map compare-longest-path compare-seqs)
+            ast-seqs (map build-compare-ast longest-seqs)
+            other-nodes (apply set/difference
+                               (set (apply concat other-nodes compare-seqs))
+                               (or (map set longest-seqs) '(#{})))]
+        (cond (seq other-nodes)
+              (concat [tag] other-nodes ast-seqs)
+
+              (= (count ast-seqs) 1) (next (first ast-seqs))
+
+              :else (cons tag ast-seqs)))
       and-node)))
 
 (defn dfs [f sq]
  (some f (tree-seq coll? seq sq)))
 
 (defn- switch-case-ok? [[tag v1 v2 v3]]
-  (or (= tag :default-case) 
+  (or (= tag :default-case)
       (and (= tag :switch-case)
            (= (first v1) :cases)
            (or (some-> v3 second (= "break"))
@@ -337,7 +379,7 @@
     :compare+ (lnode (list* (ast->clj v1) ws (->> node (drop 2) (maps ast->clj))))
     (:or :add :mul) (lnode (maps ast->clj (flatten-commutative-node node)))
     (:not :dec :inc) (lnode [(tnode (symbol tag)) ws (ast->clj v1)])
-    (:compare :div :ifnull :equality) 
+    (:compare :div :ifnull :equality)
     (lnode [(tnode (dart-op->clj-op v2)) ws (ast->clj v1) ws (ast->clj v3)])
 
     (cond
