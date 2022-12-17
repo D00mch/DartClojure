@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.clojars.liverm0r</groupId>
   <artifactId>dartclojure</artifactId>
-  <version>0.2.12-SNAPSHOT</version>
+  <version>0.2.13-SNAPSHOT</version>
   <name>dumch/dartclojure</name>
   <description>Opinionated Dart->Clojure translater</description>
   <url>https://github.com/Liverm0r/dartclojure</url>
@@ -22,7 +22,7 @@
     <url>https://github.com/Liverm0r/dartclojure</url>
     <connection>scm:git:git://github.com/Liverm0r/dartclojure.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Liverm0r/dartclojure.git</developerConnection>
-    <tag>v0.2.12-SNAPSHOT</tag>
+    <tag>v0.2.13-SNAPSHOT</tag>
   </scm>
   <dependencies>
     <dependency>
