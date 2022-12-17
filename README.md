@@ -4,7 +4,7 @@ Opinionated Dart to Clojure converter for Flutter widgets.
 It doesn't (and probably will not) convert classes, setters, annotations —
 only the part that could be reused after translation.
 
-<img src="https://github.com/Liverm0r/DartClojure/blob/main/images/Screenshot%202022-05-28%20at%2020.11.09.png?raw=true" alt="alt text" width="632" height="302">
+<img src="https://github.com/d00mch/DartClojure/blob/main/images/Screenshot%202022-05-28%20at%2020.11.09.png?raw=true" alt="alt text" width="632" height="302">
 
 ## Why is it  not a full dart->clojure converter?
 
@@ -83,14 +83,14 @@ Center(
 ## How to use
 
 There are 7 options now:
-1. [Calva (VSCode);](https://github.com/Liverm0r/DartClojure/#api-from-calva)
-2. [Intellij Idea;](https://github.com/Liverm0r/DartClojure/#api-from-intellij-idea)
-3. [Jvm/Js REPL;](https://github.com/Liverm0r/DartClojure/#api-from-jvmjs-repl)
-4. [Clojure Cli;](https://github.com/Liverm0r/DartClojure/#api-from-cli)
-5. [Jar;](https://github.com/Liverm0r/DartClojure/#api-with-jar)
-6. [Native image;](https://github.com/Liverm0r/DartClojure/#api-with-native-image)
-7. [NPM CLI;](https://github.com/Liverm0r/DartClojure/#api-with-npm-cli)
-8. [NPM library;](https://github.com/Liverm0r/DartClojure/#api-with-npm-library)
+1. [Calva (VSCode);](https://github.com/d00mch/DartClojure/#api-from-calva)
+2. [Intellij Idea;](https://github.com/d00mch/DartClojure/#api-from-intellij-idea)
+3. [Jvm/Js REPL;](https://github.com/d00mch/DartClojure/#api-from-jvmjs-repl)
+4. [Clojure Cli;](https://github.com/d00mch/DartClojure/#api-from-cli)
+5. [Jar;](https://github.com/d00mch/DartClojure/#api-with-jar)
+6. [Native image;](https://github.com/d00mch/DartClojure/#api-with-native-image)
+7. [NPM CLI;](https://github.com/d00mch/DartClojure/#api-with-npm-cli)
+8. [NPM library;](https://github.com/d00mch/DartClojure/#api-with-npm-library)
 
 ### API from Calva
 
@@ -102,7 +102,7 @@ See [calva clojuredart docs][5] for some (tiny) bit more on the subject.
 
 ### API from Intellij Idea 
 
-You could use available [api](https://github.com/Liverm0r/DartClojure/#how-to-use) (4, 5, 6, 7) directly from Idea with [External Tools][3].
+You could use available [api](https://github.com/d00mch/DartClojure/#how-to-use) (4, 5, 6, 7) directly from Idea with [External Tools][3].
 
 Preferences —> Tools —> External Tools —> +  
 
@@ -309,7 +309,7 @@ limitations under the License.
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
 [2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.12-SNAPSHOT
 [3]: https://www.jetbrains.com/help/idea/configuring-third-party-tools.html
-[4]: https://github.com/Liverm0r/DartClojure/releases/tag/0.2.12
+[4]: https://github.com/d00mch/DartClojure/releases/tag/0.2.12
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
 [7]: https://www.reddit.com/r/Clojure/comments/vib5ie/how_to_translate_dart_to_clojuredart_inside/
