@@ -6,6 +6,18 @@ only the part that could be reused after translation.
 
 <img src="https://github.com/d00mch/DartClojure/blob/main/images/Screenshot%202022-05-28%20at%2020.11.09.png?raw=true" alt="alt text" width="632" height="302">
 
+## How to use
+
+There are 7 options now:
+1. [Calva (VSCode);](https://github.com/d00mch/DartClojure/#api-from-calva)
+2. [Intellij Idea;](https://github.com/d00mch/DartClojure/#api-from-intellij-idea)
+3. [Jvm/Js REPL;](https://github.com/d00mch/DartClojure/#api-from-jvmjs-repl)
+4. [Clojure Cli;](https://github.com/d00mch/DartClojure/#api-from-cli)
+5. [Jar;](https://github.com/d00mch/DartClojure/#api-with-jar)
+6. [Native image;](https://github.com/d00mch/DartClojure/#api-with-native-image)
+7. [NPM CLI;](https://github.com/d00mch/DartClojure/#api-with-npm-cli)
+8. [NPM library;](https://github.com/d00mch/DartClojure/#api-with-npm-library)
+
 ## Why is it  not a full dart->clojure converter?
 
 All the converted code would not be idiomatic. Instead of using
@@ -80,17 +92,8 @@ Center(
 - [ ] test classes and methods extensively;
 - [ ] handle early exit from lambdas/if/for/methods with `return`;
 
-## How to use
 
-There are 7 options now:
-1. [Calva (VSCode);](https://github.com/d00mch/DartClojure/#api-from-calva)
-2. [Intellij Idea;](https://github.com/d00mch/DartClojure/#api-from-intellij-idea)
-3. [Jvm/Js REPL;](https://github.com/d00mch/DartClojure/#api-from-jvmjs-repl)
-4. [Clojure Cli;](https://github.com/d00mch/DartClojure/#api-from-cli)
-5. [Jar;](https://github.com/d00mch/DartClojure/#api-with-jar)
-6. [Native image;](https://github.com/d00mch/DartClojure/#api-with-native-image)
-7. [NPM CLI;](https://github.com/d00mch/DartClojure/#api-with-npm-cli)
-8. [NPM library;](https://github.com/d00mch/DartClojure/#api-with-npm-library)
+## How to use
 
 ### API from Calva
 
