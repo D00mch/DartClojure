@@ -33,6 +33,7 @@
 
 (defn publish-clojars [psw]
   (println "about to publish to clojars")
+  (cmd! "cp target/dartclj*.jar dartclj.jar")
   (cmd-prn! 
     (str
       "env CLOJARS_USERNAME=liverm0r"
