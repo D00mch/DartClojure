@@ -23,7 +23,7 @@
     (if-let [child (-> zloc z/down (z/find-value z/right '.child))]
       (recur (-> child z/right) (conj rslt (remove-child-named-arg zloc)))
       (z/edn
-        (n/list-node (lists* (n/token-node (symbol (str (when fl (str fl "/")) "nest"))) 
+        (n/list-node (lists* (n/token-node (symbol (str (when fl (str fl "/")) "widget"))) 
                              (map z/node (conj rslt zloc))))))))
 
 (defn wrap-nest [zloc & {fl :flutter :or {fl "f"}}]

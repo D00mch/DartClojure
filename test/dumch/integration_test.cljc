@@ -32,11 +32,11 @@ AnimatedContainer(
 (deftest complex-example-test
   (testing "no ambiguity"
     (is (= 1 (count (insta/parses widget-parser code)))))
-  (testing "dart->clojure, using nest macro"
+  (testing "dart->clojure, using widget macro"
     (is 
       (= 
         (read-string (convert code))
-        '(f/nest
+        '(f/widget
            (m/AnimatedContainer
              .transformAlignment (.-center m/Alignment) 
              .transform (.diagonal3Values
@@ -77,7 +77,7 @@ Column(
 (deftest complex-example-test2
   (testing "no ambiguity"
     (is (= 1 (count (insta/parses widget-parser code2)))))
-  (testing "dart->clojure, using nest macro"
+  (testing "Complex example with list, lambda, map, compare, named arg"
     (is 
       (= 
         (-> code2 convert read-string)
