@@ -425,6 +425,10 @@
         ;; cleaning code from comments
         (str/replace #"/\*(\*(?!/)|[^*])*\*/" "")    ; /* ... */
         (str/replace #"(//).*" "")                   ; // ...
+
+        ;; new is optional
+        (str/replace "new " "")
+
         (str/replace str-pattern
                      (transform (comp substitute-curly-quotes decode))))))
 
