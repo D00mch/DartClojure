@@ -105,9 +105,14 @@
         substitute-$)))
 
 (defn- node->number [[tag value]]
-  (if (= tag :number)
-    (-> value (str/replace #"^\." "0.") read-string)
-    (throw (ex-info "node with wrong tag passed" {:tag tag}))))
+  (cond (not= tag :number)
+        (throw (ex-info "node with wrong tag passed" {:tag tag}))
+
+        (str/starts-with? value "0x")
+        (symbol value)
+
+        :else
+        (-> value (str/replace #"^\." "0.") read-string)))
 
 (declare ast->clj)
 

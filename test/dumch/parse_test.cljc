@@ -13,6 +13,20 @@
 (def ^:private dart->clj-string
   (comp z/string simplify ast->clj dart->ast))
 
+(deftest numbers-test
+  (testing "real numbers"
+    (is (= (dart->clojure "1") 1))
+    (is (= (dart->clojure "10.10") 10.1))
+    
+    (testing ": exponential"
+      (is (= (dart->clojure "1.0E03") 1000.0))
+      (is (= (dart->clojure "-1.23e+45") -1.23E45))))
+
+  (testing "colors"
+    ;; this test uses string because hex format is auto-converted to long 
+    (is (= (str (dart->clojure "new Color(0xFFE3F2FD)"))
+           "(Color 0xFFE3F2FD)"))))
+
 (deftest import-test
   (testing "import with 'hide'"
     (is (= (dart->clojure "import 'pkg:goog/maps.dart' hide LatLng")
@@ -417,8 +431,6 @@
            "(def ^:const bar 100)")))
   (testing "assign value with type with dot"
     (is (= (dart->clojure  "A.C<D> bar = 1;") '(def bar 1)))))
-
-
 
 (deftest var-declaration-test
   (let [code "var bar = 0;
