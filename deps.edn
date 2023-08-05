@@ -4,12 +4,12 @@
         instaparse/instaparse {:mvn/version "1.4.12"}
         org.clojure/clojure {:mvn/version "1.10.3"}
         org.clojure/tools.cli {:mvn/version "1.0.206"}
-        rewrite-clj/rewrite-clj {:mvn/version "1.0.767-alpha"}
-        zprint/zprint {:mvn/version "1.2.3"}}
+        rewrite-clj/rewrite-clj {:mvn/version "1.1.47"}
+        zprint/zprint {:mvn/version "1.2.7"}}
  :aliases
- {:build 
+ {:build
   ;; clj -T:build uber :version '"1.2.3"'
-  {:deps {io.github.clojure/tools.build 
+  {:deps {io.github.clojure/tools.build
           {:git/tag "v0.8.3"
            :git/sha "0d20256"}}
    :ns-default build}

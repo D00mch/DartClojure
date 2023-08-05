@@ -120,7 +120,7 @@
   (add-libs '{io.github.clojure/tools.build 
               {:git/tag "v0.8.3" :git/sha "0d20256"}})
 
-  (def version "0.2.14")
+  (def version "0.2.16")
   (update-versions version)
   (uber {:version version})
   (native {:version version})

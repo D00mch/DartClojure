@@ -130,13 +130,13 @@ Add Cli/deps:
 ```clojure
 {:deps
     {
-     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.15-SNAPSHOT"}
+     org.clojars.liverm0r/dartclojure {:mvn/version "0.2.16-SNAPSHOT"}
      }}
 ```
 
 Or Leiningen/Boot:
 ```clojure
-[org.clojars.liverm0r/dartclojure "0.2.15-SNAPSHOT"]
+[org.clojars.liverm0r/dartclojure "0.2.16-SNAPSHOT"]
 ```
 
 Convert dart code (simplify and wrap-nest under the hood):
@@ -168,7 +168,7 @@ If you just need to wrap clojure code with nest:
 
 ```bash
 clojure -Sdeps \
-'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.15-SNAPSHOT"}}}' \
+'{:deps {org.clojars.liverm0r/dartclojure {:mvn/version "0.2.16-SNAPSHOT"}}}' \
 -e "(require '[dumch.convert :refer [convert]]) (convert \"Text('1')\" .material \"m\" .flutter \"f\")"
 ```
 
@@ -312,9 +312,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 [1]: https://github.com/Tensegritics/ClojureDart/blob/main/doc/flutter-helpers.md#widget-macro
-[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.15-SNAPSHOT
+[2]: https://clojars.org/org.clojars.liverm0r/dartclojure/versions/0.2.16-SNAPSHOT
 [3]: https://www.jetbrains.com/help/idea/configuring-third-party-tools.html
-[4]: https://github.com/d00mch/DartClojure/releases/tag/0.2.15
+[4]: https://github.com/d00mch/DartClojure/releases/tag/0.2.16
 [5]: https://calva.io/clojuredart/
 [6]: https://marketplace.visualstudio.com/items?itemName=betterthantomorrow.calva
 [7]: https://www.reddit.com/r/Clojure/comments/vib5ie/how_to_translate_dart_to_clojuredart_inside/
