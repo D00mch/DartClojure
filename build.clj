@@ -33,7 +33,8 @@
 
 (defn publish-clojars [psw]
   (println "about to publish to clojars")
-  (cmd! "cp target/dartclj*.jar dartclj.jar")
+  (cmd! "cp target/dartclj-lib*.jar dartclj.jar")
+  (cmd! "clj -Spom")
   (cmd-prn! 
     (str
       "env CLOJARS_USERNAME=liverm0r"
@@ -42,13 +43,14 @@
   (println "published to clojars"))
 
 (defn uber-file [name version]
-  (format "target/%s-%s-standalone.jar" name version))
+  (format "target/%s-%s.jar" name version))
 
 (defn clean [_]
   (b/delete {:path target}))
 
 (defn uber [{:keys [version] :as params}]
-  (println "getting params: " params)
+  (println "uber, getting params: " params)
+  (clean nil)
   (b/copy-dir {:src-dirs ["src" "resources"]
                :target-dir class-dir})
   (b/compile-clj {:basis basis
@@ -58,6 +60,20 @@
            :uber-file (uber-file "dartclj" version)
            :basis basis
            :main  'dumch.dartclojure}))
+
+(defn jar [{:keys [version] :as params}]
+  (println "jar, getting params: " params)
+  (clean nil)
+  (b/copy-dir {:src-dirs ["src" "resources"]
+               :target-dir class-dir})
+  (b/write-pom {:class-dir class-dir
+                :lib 'org.clojars.liverm0r/dartclojure
+                :version version
+                :basis basis
+                :src-dirs ["src"]})
+  (b/jar {:class-dir class-dir
+          :main 'dumch.dartclojure
+          :jar-file (uber-file "dartclj-lib" version)}))
 
 ;; # Native
 
@@ -110,7 +126,7 @@
 (defn release [{:keys [version clojarspass] :as params}]
   (clean nil)
   (update-versions version)
-  (uber params)
+  (jar params)
   (publish-clojars clojarspass)
   (native params)
   (rebuild-and-publish-npm))
@@ -120,8 +136,9 @@
   (add-libs '{io.github.clojure/tools.build 
               {:git/tag "v0.8.3" :git/sha "0d20256"}})
 
-  (def version "0.2.16")
+  (def version "0.2.22")
   (update-versions version)
   (uber {:version version})
+  (jar {:version version})
   (native {:version version})
   ,)

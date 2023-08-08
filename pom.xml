@@ -3,9 +3,9 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.clojars.liverm0r</groupId>
   <artifactId>dartclojure</artifactId>
-  <version>0.2.16-SNAPSHOT</version>
+  <version>0.2.22-SNAPSHOT</version>
   <name>dumch/dartclojure</name>
-  <description>Opinionated Dart->Clojure translater</description>
+  <description>Opinionated Dart-&gt;Clojure translater</description>
   <url>https://github.com/Liverm0r/dartclojure</url>
   <licenses>
     <license>
@@ -30,6 +30,36 @@
       <artifactId>clojure</artifactId>
       <version>1.10.3</version>
     </dependency>
+    <dependency>
+      <groupId>better-cond</groupId>
+      <artifactId>better-cond</artifactId>
+      <version>2.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.clj-easy</groupId>
+      <artifactId>graal-build-time</artifactId>
+      <version>0.1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>tools.cli</artifactId>
+      <version>1.0.206</version>
+    </dependency>
+    <dependency>
+      <groupId>rewrite-clj</groupId>
+      <artifactId>rewrite-clj</artifactId>
+      <version>1.1.47</version>
+    </dependency>
+    <dependency>
+      <groupId>instaparse</groupId>
+      <artifactId>instaparse</artifactId>
+      <version>1.4.12</version>
+    </dependency>
+    <dependency>
+      <groupId>zprint</groupId>
+      <artifactId>zprint</artifactId>
+      <version>1.2.7</version>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -38,10 +68,6 @@
     <repository>
       <id>clojars</id>
       <url>https://repo.clojars.org/</url>
-    </repository>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
   <distributionManagement>

@@ -1,7 +1,7 @@
 {
   "name": "dartclojure",
   "description": "Opinionated Dart to Clojure converter for Flutter widgets.",
-  "version": "0.2.16",
+  "version": "0.2.22",
   "publisher": "liverm0r",
   "author": {
     "name": "Artur Dumchev",
@@ -26,6 +26,6 @@
     "shadow-cljs": "^2.19.3"
   },
   "dependencies": {
-    "dartclojure": "^0.2.16"
+    "dartclojure": "^0.2.22"
   }
 }
