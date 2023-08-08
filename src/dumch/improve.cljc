@@ -22,7 +22,7 @@
          rslt []]
     (if-let [child (-> zloc z/down (z/find-value z/right '.child))]
       (recur (-> child z/right) (conj rslt (remove-child-named-arg zloc)))
-      (z/edn
+      (z/of-node
         (n/list-node (lists* (n/token-node (symbol (str (when fl (str fl "/")) "widget"))) 
                              (map z/node (conj rslt zloc))))))))
 
@@ -62,7 +62,7 @@
 
 (defn simplify [node & {fl :flutter, m :material :or {fl "f", m "m"}}]
   (-> node 
-      z/edn
+      z/of-node
       (z/postwalk 
         (fn [zloc]
           (b/cond 
