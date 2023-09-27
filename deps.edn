@@ -8,10 +8,9 @@
         zprint/zprint {:mvn/version "1.2.7"}}
  :aliases
  {:build
-  ;; clj -T:build uber :version '"1.2.3"'
-  {:deps {io.github.clojure/tools.build
-          {:git/tag "v0.8.3"
-           :git/sha "0d20256"}}
+  {:extra-deps {io.github.clojure/tools.build
+                {:git/url "https://github.com/clojure/tools.build"
+                 :git/sha "32d497f4f1ad07cb1dfa0855ada9e9cf17abff48"}}
    :ns-default build}
   :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.1"}}
            :exec-fn deps-deploy.deps-deploy/deploy
