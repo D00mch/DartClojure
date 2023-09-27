@@ -246,7 +246,7 @@ Add the following elisp function to your Emacs configuration (e.g. `init.el` or 
      t)))
 ```
 
-Then select the code you want to convert in a given region and just run =M-x dartclj= to convert the code
+Then select the code you want to convert in a given region and just run `M-x dartclj` to convert the code
 
 ### API with npm CLI
 
