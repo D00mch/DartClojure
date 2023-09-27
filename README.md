@@ -225,6 +225,27 @@ Same api as with jar:
 If there is no build for your architecture on [release page][4],
 see how to build it with graalvm below.
 
+### Api with native image via Emacs
+
+Asssume that you have the `dartclj` in your `PATH`.
+
+Add the following elisp function to your Emacs configuration (e.g. `init.el` or `functions.el`, etc)
+
+``` emacs-lisp
+(defun dartclj ()
+  (interactive)
+  (let ((region (buffer-substring-no-properties (region-beginning) (region-end))))
+    (shell-command-on-region
+     (region-beginning)
+     (region-end)
+     (concat  "dartclj" " " (shell-quote-argument region))
+     (current-buffer)
+     t
+     "*dartclj error buffer*"
+     t)))
+```
+
+Then select the code you want to convert in a given region and just run =M-x dartclj= to convert the code
 
 ### API with npm CLI
 
