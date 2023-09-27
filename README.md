@@ -15,8 +15,9 @@ There are 7 options now:
 4. [Clojure Cli;](https://github.com/d00mch/DartClojure/#api-from-cli)
 5. [Jar;](https://github.com/d00mch/DartClojure/#api-with-jar)
 6. [Native image;](https://github.com/d00mch/DartClojure/#api-with-native-image)
-7. [NPM CLI;](https://github.com/d00mch/DartClojure/#api-with-npm-cli)
-8. [NPM library;](https://github.com/d00mch/DartClojure/#api-with-npm-library)
+7. [Native image, emacs;](https://github.com/D00mch/DartClojure#api-with-native-image-via-emacs)
+8. [NPM CLI;](https://github.com/d00mch/DartClojure/#api-with-npm-cli)
+9. [NPM library;](https://github.com/d00mch/DartClojure/#api-with-npm-library)
 
 ## Why is it  not a full dart->clojure converter?
 
@@ -225,9 +226,9 @@ Same api as with jar:
 If there is no build for your architecture on [release page][4],
 see how to build it with graalvm below.
 
-### Api with native image via Emacs
+### API with native image via Emacs
 
-Asssume that you have the `dartclj` in your `PATH`.
+Assume that you have the `dartclj` in your `PATH`.
 
 Add the following elisp function to your Emacs configuration (e.g. `init.el` or `functions.el`, etc)
 
