@@ -230,29 +230,7 @@ see how to build it with graalvm below.
 
 ### API with native image via Emacs
 
-
-
-Assume that you have the `dartclojure` in your `PATH`.
-
-Add the following elisp function to your Emacs configuration (e.g. `init.el` or `functions.el`, etc)
-
-``` emacs-lisp
-(defun dartclojure()
-  (interactive)
-  (let ((region (buffer-substring-no-properties (region-beginning) (region-end))))
-    (shell-command-on-region
-     (region-beginning)
-     (region-end)
-     (concat  "dartclojure" " " (shell-quote-argument region))
-     (current-buffer)
-     t
-     "*dartclojure error buffer*"
-     t)))
-```
-
-Then select the code you want to convert in a given region and just run `M-x dartclojure` to convert the code.
-
-Or you can use the Emacs package from [dartclojure.el](https://github.com/burinc/dartclojure.el) via your favorite Emacs package manager.
+You can use the Emacs package from [dartclojure.el](https://github.com/burinc/dartclojure.el) via your favorite Emacs package manager.
 
 ### API with npm CLI
 
