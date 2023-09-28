@@ -15,7 +15,7 @@
   :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "0.2.1"}}
            :exec-fn deps-deploy.deps-deploy/deploy
            :exec-args {:installer :remote
-                       :artifact "dartclj.jar"}}
+                       :artifact "dartclojure.jar"}}
   :test {:extra-paths ["test"]
          :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
                       io.github.cognitect-labs/test-runner

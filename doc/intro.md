@@ -3,7 +3,7 @@
 Get jar and run it like:
 
 ```bash
-java -jar dartclj.jar "Text('text')"
+java -jar dartclojure.jar "Text('text')"
 ```
 
 Or load a library in jvm repl and run like:

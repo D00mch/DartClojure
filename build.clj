@@ -33,7 +33,7 @@
 
 (defn publish-clojars [psw]
   (println "about to publish to clojars")
-  (cmd! "cp target/dartclj-lib*.jar dartclj.jar")
+  (cmd! "cp target/dartclojure-lib*.jar dartclojure.jar")
   (cmd! "clj -Spom")
   (cmd-prn! 
     (str
@@ -57,7 +57,7 @@
                   :src-dirs ["src"]
                   :class-dir class-dir})
   (b/uber {:class-dir class-dir
-           :uber-file (uber-file "dartclj" version)
+           :uber-file (uber-file "dartclojure" version)
            :basis basis
            :main  'dumch.dartclojure}))
 
@@ -73,7 +73,7 @@
                 :src-dirs ["src"]})
   (b/jar {:class-dir class-dir
           :main 'dumch.dartclojure
-          :jar-file (uber-file "dartclj-lib" version)}))
+          :jar-file (uber-file "dartclojure-lib" version)}))
 
 ;; # Native
 
@@ -90,18 +90,18 @@
 
   (cmd-prn! "docker build --pull --no-cache --tag dartclojure .")
   (println "test command")
-  (cmd-prn! "docker run --name dc -i dartclojure ./dartclj \"1+1;\"")
+  (cmd-prn! "docker run --name dc -i dartclojure ./dartclojure \"1+1;\"")
   (cmd-prn!
-    (str "docker cp dc:/usr/src/app/dartclj \"target/dartclj-" 
+    (str "docker cp dc:/usr/src/app/dartclojure \"target/dartclojure-" 
          version
          "-aarch64-linux\"")))
 
 (defn build-aaar64-darwin [version]
   (cmd! "pwd")
-  (cmd! "cp target/dartclj*.jar dartclj.jar")
+  (cmd! "cp target/dartclojure*.jar dartclojure.jar")
   (cmd! "chmod +x compile.sh")
   (cmd-prn! "./compile.sh")
-  (cmd-prn! (str "mv dartclj target/dartclj-" version "-aarch64-darwin")))
+  (cmd-prn! (str "mv dartclojure target/dartclojure-" version "-aarch64-darwin")))
 
 (defn native [{:keys [version]}]
   (build-aaar64-darwin version)

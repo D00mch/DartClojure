@@ -113,7 +113,7 @@ Preferences —> Tools —> External Tools —> +
 `Program`: any terminal command. For example, if you have npm, install
 dartclojure globally and put `dartclojure` in the `Program` field. If you
 downloaded native image, put path to native image here:
-`/Users/PcName/Downloads/dartclj-aarch64-darwin`
+`/Users/PcName/Downloads/dartclojure-aarch64-darwin`
 
 `Arguments`: `"$SelectedText$"` 
 
@@ -178,7 +178,7 @@ clojure -Sdeps \
 There are two ways to interact with the [jar][4]. First one is to run it each time:
 
 ```
-$ java -jar dartclj.jar "Divider(
+$ java -jar dartclojure.jar "Divider(
     height: 0,
     color: Colors.grey,
 )"
@@ -188,7 +188,7 @@ $ java -jar dartclj.jar "Divider(
 
 Second one is to run repl-like console (and send code into it with your editor/idea):
 ```
-$ java -jar dartclj.jar -r true -m "material"
+$ java -jar dartclojure.jar -r true -m "material"
 Paste dart code below, press enter and see the result:
 
 Divider(
@@ -205,48 +205,54 @@ Colors are also supported:
 
 For example, you may start the repl-like console app with -e key:
 ```
-$ java -jar dartclj.jar -r true -e :end
+$ java -jar dartclojure.jar -r true -e :end
 ```
 
 For all the arguments see:
 ```bash
-$ java -jar dartclj.jar -h
+$ java -jar dartclojure.jar -h
 ```
 
 ### API with native image:
 
 Same api as with jar:
 
-    ./dartclj -h
+    ./dartclojure -h
 
-    ./dartclj "Text('a')" -m "m"
+    ./dartclojure "Text('a')" -m "m"
 
-    ./dartclj --path main.dart
+    ./dartclojure --path main.dart
+
+    ./dartclojure -r true
 
 If there is no build for your architecture on [release page][4],
 see how to build it with graalvm below.
 
 ### API with native image via Emacs
 
-Assume that you have the `dartclj` in your `PATH`.
+
+
+Assume that you have the `dartclojure` in your `PATH`.
 
 Add the following elisp function to your Emacs configuration (e.g. `init.el` or `functions.el`, etc)
 
 ``` emacs-lisp
-(defun dartclj ()
+(defun dartclojure()
   (interactive)
   (let ((region (buffer-substring-no-properties (region-beginning) (region-end))))
     (shell-command-on-region
      (region-beginning)
      (region-end)
-     (concat  "dartclj" " " (shell-quote-argument region))
+     (concat  "dartclojure" " " (shell-quote-argument region))
      (current-buffer)
      t
-     "*dartclj error buffer*"
+     "*dartclojure error buffer*"
      t)))
 ```
 
-Then select the code you want to convert in a given region and just run `M-x dartclj` to convert the code
+Then select the code you want to convert in a given region and just run `M-x dartclojure` to convert the code.
+
+Or you can use the Emacs package from [dartclojure.el](https://github.com/burinc/dartclojure.el) via your favorite Emacs package manager.
 
 ### API with npm CLI
 
@@ -291,8 +297,8 @@ Run tests:
 Run docker, build graalvm image:
 
     $ docker build --tag dartclojure .
-    $ docker run --name dc -it dartclojure ./dartclj "Text('should work')"
-    $ docker cp dc:/usr/src/app/dartclj .
+    $ docker run --name dc -it dartclojure ./dartclojure "Text('should work')"
+    $ docker cp dc:/usr/src/app/dartclojure.
 
 Compile native image with graalvm locally:
 

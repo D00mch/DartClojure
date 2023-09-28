@@ -30,8 +30,8 @@
 # Native
 /META-INF
 /reports
-dartclj-*-aarch64-darwin
-dartclj-*-aarch64-linux
+dartclojure-*-aarch64-darwin
+dartclojure-*-aarch64-linux
 
 # Lint
 .clj-kondo/*
