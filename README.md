@@ -266,7 +266,7 @@ const clojureCode = converter.convert("Text('a')");
 
 Build jar:
 
-    $ clj -X:depstar
+    $ clj -T:build uber :version '"0.2.22"'
 
 Run tests:
 
@@ -274,7 +274,8 @@ Run tests:
 
 Run docker, build graalvm image:
 
-    $ docker build --tag dartclojure .
+    $ cp target/dartclojure*.jar dartclojure.jar 
+    $ docker build --pull --no-cache --tag dartclojure .
     $ docker run --name dc -it dartclojure ./dartclojure "Text('should work')"
     $ docker cp dc:/usr/src/app/dartclojure.
 
