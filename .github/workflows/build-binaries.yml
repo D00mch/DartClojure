@@ -34,8 +34,8 @@ jobs:
           # Install just one or all simultaneously
           # The value must indicate a particular version of the tool, or use 'latest'
           # to always provision the latest version
-          # cli: 1.11.1.1413
-          lein: 2.10.0
+          cli: 1.11.1.1413
+          # lein: 2.10.0
 
       - name: Get version from package.json
         id: package_version
