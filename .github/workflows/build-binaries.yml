@@ -1,0 +1,58 @@
+name: GraalVM Native Image builds
+on:
+  # release:
+  #   types: [created]
+  push:
+    branches:
+      - develop
+jobs:
+  build:
+    name: Build binaries with ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      # - uses: graalvm/setup-graalvm@v1
+      #   with:
+      #     java-version: '21'
+      #     distribution: 'graalvm'
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     native-image-job-reports: 'true'
+
+      - name: Prepare java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Get latest release version
+        id: latest_version
+        run: |
+          VERSION=$(curl --silent "https://api.github.com/repos/D00mch/DartClojure/releases/latest" | jq -r .tag_name)
+          echo "LATEST_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Build jar and native
+        run: |
+          clj -T:build uber :version '"${{ env.LATEST_VERSION }}"'
+          # cp target/dartclojure*.jar dartclojure.jar
+          # chmod +x compile.sh
+          # ./compile
+
+      # - name: Upload binary
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: dartclojure-${{ matrix.os }}
+      #     path: dartclojure*
+
+      # - name: Create Release and Upload Binaries
+      #   uses: gh-actions/gh-release@v1
+      #   with:
+      #     tag_name: ${{ github.ref }}
+      #     name: Release ${{ github.ref }}
+      #     body: Description of the release
+      #     draft: false
+      #     prerelease: false
+      #     files: ./helloworld*

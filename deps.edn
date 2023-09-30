@@ -1,6 +1,6 @@
 {:paths ["src" "resources"]
  :deps {better-cond/better-cond {:mvn/version "2.1.4"}
-        com.github.clj-easy/graal-build-time {:mvn/version "0.1.4"}
+        com.github.clj-easy/graal-build-time {:mvn/version "1.0.5"}
         instaparse/instaparse {:mvn/version "1.4.12"}
         org.clojure/clojure {:mvn/version "1.10.3"}
         org.clojure/tools.cli {:mvn/version "1.0.206"}
@@ -8,6 +8,7 @@
         zprint/zprint {:mvn/version "1.2.7"}}
  :aliases
  {:build
+  ;; clj -T:build uber :version '"0.2.22"'
   {:extra-deps {io.github.clojure/tools.build
                 {:git/url "https://github.com/clojure/tools.build"
                  :git/sha "32d497f4f1ad07cb1dfa0855ada9e9cf17abff48"}}
