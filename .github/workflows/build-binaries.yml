@@ -56,7 +56,7 @@ jobs:
           lein uberjar
           cp target/dartclojure*stand*.jar dartclojure.jar
           chmod +x compile.sh
-          ./compile
+          ./compile.sh
 
       - name: Upload binary
         uses: actions/upload-artifact@v2
