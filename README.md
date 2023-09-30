@@ -1,5 +1,7 @@
 # DartClojure
 
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.liverm0r/dartclojure.svg)](https://clojars.org/org.clojars.liverm0r/dartclojure)
+
 Opinionated Dart to Clojure converter for Flutter widgets.
 It doesn't (and probably will not) convert classes, setters, annotations —
 only the part that could be reused after translation.
