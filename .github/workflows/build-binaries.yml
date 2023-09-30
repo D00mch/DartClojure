@@ -62,22 +62,21 @@ jobs:
           name: dartclojure-${{ matrix.os }}
           path: dartclojure*
 
-      - name: Create release
-        uses: Roang-zero1/github-create-release-action@v2
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.LATEST_VERSION }}
           release_name: Release ${{ env.LATEST_VERSION }}
-          body: |
-            Changes in this Release:
-            - temp
           draft: true
           prerelease: false
-
-      - name: Upload release artifacts
-        uses: Roang-zero1/github-upload-release-artifacts-action@v2
-        with:
-          args: "dartclojure*"
+      - name: Attach binaries to release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          assets=()
+          assets+=("-a" "dartclojure")
+          hub release edit "${assets[@]}" -m "Release ${{env.LATEST_VERSION}}" ${{env.LATEST_VERSION}} # add the assets to the Release
