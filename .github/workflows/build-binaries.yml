@@ -22,6 +22,7 @@ jobs:
           prerelease: false
 
   build-and-upload:
+    needs: create-release
     name: Build and upload binaries with ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
