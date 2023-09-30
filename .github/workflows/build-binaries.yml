@@ -45,7 +45,7 @@ jobs:
 
       - name: Build jar and native
         run: |
-          clojure -T:build uber :version '"${{ github.ref }}"'
+          clojure -T:build uber :version '"${{ github.ref#refs/tags/ }}"'
           cp target/dartclojure*.jar dartclojure.jar
           chmod +x compile.sh
           ./compile.sh
