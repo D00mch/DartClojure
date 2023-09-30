@@ -39,8 +39,15 @@ jobs:
       - name: Get latest release version
         id: latest_version
         run: |
-          VERSION=$(curl --silent "https://api.github.com/repos/D00mch/DartClojure/releases/latest" | jq -r .tag_name)
+          if [[ "$RUNNER_OS" == "Windows_NT" ]]; then
+            VERSION=$(Invoke-RestMethod -Uri "https://api.github.com/repos/D00mch/DartClojure/releases/latest" | Select-Object -ExpandProperty tag_name)
+          else
+            VERSION=$(curl --silent "https://api.github.com/repos/D00mch/DartClojure/releases/latest" | jq -r .tag_name)
+          fi
           echo "LATEST_VERSION=$VERSION" >> $GITHUB_ENV
+        shell: bash
+        env:
+          RUNNER_OS: ${{ runner.os }}
 
       - name: Build jar and native
         run: |
