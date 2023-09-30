@@ -78,4 +78,4 @@ jobs:
           assets=()
           assets+=("-a" dartclojure*)
           githubref=${{ steps.get_version.outputs.version-without-v }}
-          hub release edit "${assets[@]}" -m githubref githubref
+          hub release edit "${assets[@]}" -m $githubref $githubref
