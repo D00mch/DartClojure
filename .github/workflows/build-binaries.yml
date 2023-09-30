@@ -44,7 +44,7 @@ jobs:
       - name: Build jar and native
         run: |
           clojure -T:build uber :version '"${{ env.LATEST_VERSION }}"'
-          cp target/dartclojure*stand*.jar dartclojure.jar
+          cp target/dartclojure*.jar dartclojure.jar
           chmod +x compile.sh
           ./compile.sh
 
