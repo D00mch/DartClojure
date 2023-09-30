@@ -77,4 +77,5 @@ jobs:
           set -x
           assets=()
           assets+=("-a" "dartclojure")
-          hub release edit "${assets[@]}" -m "Release ${{ github.ref }}" ${{ github.ref }} # add the assets to the Release
+          githubref=${{ github.ref }}   # get the github.ref value
+          hub release edit "${assets[@]}" -m "${githubref##*/}" "${githubref##*/}"   # specify tag name not the github.ref here.
