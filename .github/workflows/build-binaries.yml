@@ -37,23 +37,13 @@ jobs:
           # cli: 1.11.1.1413
           lein: 2.10.0
 
-      # - name: Get latest release version
-      #   id: latest_version
-      #   run: |
-      #     if [[ "$RUNNER_OS" == "Windows_NT" ]]; then
-      #       VERSION=$(Invoke-RestMethod -Uri "https://api.github.com/repos/D00mch/DartClojure/releases/latest" | Select-Object -ExpandProperty tag_name)
-      #     else
-      #       VERSION=$(curl --silent "https://api.github.com/repos/D00mch/DartClojure/releases/latest" | jq -r .tag_name)
-      #     fi
-      #     echo "LATEST_VERSION=$VERSION" >> $GITHUB_ENV
-      #   shell: bash
-      #   env:
-      #     RUNNER_OS: ${{ runner.os }}
+      - name: Get version from package.json
+        id: package_version
+        run: echo "LATEST_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
 
       - name: Build jar and native
         run: |
-          # clojure -T:build uber :version '"${{ env.LATEST_VERSION }}"'
-          lein uberjar
+          clojure -T:build uber :version '"${{ env.LATEST_VERSION }}"'
           cp target/dartclojure*stand*.jar dartclojure.jar
           chmod +x compile.sh
           ./compile.sh
@@ -64,12 +54,12 @@ jobs:
           name: dartclojure-${{ matrix.os }}
           path: dartclojure*
 
-#       - name: Create Release and Upload Binaries
-#         uses: gh-actions/gh-release@v1
-#         with:
-#           tag_name: ${{ github.ref }}
-#           name: Release ${{ github.ref }}
-#           body: Description of the release
-#           draft: false
-#           prerelease: false
-#           files: ./dartclojure*
+      - name: Create Release and Upload Binaries
+        uses: gh-actions/gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release ${{ env.LATEST_VERSION }}
+          body: Description of the release
+          draft: false
+          prerelease: true
+          files: ./dartclojure*

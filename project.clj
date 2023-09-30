@@ -1,4 +1,4 @@
-(defproject dartclojure "0.2.22"
+(defproject dartclojure "0.2.23-SNAPSHOT"
   :license {:name "EPL-2.0"
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.3"]
