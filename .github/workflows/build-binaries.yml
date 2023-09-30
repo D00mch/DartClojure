@@ -22,6 +22,9 @@ jobs:
             exit 1
           fi
 
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
       - uses: actions/checkout@v4
 
       - uses: graalvm/setup-graalvm@v1
@@ -45,7 +48,7 @@ jobs:
 
       - name: Build jar and native
         run: |
-          clojure -T:build uber :version '"${{ github.ref#refs/tags/ }}"'
+          clojure -T:build uber :version '"${{ steps.get_version.outputs.version-without-v }}"'
           cp target/dartclojure*.jar dartclojure.jar
           chmod +x compile.sh
           ./compile.sh
