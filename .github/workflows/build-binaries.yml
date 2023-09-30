@@ -68,7 +68,7 @@ jobs:
           cp target/dartclojure*.jar dartclojure.jar
           chmod +x compile.sh
           ./compile.sh
-          cp dartclojure "dartclojure-${{ matrix.os }}"
+          mv dartclojure "dartclojure-native-${{ matrix.os }}"
 
       - name: Attach binaries to release
         env:
@@ -77,6 +77,6 @@ jobs:
           set -x
           ls -l
           assets=()
-          assets+=("-a" dartclojure*)
+          assets+=("-a" dartclojure-native-*)
           githubref=${{ steps.get_version.outputs.version-without-v }}
           hub release edit "${assets[@]}" -m $githubref $githubref
