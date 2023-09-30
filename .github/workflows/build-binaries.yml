@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - develop
+    tags:
+      - '*'
 jobs:
   build:
     name: Build binaries with ${{ matrix.os }}
@@ -13,6 +15,15 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest] # windows-latest, 
     steps:
+      - name: Check for tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "This is a tagged push."
+          else
+            echo "This is not a tagged push."
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
 
       # - uses: graalvm/setup-graalvm@v1
