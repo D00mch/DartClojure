@@ -1,0 +1,101 @@
+name: GraalVM Native Image builds
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  create-release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  build-and-upload:
+    needs: create-release
+    name: Build and upload binaries with ${{ matrix.os }}
+    runs-on: ${{ matrix.os.host }}
+    strategy:
+      matrix:
+        os:
+          - name: macos-latest 
+            architecture: x86-64
+            host: macos-latest
+
+          - name: macos-latest 
+            architecture: arm64
+            host: macos-latest
+
+          - name: openbsd
+            architecture: arm64
+            host: ubuntu-latest
+
+          - name: netbsd
+            architecture: x86-64
+            host: ubuntu-latest
+
+    steps:
+      - name: Check for tag
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "This is a tagged push."
+          else
+            echo "This is not a tagged push."
+            exit 1
+          fi
+
+      - name: Check OS name
+        run: |
+          echo "os name is: ${{ matrix.os.architecture }} ${{ matrix.os.host }} "
+
+      - id: get_version
+        uses: battila7/get-version-action@v2
+
+      - uses: actions/checkout@v4
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      - name: Prepare java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@12.1
+        with:
+          cli: 1.11.1.1413
+          # lein: 2.10.0
+
+      - name: Build jar and native
+        run: |
+          clojure -T:build uber :version '"${{ steps.get_version.outputs.version-without-v }}"'
+          cp target/dartclojure*.jar dartclojure.jar
+          chmod +x compile.sh
+          ./compile.sh
+          mv dartclojure "dartclojure-${{ matrix.os.host }}-${{ matrix.os.architecture }}"
+
+      - name: Attach binaries to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          ls -l
+          assets=()
+          assets+=("-a" dartclojure*latest*)
+          githubref=${{ steps.get_version.outputs.version-without-v }}
+          hub release edit "${assets[@]}" -m $githubref $githubref
