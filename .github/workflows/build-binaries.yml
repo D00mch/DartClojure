@@ -6,7 +6,7 @@ on:
     tags:
       - '*'
 jobs:
-  build:
+  create-release:
     name: Create release
     runs-on: ubuntu-latest
     steps:
@@ -21,7 +21,7 @@ jobs:
           draft: true
           prerelease: false
 
-  build:
+  build-and-upload:
     name: Build and upload binaries with ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
