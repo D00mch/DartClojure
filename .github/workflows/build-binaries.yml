@@ -49,12 +49,7 @@ jobs:
           cp target/dartclojure*.jar dartclojure.jar
           chmod +x compile.sh
           ./compile.sh
-
-      - name: Upload binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: dartclojure-${{ matrix.os }}
-          path: dartclojure*
+          cp dartclojure "dartclojure-${{ matrix.os }}"
 
       - name: Create Release
         id: create_release
@@ -72,6 +67,6 @@ jobs:
         run: |
           set -x
           assets=()
-          assets+=("-a" "dartclojure")
+          assets+=("-a" "dartclojure*")
           githubref=${{ github.ref }}   # get the github.ref value
           hub release edit "${assets[@]}" -m "${githubref##*/}" "${githubref##*/}"   # specify tag name not the github.ref here.
