@@ -69,7 +69,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -x
+          ls -l
           assets=()
-          assets+=("-a" "dartclojure*")
+          assets+=("-a" dartclojure*)
           githubref=${{ github.ref }}   # get the github.ref value
           hub release edit "${assets[@]}" -m "${githubref##*/}" "${githubref##*/}"   # specify tag name not the github.ref here.
