@@ -68,8 +68,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.LATEST_VERSION }}
-          release_name: Release ${{ env.LATEST_VERSION }}
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           draft: true
           prerelease: false
       - name: Attach binaries to release
@@ -79,4 +79,4 @@ jobs:
           set -x
           assets=()
           assets+=("-a" "dartclojure")
-          hub release edit "${assets[@]}" -m "Release ${{env.LATEST_VERSION}}" ${{env.LATEST_VERSION}} # add the assets to the Release
+          hub release edit "${assets[@]}" -m "Release ${{ github.ref }}" ${{ github.ref }} # add the assets to the Release
