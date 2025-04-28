@@ -10,7 +10,7 @@ only the part that could be reused after translation.
 
 ## How to use
 
-There are 7 options now:
+There are 9 options now:
 1. [Calva (VSCode);](https://github.com/d00mch/DartClojure/#api-from-calva)
 2. [Intellij Idea;](https://github.com/d00mch/DartClojure/#api-from-intellij-idea)
 3. [Jvm/Js REPL;](https://github.com/d00mch/DartClojure/#api-from-jvmjs-repl)
